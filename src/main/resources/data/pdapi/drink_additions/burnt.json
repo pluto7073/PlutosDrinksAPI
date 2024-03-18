@@ -1,0 +1,16 @@
+{
+  "maxAmount": 1,
+  "onDrinkActions": [
+    {
+      "type": "pdapi:deal_damage",
+      "amount": 2,
+      "source": "minecraft:on_fire"
+    },
+    {
+      "type": "pdapi:apply_status_effect",
+      "effect": "minecraft:hunger",
+      "duration": 1200,
+      "amplifier": 0
+    }
+  ]
+}

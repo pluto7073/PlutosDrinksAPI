@@ -1,0 +1,10 @@
+{
+  "type": "pdapi:drink_workstation",
+  "base": {
+    "tag": "pdapi:workstation_drinks"
+  },
+  "addition": {
+    "item": "minecraft:diamond"
+  },
+  "result": "pdapi:diamond"
+}

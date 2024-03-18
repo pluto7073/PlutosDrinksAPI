@@ -1,0 +1,11 @@
+{
+  "maxAmount": 1,
+  "onDrinkActions": [
+    {
+      "type": "pdapi:apply_status_effect",
+      "effect": "minecraft:fire_resistance",
+      "duration": 200,
+      "amplifier": 1
+    }
+  ]
+}

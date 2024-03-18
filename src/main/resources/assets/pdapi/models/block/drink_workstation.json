@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "minecraft:block/oak_planks",
+    "north": "pdapi:block/drink_workstation_front_back",
+    "south": "pdapi:block/drink_workstation_side",
+    "east": "pdapi:block/drink_workstation_side",
+    "west": "pdapi:block/drink_workstation_front_back",
+    "up": "minecraft:block/smithing_table_top",
+    "down": "pdapi:block/drink_workstation_bottom"
+  }
+}

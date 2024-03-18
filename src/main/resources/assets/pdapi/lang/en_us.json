@@ -1,0 +1,17 @@
+{
+  "tooltip.pdapi.caffeine_content": "Contains %1$smg of Caffeine",
+  "container.drink_workstation": "Drink Workstation",
+  "block.plutoscoffee.coffee_workstation": "Drink Workstation",
+  "item.plutoscoffee.milk_bottle": "Milk Bottle",
+  "drink_addition.pdapi.milk": "Milk x%1$s",
+  "drink_addition.pdapi.sugar": "Sugar x%1$s",
+  "drink_addition.pdapi.ice": "Iced",
+  "drink_addition.pdapi.burnt": "Burnt",
+  "drink_addition.pdapi.chorus_fruit": "Chorus Syrup x%1$s",
+  "drink_addition.pdapi.glow_berries": "Glow Berries x%1$s",
+  "drink_addition.pdapi.honey": "Honey x%1$s",
+  "drink_addition.pdapi.diamond": "Diamond x%1$s",
+  "drink_addition.pdapi.netherite": "Netherite Ingot x%1$s",
+  "death.attack.caffeine_overdose": "%1$s drank too much caffeine",
+  "effect.pdapi.caffeine_overdose": "Caffeine Overdose"
+}

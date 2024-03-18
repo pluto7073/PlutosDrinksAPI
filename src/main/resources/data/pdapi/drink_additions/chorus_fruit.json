@@ -1,0 +1,10 @@
+{
+  "onDrinkActions": [
+    {
+      "type": "pdapi:chorus_teleport",
+      "maxRadius": 8
+    }
+  ],
+  "changesColor": true,
+  "color": 9109759
+}

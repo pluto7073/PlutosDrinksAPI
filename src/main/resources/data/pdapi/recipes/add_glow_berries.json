@@ -1,0 +1,10 @@
+{
+  "type": "pdapi:drink_workstation",
+  "base": {
+    "tag": "pdapi:workstation_drinks"
+  },
+  "addition": {
+    "item": "minecraft:glow_berries"
+  },
+  "result": "pdapi:glow_berries"
+}

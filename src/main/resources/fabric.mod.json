@@ -16,8 +16,23 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"ml.pluto7073.pdapi.PlutosDrinksAPI"
+			"ml.pluto7073.pdapi.PDAPI"
+		],
+		"client": [
+			"ml.pluto7073.pdapi.client.PDAPIClient"
 		]
+	},
+	"custom": {
+		"modmenu": {
+			"badges": [ "library" ],
+			"update_checker": true,
+			"parent": {
+				"id": "plutosdrinks",
+				"name": "Pluto's Drinks Series",
+				"description": "Every mod in the Pluto's Drinks collection",
+				"icon": "assets/pdapi/icon.png"
+			}
+		}
 	},
 	"mixins": [
 		"pdapi.mixins.json"
@@ -29,6 +44,7 @@
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"another-mod": "*"
+		"another-mod": "*",
+		"modmenu": "*"
 	}
 }

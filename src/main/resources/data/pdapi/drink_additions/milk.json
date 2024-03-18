@@ -1,0 +1,9 @@
+{
+  "changesColor": true,
+  "color": 15527148,
+  "onDrinkActions": [
+    {
+      "type": "pdapi:clear_harmful_effects"
+    }
+  ]
+}
