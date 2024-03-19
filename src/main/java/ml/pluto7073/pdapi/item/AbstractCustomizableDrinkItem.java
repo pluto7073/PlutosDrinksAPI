@@ -106,7 +106,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
 
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
-        float caffeine = 0;
+        float caffeine = getCaffeineContent(stack);
         DrinkAddition[] addIns = DrinkUtil.getAdditionsFromStack(stack);
         HashMap<Identifier, Integer> additionCounts = new HashMap<>();
         for (DrinkAddition addIn : addIns) {
