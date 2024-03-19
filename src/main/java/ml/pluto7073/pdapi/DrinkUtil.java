@@ -2,6 +2,7 @@ package ml.pluto7073.pdapi;
 
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
+import ml.pluto7073.pdapi.entity.PDTrackedData;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -12,6 +13,7 @@ import net.minecraft.nbt.NbtTypes;
 import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -82,7 +84,9 @@ public final class DrinkUtil {
     }
 
     public static void setPlayerCaffeine(PlayerEntity player, float caffeine) {
-        // TODO
+        player.getDataTracker().set(PDTrackedData.PLAYER_TICKS_SINCE_LAST_CAFFEINE, 0);
+        player.getDataTracker().set(PDTrackedData.PLAYER_CAFFEINE_AMOUNT, caffeine);
+        player.getDataTracker().set(PDTrackedData.PLAYER_ORIGINAL_CAFFEINE_AMOUNT, caffeine);
     }
 
     public static float calculateCaffeineDecay(int ticks, float originalCaffeine) {
@@ -91,7 +95,7 @@ public final class DrinkUtil {
     }
 
     public static float getPlayerCaffeine(PlayerEntity player) {
-        return 0; // TODO
+        return player.getDataTracker().get(PDTrackedData.PLAYER_CAFFEINE_AMOUNT);
     }
 
     public interface Converter<T extends NbtElement> {

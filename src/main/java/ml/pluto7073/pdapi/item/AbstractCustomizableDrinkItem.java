@@ -118,7 +118,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
                 additionCounts.put(id, ++count);
             } else additionCounts.put(id, 1);
         }
-        additionCounts.forEach((id, count) -> tooltip.add(Text.translatable(DrinkAdditions.REGISTRY.get(id).getTranslationKey(), count).formatted(Formatting.GRAY)));
+        additionCounts.forEach((id, count) -> tooltip.add(Text.translatable(DrinkAdditions.get(id).getTranslationKey(), count).formatted(Formatting.GRAY)));
         if (caffeine > 0) tooltip.add(Text.translatable("tooltip.pdapi.caffeine_content", caffeine).formatted(Formatting.AQUA));
     }
 
