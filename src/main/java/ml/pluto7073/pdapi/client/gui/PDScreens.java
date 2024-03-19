@@ -13,7 +13,7 @@ public final class PDScreens {
     public static void init() {}
 
     static {
-        WORKSTATION_HANDLER_TYPE = Registry.register(Registries.SCREEN_HANDLER, PDAPI.asId("drink_workstation"), new ScreenHandlerType<>(DrinkWorkstationScreenHandler::new, FeatureFlags.VANILLA_FEATURES));
+        WORKSTATION_HANDLER_TYPE = Registry.register(Registries.SCREEN_HANDLER, "plutoscoffee:coffee_workstation", new ScreenHandlerType<>(DrinkWorkstationScreenHandler::new, FeatureFlags.VANILLA_FEATURES));
     }
 
 }
