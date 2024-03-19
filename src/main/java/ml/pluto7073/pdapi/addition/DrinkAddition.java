@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.addition;
 
+import com.google.gson.JsonObject;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -16,13 +17,15 @@ public class DrinkAddition {
     private final int color;
     private final int caffeine;
     private final int maxAmount;
+    private final JsonObject originalData;
 
-    public DrinkAddition(OnDrink[] actions, boolean changesColor, int color, int caffeine, int maxAmount) {
+    public DrinkAddition(OnDrink[] actions, boolean changesColor, int color, int caffeine, int maxAmount, JsonObject originalData) {
         this.actions = actions;
         this.changesColor = changesColor;
         this.color = color;
         this.caffeine = caffeine;
         this.maxAmount = maxAmount;
+        this.originalData = originalData;
     }
 
     public void onDrink(ItemStack stack, World world, LivingEntity user) {
@@ -45,6 +48,10 @@ public class DrinkAddition {
 
     public int getMaxAmount() {
         return maxAmount;
+    }
+
+    public JsonObject asJsonObject() {
+        return originalData;
     }
 
     public String getTranslationKey() {
@@ -93,8 +100,8 @@ public class DrinkAddition {
             return this;
         }
 
-        public DrinkAddition build() {
-            return new DrinkAddition(actions.toArray(new OnDrink[0]), changesColor, color, caffeine, maxAmount);
+        public DrinkAddition build(JsonObject data) {
+            return new DrinkAddition(actions.toArray(new OnDrink[0]), changesColor, color, caffeine, maxAmount, data);
         }
 
     }
