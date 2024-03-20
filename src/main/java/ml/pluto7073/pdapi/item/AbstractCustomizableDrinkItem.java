@@ -111,7 +111,6 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
         HashMap<Identifier, Integer> additionCounts = new HashMap<>();
         for (DrinkAddition addIn : addIns) {
             if (addIn == DrinkAdditions.EMPTY) continue;
-            caffeine += addIn.getCaffeine();
             Identifier id = DrinkAdditions.getId(addIn);
             if (additionCounts.containsKey(id)) {
                 int count = additionCounts.get(id);
