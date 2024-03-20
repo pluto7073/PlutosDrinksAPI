@@ -75,6 +75,9 @@ publishing {
 		mavenJava(MavenPublication) {
 			from components.java
 		}
+		gpr(MavenPublication) {
+			from components.java
+		}
 	}
 
 	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
@@ -83,5 +86,13 @@ publishing {
 		// Notice: This block does NOT have the same function as the block in the top level.
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
+		maven {
+			name = "GitHubPackages"
+			url = url("https://maven.pkg.github.com/Pluto7073/PlutosDrinksAPI")
+			credentials {
+				username = System.getenv("GITHUB_USER")
+				password = System.getenv("GITHUB_TOKEN")
+			}
+		}
 	}
 }
