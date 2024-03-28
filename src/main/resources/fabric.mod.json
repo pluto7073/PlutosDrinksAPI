@@ -45,6 +45,7 @@
 	},
 	"suggests": {
 		"another-mod": "*",
-		"modmenu": "*"
+		"modmenu": "*",
+		"dehydration": "*"
 	}
 }

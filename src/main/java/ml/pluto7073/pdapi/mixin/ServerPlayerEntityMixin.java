@@ -1,9 +1,12 @@
 package ml.pluto7073.pdapi.mixin;
 
 import ml.pluto7073.pdapi.DrinkUtil;
+import ml.pluto7073.pdapi.crossmodfeatures.CrossModFeatures;
 import ml.pluto7073.pdapi.entity.PDTrackedData;
 import ml.pluto7073.pdapi.entity.effect.PDStatusEffects;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -74,6 +77,31 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntityMixin {
     @Inject(at = @At("TAIL"), method = "tick")
     public void pdapi$caffeineLevelEffects(CallbackInfo ci) {
         float caffeine = this.dataTracker.get(PDTrackedData.PLAYER_CAFFEINE_AMOUNT);
+
+        if (caffeine >= 100) {
+            this.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 600));
+        }
+        if (caffeine >= 150) {
+            this.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 600));
+        }
+        if (caffeine >= 300 && !this.hasStatusEffect(StatusEffects.HUNGER)) {
+            this.addStatusEffect(new StatusEffectInstance(StatusEffects.HUNGER, 600));
+        }
+        if (caffeine >= 400) {
+            CrossModFeatures.dehydration$AddThirstStatusEffect((ServerPlayerEntity) (Object) this, 600, 0, true);
+        }
+        if (caffeine >= 450) {
+            this.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 600, 1));
+        }
+        if (caffeine >= 500) {
+            this.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, 600));
+        }
+        if (caffeine >= 600) {
+            this.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 600, 1));
+        }
+        if (caffeine >= 700) {
+            this.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, 600, 1));
+        }
         if (caffeine >= 3000.0F && !getAbilities().creativeMode && !((ServerPlayerEntity) (Object) this).hasStatusEffect(PDStatusEffects.CAFFEINE_OVERDOSE)) {
             this.addStatusEffect(new StatusEffectInstance(PDStatusEffects.CAFFEINE_OVERDOSE, 20 * 60));
         }

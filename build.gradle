@@ -18,6 +18,8 @@ repositories {
 	// for more information about repositories.
 
 	maven { url "https://maven.terraformersmc.com/releases" }
+	maven { url "https://api.modrinth.com/maven" }
+	maven { url "https://maven.shedaniel.me/" }
 }
 
 loom {
@@ -39,6 +41,8 @@ dependencies {
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 
 	modApi "com.terraformersmc:modmenu:${project.modmenu_version}"
+	modApi "maven.modrinth:dehydration:${project.dehydration_version}"
+	modApi "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}"
 }
 
 processResources {
@@ -77,6 +81,25 @@ publishing {
 		// Notice: This block does NOT have the same function as the block in the top level.
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
+		maven {
+			url = System.getenv("PUBLISH_LOCATION")
+		}
+	}
 
+	publications {
+
+		mavenJava(MavenPublication) {
+			artifactId = 'pdapi'
+
+			from(components.java)
+			pom.withXml {
+				Node pom = asNode()
+				pom.dependencies.'*'.findAll() {
+					it.artifactId.text() == 'dehydration' || it.artifactId.text() == 'modmenu'
+				}.each() {
+					it.parent().remove(it)
+				}
+			}
+		}
 	}
 }
