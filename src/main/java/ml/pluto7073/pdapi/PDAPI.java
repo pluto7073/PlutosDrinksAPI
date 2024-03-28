@@ -3,6 +3,7 @@ package ml.pluto7073.pdapi;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.client.gui.PDScreens;
+import ml.pluto7073.pdapi.command.PDCommands;
 import ml.pluto7073.pdapi.entity.effect.PDStatusEffects;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.listeners.DrinkAdditionRegisterer;
@@ -26,6 +27,7 @@ public class PDAPI implements ModInitializer {
         PDBlocks.init();
         PDItems.init();
         PDStatusEffects.init();
+        PDCommands.init();
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new DrinkAdditionRegisterer());
 
