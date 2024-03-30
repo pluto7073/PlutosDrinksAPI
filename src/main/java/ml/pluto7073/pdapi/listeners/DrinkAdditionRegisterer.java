@@ -47,7 +47,7 @@ public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadL
             try (InputStream stream = entry.getValue().getInputStream()) {
                 JsonObject object = JsonHelper.deserialize(new InputStreamReader(stream));
 
-                DrinkAdditions.register(id, loadFromJson(id, object));
+                DrinkAdditions.register(id, loadFromJson(id, object), false);
                 i++;
             } catch (IOException e) {
                 PDAPI.LOGGER.error("Could not load Drink Addition " + id, e);

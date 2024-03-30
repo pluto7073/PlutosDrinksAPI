@@ -13,12 +13,18 @@ import java.util.Map;
 public class DrinkAdditions {
 
     private static final Map<Identifier, DrinkAddition> REGISTRY = new HashMap<>();
+    private static final Map<Identifier, DrinkAddition> STATIC_REGISTRY = new HashMap<>();
     public static final String ADDITIONS_NBT_KEY = "Additions";
 
     public static final DrinkAddition EMPTY = register(PDAPI.asId("empty"), new DrinkAddition(new OnDrink[0], false, 0, 0, 0, new JsonObject()));
 
     public static DrinkAddition register(Identifier id, DrinkAddition addition) {
+        return register(id, addition, true);
+    }
+
+    public static DrinkAddition register(Identifier id, DrinkAddition addition, boolean staticAdd) {
         REGISTRY.put(id, addition);
+        if (staticAdd) STATIC_REGISTRY.put(id, addition);
         return addition;
     }
 
@@ -37,7 +43,7 @@ public class DrinkAdditions {
 
     public static void resetRegistry() {
         REGISTRY.clear();
-        REGISTRY.put(PDAPI.asId("empty"), EMPTY);
+        REGISTRY.putAll(STATIC_REGISTRY);
     }
 
     public static boolean containsId(Identifier id) {
