@@ -23,6 +23,9 @@ public class DrinkAdditions {
     }
 
     public static DrinkAddition register(Identifier id, DrinkAddition addition, boolean staticAdd) {
+        if (containsId(id)) {
+            if (get(id).getCurrentWeight() >= addition.getCurrentWeight()) return get(id);
+        }
         REGISTRY.put(id, addition);
         if (staticAdd) STATIC_REGISTRY.put(id, addition);
         return addition;
@@ -34,7 +37,7 @@ public class DrinkAdditions {
                 return entry.getKey();
             }
         }
-        return null;
+        throw new IllegalArgumentException("Unregistered drink addition: " + addition.toString());
     }
 
     public static DrinkAddition get(Identifier id) {

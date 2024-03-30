@@ -58,18 +58,18 @@ public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadL
     }
 
     public static DrinkAddition loadFromJson(Identifier id, JsonObject object) {
-        DrinkAddition.Builder daBuilder = new DrinkAddition.Builder();
+        DrinkAddition.Builder builder = new DrinkAddition.Builder();
         if (object.has("caffeine")) {
-            daBuilder.caffeine(JsonHelper.getInt(object, "caffeine"));
+            builder.caffeine(JsonHelper.getInt(object, "caffeine"));
         }
         if (object.has("changesColor")) {
-            daBuilder.changesColor(JsonHelper.getBoolean(object, "changesColor"));
+            builder.changesColor(JsonHelper.getBoolean(object, "changesColor"));
         }
         if (object.has("color")) {
-            daBuilder.color(JsonHelper.getInt(object, "color"));
+            builder.color(JsonHelper.getInt(object, "color"));
         }
         if (object.has("maxAmount")) {
-            daBuilder.maxAmount(JsonHelper.getInt(object, "maxAmount"));
+            builder.maxAmount(JsonHelper.getInt(object, "maxAmount"));
         }
         if (object.has("onDrinkActions")) {
             JsonArray actionsArray = JsonHelper.getArray(object, "onDrinkActions");
@@ -87,11 +87,14 @@ public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadL
                     continue;
                 }
                 OnDrink action = template.parseJson(id, actionObject);
-                daBuilder.addAction(action);
+                builder.addAction(action);
             }
         }
+        if (object.has("weight")) {
+            builder.setWeight(JsonHelper.getInt(object, "weight"));
+        }
 
-        return daBuilder.build(object);
+        return builder.build(object);
     }
 
 }
