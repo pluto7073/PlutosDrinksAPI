@@ -75,11 +75,17 @@ public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadL
             JsonArray actionsArray = JsonHelper.getArray(object, "onDrinkActions");
             for (JsonElement e : actionsArray) {
                 if (!e.isJsonObject()) {
-                    PDAPI.LOGGER.warn("Non-JsonObject item in 'onDrinkActions' in Drink Action file: " + id);
+                    PDAPI.LOGGER.warn("Non-JsonObject item in 'onDrinkActions' in Drink Addition file: " + id);
                     continue;
                 }
                 JsonObject actionObject = e.getAsJsonObject();
-                OnDrinkTemplate template = OnDrinkTemplate.get(new Identifier(JsonHelper.getString(actionObject, "type")));
+                OnDrinkTemplate template;
+                try {
+                    template = OnDrinkTemplate.get(new Identifier(JsonHelper.getString(actionObject, "type")));
+                } catch (IllegalStateException ex) {
+                    PDAPI.LOGGER.error("Could not load on drink action for add-in {} because of non-existent OnDrinkTemplate {}", id.toString(), JsonHelper.getString(actionObject, "type"), ex);
+                    continue;
+                }
                 OnDrink action = template.parseJson(id, actionObject);
                 daBuilder.addAction(action);
             }

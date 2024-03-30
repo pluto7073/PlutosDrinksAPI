@@ -23,6 +23,7 @@ import net.minecraft.world.event.GameEvent;
 import java.util.Collection;
 import java.util.HashMap;
 
+@FunctionalInterface
 public interface OnDrinkTemplate {
 
     HashMap<Identifier, OnDrinkTemplate> REGISTRY = new HashMap<>();
@@ -103,7 +104,7 @@ public interface OnDrinkTemplate {
 
     static OnDrinkTemplate get(Identifier id) {
         OnDrinkTemplate template = REGISTRY.get(id);
-        if (template == null) template = EMPTY;
+        if (template == null) throw new IllegalArgumentException("No valid OnDrinkTemplate exists for identifier " + id.toString());
         return template;
     }
 
