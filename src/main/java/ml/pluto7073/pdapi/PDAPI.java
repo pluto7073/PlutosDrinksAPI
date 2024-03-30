@@ -5,6 +5,7 @@ import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.client.gui.PDScreens;
 import ml.pluto7073.pdapi.command.PDCommands;
 import ml.pluto7073.pdapi.entity.effect.PDStatusEffects;
+import ml.pluto7073.pdapi.gamerule.PDGameRules;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.listeners.DrinkAdditionRegisterer;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
@@ -27,6 +28,7 @@ public class PDAPI implements ModInitializer {
         PDBlocks.init();
         PDItems.init();
         PDStatusEffects.init();
+        PDGameRules.init();
         PDCommands.init();
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new DrinkAdditionRegisterer());

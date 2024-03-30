@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import ml.pluto7073.pdapi.DrinkUtil;
+import ml.pluto7073.pdapi.gamerule.PDGameRules;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
@@ -27,7 +28,9 @@ public class PDCommands {
     }
 
     private static LiteralArgumentBuilder<ServerCommandSource> caffeineGet() {
-        return literal("get").executes(ctx -> {
+        return literal("get")
+                .requires(source -> source.hasPermissionLevel(2) || source.getWorld().getGameRules().getBoolean(PDGameRules.CAFFEINE_VISIBLE_TO_NON_OPS))
+                .executes(ctx -> {
             ServerCommandSource source = ctx.getSource();
             if (!source.isExecutedByPlayer()) {
                 source.sendError(Text.literal("Must be executed by a player"));

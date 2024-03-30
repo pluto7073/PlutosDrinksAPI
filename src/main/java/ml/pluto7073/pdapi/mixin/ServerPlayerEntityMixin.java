@@ -4,6 +4,7 @@ import ml.pluto7073.pdapi.DrinkUtil;
 import ml.pluto7073.pdapi.crossmodfeatures.CrossModFeatures;
 import ml.pluto7073.pdapi.entity.PDTrackedData;
 import ml.pluto7073.pdapi.entity.effect.PDStatusEffects;
+import ml.pluto7073.pdapi.gamerule.PDGameRules;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -84,11 +85,11 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntityMixin {
         if (caffeine >= 150) {
             this.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 600));
         }
-        if (caffeine >= 300 && !this.hasStatusEffect(StatusEffects.HUNGER)) {
+        if (caffeine >= 300) {
             this.addStatusEffect(new StatusEffectInstance(StatusEffects.HUNGER, 600));
         }
         if (caffeine >= 400) {
-            CrossModFeatures.dehydration$AddThirstStatusEffect((ServerPlayerEntity) (Object) this, 600, 0, true);
+            CrossModFeatures.dehydration$AddThirstStatusEffect((ServerPlayerEntity) (Object) this, 600, 0, false);
         }
         if (caffeine >= 450) {
             this.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 600, 1));
@@ -102,7 +103,9 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntityMixin {
         if (caffeine >= 700) {
             this.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, 600, 1));
         }
-        if (caffeine >= 3000.0F && !getAbilities().creativeMode && !((ServerPlayerEntity) (Object) this).hasStatusEffect(PDStatusEffects.CAFFEINE_OVERDOSE)) {
+        int lethalCaffeineDose = getWorld().getGameRules().getInt(PDGameRules.LETHAL_CAFFEINE_DOSE);
+        boolean overdose = getWorld().getGameRules().getBoolean(PDGameRules.DO_CAFFEINE_OVERDOSE);
+        if (overdose && caffeine >= lethalCaffeineDose) {
             this.addStatusEffect(new StatusEffectInstance(PDStatusEffects.CAFFEINE_OVERDOSE, 20 * 60));
         }
     }

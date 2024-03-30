@@ -15,5 +15,9 @@
   "death.attack.caffeine_overdose": "%1$s drank too much caffeine",
   "effect.pdapi.caffeine_overdose": "Caffeine Overdose",
   "command.getMyCaffeine.response": "You currently have %1$smg of caffeine in your system",
-  "command.getPlayerCaffeine.response": "%1$s has %2$smg of caffeine in their system"
+  "command.getPlayerCaffeine.response": "%1$s has %2$smg of caffeine in their system",
+  "gamerule.doCaffeineOverdose": "Whether or not the caffeine overdose effect should be applied",
+  "gamerule.caffeineVisibleToNonOps": "Can non-ops use /drink caffeine get to see their exact caffeine level",
+  "gamerule.caffeineDamageMultiplier": "Caffeine Damage Multiplier",
+  "gamerule.lethalCaffeineDose": "Amount of caffeine considered a lethal dose"
 }
