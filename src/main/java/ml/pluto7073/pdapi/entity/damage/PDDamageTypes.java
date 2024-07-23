@@ -1,19 +1,18 @@
 package ml.pluto7073.pdapi.entity.damage;
 
 import ml.pluto7073.pdapi.PDAPI;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageType;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.level.Level;
 
 public interface PDDamageTypes {
 
-    RegistryKey<DamageType> CAFFEINE_OVERDOSE = RegistryKey.of(RegistryKeys.DAMAGE_TYPE, PDAPI.asId("caffeine_overdose"));
+    ResourceKey<DamageType> CAFFEINE_OVERDOSE = ResourceKey.create(Registries.DAMAGE_TYPE, PDAPI.asId("caffeine_overdose"));
 
-    static DamageSource of(World world, RegistryKey<DamageType> key) {
-        return new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(key));
+    static DamageSource of(Level world, ResourceKey<DamageType> key) {
+        return new DamageSource(world.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(key));
     }
 
 }

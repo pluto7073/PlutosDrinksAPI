@@ -19,5 +19,12 @@
   "gamerule.doCaffeineOverdose": "Whether or not the caffeine overdose effect should be applied",
   "gamerule.caffeineVisibleToNonOps": "Can non-ops use /drink caffeine get to see their exact caffeine level",
   "gamerule.caffeineDamageMultiplier": "Caffeine Damage Multiplier",
-  "gamerule.lethalCaffeineDose": "Amount of caffeine considered a lethal dose"
+  "gamerule.lethalCaffeineDose": "Amount of caffeine considered a lethal dose",
+  "title.pdapi.config": "PDAPI Config",
+  "option.pdapi.doCaffeineOverdose": "Do Caffeine Overdose",
+  "option.pdapi.doCaffeineOverdose.tooltip": "Whether or not the caffeine overdose effect should be applied",
+  "option.pdapi.caffeineVisibleToNonOps": "Caffeine Visible to Non-Ops",
+  "option.pdapi.caffeineVisibleToNonOps.tooltip": "Whether or not Non-Operators can use /drink caffeine get to see their own exact caffeine levels (NOT other players')",
+  "option.pdapi.caffeineDamageMultiplier": "Caffeine Damage Multiplier",
+  "option.pdapi.lethalCaffeineDose": "Lethal Dose of Caffeine"
 }

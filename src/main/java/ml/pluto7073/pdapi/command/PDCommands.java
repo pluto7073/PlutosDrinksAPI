@@ -6,16 +6,14 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import ml.pluto7073.pdapi.DrinkUtil;
 import ml.pluto7073.pdapi.gamerule.PDGameRules;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import java.util.Objects;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public class PDCommands {
 
@@ -23,37 +21,37 @@ public class PDCommands {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("drink").then(caffeine())));
     }
 
-    private static LiteralArgumentBuilder<ServerCommandSource> caffeine() {
+    private static LiteralArgumentBuilder<CommandSourceStack> caffeine() {
         return literal("caffeine").then(caffeineGet()).then(caffeineSet());
     }
 
-    private static LiteralArgumentBuilder<ServerCommandSource> caffeineGet() {
+    private static LiteralArgumentBuilder<CommandSourceStack> caffeineGet() {
         return literal("get")
-                .requires(source -> source.hasPermissionLevel(2) || source.getWorld().getGameRules().getBoolean(PDGameRules.CAFFEINE_VISIBLE_TO_NON_OPS))
+                .requires(source -> source.hasPermission(2) || source.getLevel().getGameRules().getBoolean(PDGameRules.CAFFEINE_VISIBLE_TO_NON_OPS))
                 .executes(ctx -> {
-            ServerCommandSource source = ctx.getSource();
-            if (!source.isExecutedByPlayer()) {
-                source.sendError(Text.literal("Must be executed by a player"));
-                return -1;
-            }
-            float caffeine = DrinkUtil.getPlayerCaffeine(source.getPlayerOrThrow());
-            source.sendFeedback(() -> Text.translatable("command.getMyCaffeine.response", (int) caffeine), true);
-            return 1;
-        }).then(argument("target", EntityArgumentType.player()).requires(source -> source.hasPermissionLevel(2))
-                .executes(ctx -> {
-                    ServerPlayerEntity target = EntityArgumentType.getPlayer(ctx, "target");
-                    ctx.getSource().sendFeedback(() -> Text.translatable("command.getPlayerCaffeine.response", target.getName(), DrinkUtil.getPlayerCaffeine(target)), true);
+                    CommandSourceStack source = ctx.getSource();
+                    if (!source.isPlayer()) {
+                        source.sendFailure(Component.literal("Must be executed by a player"));
+                        return -1;
+                    }
+                    float caffeine = DrinkUtil.getPlayerCaffeine(source.getPlayerOrException());
+                    source.sendSuccess(() -> Component.translatable("command.getMyCaffeine.response", (int) caffeine), true);
                     return 1;
-                }));
+                }).then(argument("target", EntityArgument.player()).requires(source -> source.hasPermission(2))
+                        .executes(ctx -> {
+                            ServerPlayer target = EntityArgument.getPlayer(ctx, "target");
+                            ctx.getSource().sendSuccess(() -> Component.translatable("command.getPlayerCaffeine.response", target.getName(), DrinkUtil.getPlayerCaffeine(target)), true);
+                            return 1;
+                        }));
     }
 
-    private static LiteralArgumentBuilder<ServerCommandSource> caffeineSet() {
+    private static LiteralArgumentBuilder<CommandSourceStack> caffeineSet() {
         return literal("set")
-                .requires(source -> source.hasPermissionLevel(2))
-                .then(argument("target", EntityArgumentType.player())
+                .requires(source -> source.hasPermission(2))
+                .then(argument("target", EntityArgument.player())
                         .then(argument("amount", IntegerArgumentType.integer(0))
                                 .executes(context -> {
-                                    ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "target");
+                                    ServerPlayer target = EntityArgument.getPlayer(context, "target");
                                     int amount = IntegerArgumentType.getInteger(context, "amount");
                                     DrinkUtil.setPlayerCaffeine(target, amount);
                                     return 1;

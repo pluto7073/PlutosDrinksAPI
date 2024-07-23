@@ -2,11 +2,10 @@ package ml.pluto7073.pdapi.addition;
 
 import com.google.gson.JsonObject;
 import ml.pluto7073.pdapi.PDAPI;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +34,9 @@ public class DrinkAddition {
         this.currentWeight = currentWeight;
     }
 
-    public void onDrink(ItemStack stack, World world, LivingEntity user) {
+    public void onDrink(ItemStack stack, Level level, LivingEntity user) {
         for (OnDrink action : actions) {
-            action.onDrink(stack, world, user);
+            action.onDrink(stack, level, user);
         }
     }
 
@@ -67,7 +66,7 @@ public class DrinkAddition {
 
     public String getTranslationKey() {
         try {
-            Identifier id = DrinkAdditions.getId(this);
+            ResourceLocation id = DrinkAdditions.getId(this);
             return "drink_addition." + id.getNamespace() + "." + id.getPath();
         } catch (IllegalArgumentException e) {
             PDAPI.LOGGER.error("Couldn't get translation key for a drink addition", e);

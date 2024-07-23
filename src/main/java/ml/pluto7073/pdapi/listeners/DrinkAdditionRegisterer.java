@@ -10,11 +10,10 @@ import ml.pluto7073.pdapi.addition.OnDrink;
 import ml.pluto7073.pdapi.addition.OnDrinkTemplate;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
-
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.GsonHelper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,30 +21,30 @@ import java.util.Map;
 
 public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadListener {
 
-    public static final Identifier PHASE = PDAPI.asId("phase/additions");
+    public static final ResourceLocation PHASE = PDAPI.asId("phase/additions");
 
     public DrinkAdditionRegisterer() {
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(PHASE, (player, joined) -> DrinkAdditions.send(player));
     }
 
     @Override
-    public Identifier getFabricId() {
+    public ResourceLocation getFabricId() {
         return PDAPI.asId("drink_addition_registerer");
     }
 
     @Override
-    public void reload(ResourceManager manager) {
+    public void onResourceManagerReload(ResourceManager manager) {
         DrinkAdditions.resetRegistry();
 
         int i = 0;
 
-        for (Map.Entry<Identifier, Resource> entry : manager.findResources("drink_additions", id -> id.getPath().endsWith(".json")).entrySet()) {
-            Identifier id = new Identifier(entry.getKey().getNamespace(),
+        for (Map.Entry<ResourceLocation, Resource> entry : manager.listResources("drink_additions", id -> id.getPath().endsWith(".json")).entrySet()) {
+            ResourceLocation id = new ResourceLocation(entry.getKey().getNamespace(),
                     entry.getKey().getPath()
                             .replace("drink_additions/", "")
                             .replace(".json", ""));
-            try (InputStream stream = entry.getValue().getInputStream()) {
-                JsonObject object = JsonHelper.deserialize(new InputStreamReader(stream));
+            try (InputStream stream = entry.getValue().open()) {
+                JsonObject object = GsonHelper.parse(new InputStreamReader(stream));
 
                 DrinkAdditions.register(id, loadFromJson(id, object), false);
                 i++;
@@ -57,22 +56,22 @@ public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadL
         PDAPI.LOGGER.info("Loaded {} additions", i);
     }
 
-    public static DrinkAddition loadFromJson(Identifier id, JsonObject object) {
+    public static DrinkAddition loadFromJson(ResourceLocation id, JsonObject object) {
         DrinkAddition.Builder builder = new DrinkAddition.Builder();
         if (object.has("caffeine")) {
-            builder.caffeine(JsonHelper.getInt(object, "caffeine"));
+            builder.caffeine(GsonHelper.getAsInt(object, "caffeine"));
         }
         if (object.has("changesColor")) {
-            builder.changesColor(JsonHelper.getBoolean(object, "changesColor"));
+            builder.changesColor(GsonHelper.getAsBoolean(object, "changesColor"));
         }
         if (object.has("color")) {
-            builder.color(JsonHelper.getInt(object, "color"));
+            builder.color(GsonHelper.getAsInt(object, "color"));
         }
         if (object.has("maxAmount")) {
-            builder.maxAmount(JsonHelper.getInt(object, "maxAmount"));
+            builder.maxAmount(GsonHelper.getAsInt(object, "maxAmount"));
         }
         if (object.has("onDrinkActions")) {
-            JsonArray actionsArray = JsonHelper.getArray(object, "onDrinkActions");
+            JsonArray actionsArray = GsonHelper.getAsJsonArray(object, "onDrinkActions");
             for (JsonElement e : actionsArray) {
                 if (!e.isJsonObject()) {
                     PDAPI.LOGGER.warn("Non-JsonObject item in 'onDrinkActions' in Drink Addition file: " + id);
@@ -81,9 +80,9 @@ public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadL
                 JsonObject actionObject = e.getAsJsonObject();
                 OnDrinkTemplate template;
                 try {
-                    template = OnDrinkTemplate.get(new Identifier(JsonHelper.getString(actionObject, "type")));
+                    template = OnDrinkTemplate.get(new ResourceLocation(GsonHelper.getAsString(actionObject, "type")));
                 } catch (IllegalStateException ex) {
-                    PDAPI.LOGGER.error("Could not load on drink action for add-in {} because of non-existent OnDrinkTemplate {}", id.toString(), JsonHelper.getString(actionObject, "type"), ex);
+                    PDAPI.LOGGER.error("Could not load on drink action for add-in {} because of non-existent OnDrinkTemplate {}", id.toString(), GsonHelper.getAsString(actionObject, "type"), ex);
                     continue;
                 }
                 OnDrink action = template.parseJson(id, actionObject);
@@ -91,7 +90,7 @@ public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadL
             }
         }
         if (object.has("weight")) {
-            builder.setWeight(JsonHelper.getInt(object, "weight"));
+            builder.setWeight(GsonHelper.getAsInt(object, "weight"));
         }
 
         return builder.build(object);

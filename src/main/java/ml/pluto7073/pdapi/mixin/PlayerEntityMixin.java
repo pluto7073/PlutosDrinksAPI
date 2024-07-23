@@ -1,24 +1,24 @@
 package ml.pluto7073.pdapi.mixin;
 
 import ml.pluto7073.pdapi.entity.PDTrackedData;
-import net.minecraft.entity.player.PlayerAbilities;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Abilities;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(PlayerEntity.class)
+@Mixin(Player.class)
 public abstract class PlayerEntityMixin extends LivingEntityMixin {
 
-    @Shadow public abstract PlayerAbilities getAbilities();
+    @Shadow public abstract Abilities getAbilities();
 
-    @Inject(at = @At("TAIL"), method = "initDataTracker")
+    @Inject(at = @At("TAIL"), method = "defineSynchedData")
     public void pdapi$initCustomDataTrackers(CallbackInfo ci) {
-        this.dataTracker.startTracking(PDTrackedData.PLAYER_CAFFEINE_AMOUNT, 0F);
-        this.dataTracker.startTracking(PDTrackedData.PLAYER_ORIGINAL_CAFFEINE_AMOUNT, 0F);
-        this.dataTracker.startTracking(PDTrackedData.PLAYER_TICKS_SINCE_LAST_CAFFEINE, 0);
+        this.entityData.define(PDTrackedData.PLAYER_CAFFEINE_AMOUNT, 0F);
+        this.entityData.define(PDTrackedData.PLAYER_ORIGINAL_CAFFEINE_AMOUNT, 0F);
+        this.entityData.define(PDTrackedData.PLAYER_TICKS_SINCE_LAST_CAFFEINE, 0);
     }
 
 }

@@ -4,8 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.JsonHelper;
+import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.Map;
 import java.util.Stack;
@@ -22,7 +21,7 @@ public final class NetworkingUtils {
             OBJECT_END_TYPE = 7,
             KEY_TYPE = 8;
 
-    public static JsonObject readJsonObject(PacketByteBuf buffer) {
+    public static JsonObject readJsonObject(FriendlyByteBuf buffer) {
         Stack<Integer> stack = new Stack<>();
         stack.push(OBJECT_BEGIN_TYPE);
         int i = buffer.readInt();
@@ -30,7 +29,7 @@ public final class NetworkingUtils {
         return readJsonObject(buffer, stack);
     }
 
-    private static JsonObject readJsonObject(PacketByteBuf buffer, Stack<Integer> objectLevels) {
+    private static JsonObject readJsonObject(FriendlyByteBuf buffer, Stack<Integer> objectLevels) {
         JsonObject object = new JsonObject();
         String currentKey = "";
         loop: while (true) {
@@ -41,7 +40,7 @@ public final class NetworkingUtils {
                 case INT_TYPE -> object.add(currentKey, new JsonPrimitive(buffer.readInt()));
                 case FLOAT_TYPE -> object.add(currentKey, new JsonPrimitive(buffer.readFloat()));
                 case BOOLEAN_TYPE -> object.add(currentKey, new JsonPrimitive(buffer.readBoolean()));
-                case STRING_TYPE -> object.add(currentKey, new JsonPrimitive(buffer.readString()));
+                case STRING_TYPE -> object.add(currentKey, new JsonPrimitive(buffer.readUtf()));
                 case ARRAY_BEGIN_TYPE -> {
                     objectLevels.push(ARRAY_BEGIN_TYPE);
                     object.add(currentKey, readJsonArray(buffer, objectLevels));
@@ -58,13 +57,13 @@ public final class NetworkingUtils {
                     if (objectLevels.peek() != OBJECT_BEGIN_TYPE) throw new IllegalStateException("Unexpected object ending");
                     break loop;
                 }
-                case KEY_TYPE -> currentKey = buffer.readString();
+                case KEY_TYPE -> currentKey = buffer.readUtf();
             }
         }
         return object;
     }
 
-    private static JsonArray readJsonArray(PacketByteBuf buffer, Stack<Integer> objectLevels) {
+    private static JsonArray readJsonArray(FriendlyByteBuf buffer, Stack<Integer> objectLevels) {
         JsonArray array = new JsonArray();
         loop: while (true) {
 
@@ -74,7 +73,7 @@ public final class NetworkingUtils {
                 case INT_TYPE -> array.add(buffer.readInt());
                 case FLOAT_TYPE -> array.add(buffer.readFloat());
                 case BOOLEAN_TYPE -> array.add(buffer.readBoolean());
-                case STRING_TYPE -> array.add(buffer.readString());
+                case STRING_TYPE -> array.add(buffer.readUtf());
                 case ARRAY_BEGIN_TYPE -> {
                     objectLevels.push(ARRAY_BEGIN_TYPE);
                     array.add(readJsonArray(buffer, objectLevels));
@@ -97,15 +96,15 @@ public final class NetworkingUtils {
         return array;
     }
 
-    public static void writeJsonObjectStart(PacketByteBuf buf, JsonObject object) {
+    public static void writeJsonObjectStart(FriendlyByteBuf buf, JsonObject object) {
         buf.writeInt(OBJECT_BEGIN_TYPE);
         writeJsonObject(buf, object);
     }
 
-    private static void writeJsonObject(PacketByteBuf buf, JsonObject object) {
+    private static void writeJsonObject(FriendlyByteBuf buf, JsonObject object) {
         for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
             buf.writeInt(KEY_TYPE);
-            buf.writeString(entry.getKey());
+            buf.writeUtf(entry.getKey());
 
             JsonElement value = entry.getValue();
             writeValue(value, buf);
@@ -114,14 +113,14 @@ public final class NetworkingUtils {
         buf.writeInt(OBJECT_END_TYPE);
     }
 
-    private static void writeJsonArray(PacketByteBuf buf, JsonArray array) {
+    private static void writeJsonArray(FriendlyByteBuf buf, JsonArray array) {
         for (JsonElement value : array) {
             writeValue(value, buf);
         }
         buf.writeInt(ARRAY_END_TYPE);
     }
 
-    private static void writeValue(JsonElement value, PacketByteBuf buf) {
+    private static void writeValue(JsonElement value, FriendlyByteBuf buf) {
         if (value.isJsonArray()) {
             buf.writeInt(ARRAY_BEGIN_TYPE);
             writeJsonArray(buf, value.getAsJsonArray());
@@ -143,7 +142,7 @@ public final class NetworkingUtils {
                 }
             } else if (primVal.isString()) {
                 buf.writeInt(STRING_TYPE);
-                buf.writeString(primVal.getAsString());
+                buf.writeUtf(primVal.getAsString());
             }
         }
     }

@@ -1,7 +1,7 @@
 package ml.pluto7073.pdapi.crossmodfeatures;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.entity.LivingEntity;
 
 public final class CrossModFeatures {
 

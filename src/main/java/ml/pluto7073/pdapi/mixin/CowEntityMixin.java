@@ -1,30 +1,30 @@
 package ml.pluto7073.pdapi.mixin;
 
 import ml.pluto7073.pdapi.item.PDItems;
-import net.minecraft.entity.passive.CowEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
-import net.minecraft.item.Items;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(CowEntity.class)
-public abstract class CowEntityMixin extends PassiveEntityMixin{
+@Mixin(Cow.class)
+public abstract class CowEntityMixin extends PassiveEntityMixin {
 
-    @Inject(at = @At("HEAD"), method = "interactMob", cancellable = true)
-    public void pdapi$collectMilkBottle(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
-        ItemStack stack = player.getStackInHand(hand);
-        if (stack.isOf(Items.GLASS_BOTTLE) && !isBaby()) {
-            player.playSound(SoundEvents.ENTITY_COW_MILK, 1.0F, 1.0F);
-            ItemStack itemStack2 = ItemUsage.exchangeStack(stack, player, PDItems.MILK_BOTTLE.getDefaultStack());
-            player.setStackInHand(hand, itemStack2);
-            cir.setReturnValue(ActionResult.success(getWorld().isClient));
+    @Inject(at = @At("HEAD"), method = "mobInteract", cancellable = true)
+    public void pdapi$collectMilkBottle(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (stack.is(Items.GLASS_BOTTLE) && !isBaby()) {
+            player.playSound(SoundEvents.COW_MILK, 1.0F, 1.0F);
+            ItemStack itemStack2 = ItemUtils.createFilledResult(stack, player, PDItems.MILK_BOTTLE.getDefaultInstance());
+            player.setItemInHand(hand, itemStack2);
+            cir.setReturnValue(InteractionResult.sidedSuccess(level().isClientSide));
         }
     }
 

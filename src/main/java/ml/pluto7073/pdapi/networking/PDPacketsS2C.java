@@ -10,9 +10,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.client.player.LocalPlayer;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +28,7 @@ public class PDPacketsS2C {
     }
 
     @Environment(EnvType.CLIENT)
-    private static void receiveAdditionsList(SyncAdditionRegistryS2CPacket packet, ClientPlayerEntity player, PacketSender sender) {
+    private static void receiveAdditionsList(SyncAdditionRegistryS2CPacket packet, LocalPlayer player, PacketSender sender) {
         DrinkAdditions.resetRegistry();
 
         packet.additions().entrySet().stream()

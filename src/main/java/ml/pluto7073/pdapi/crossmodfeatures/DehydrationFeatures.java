@@ -1,14 +1,14 @@
 package ml.pluto7073.pdapi.crossmodfeatures;
 
 import net.dehydration.init.EffectInit;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.LivingEntity;
 
 public class DehydrationFeatures {
 
     static void addThirstEffect(LivingEntity user, int duration, int amplifier, boolean onlyIfNonExistent) {
-        if (user.hasStatusEffect(EffectInit.THIRST)) return;
-        user.addStatusEffect(new StatusEffectInstance(EffectInit.THIRST, duration, amplifier));
+        if (user.hasEffect(EffectInit.THIRST)) return;
+        user.addEffect(new MobEffectInstance(EffectInit.THIRST, duration, amplifier));
     }
 
 }
