@@ -4,7 +4,7 @@
     "tag": "pdapi:workstation_drinks"
   },
   "addition": {
-    "item": "plutoscoffee:milk_bottle"
+    "tag": "c:milk/milk_bottle"
   },
   "result": "pdapi:milk"
 }
