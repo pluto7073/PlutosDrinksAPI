@@ -1,6 +1,7 @@
 package ml.pluto7073.pdapi.addition;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import ml.pluto7073.pdapi.PDAPI;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -15,13 +16,18 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 @FunctionalInterface
 public interface OnDrinkTemplate {
@@ -58,10 +64,19 @@ public interface OnDrinkTemplate {
         };
     });
 
-    OnDrinkTemplate CLEAR_HARMFUL_EFFECTS = register("clear_harmful_effects", (id, onDrinkData) -> (stack, world, user) -> {
-        Collection<MobEffectInstance> statusEffects = user.getActiveEffects();
-        for (MobEffectInstance instance : statusEffects) {
-            if (!instance.getEffect().isBeneficial()) user.removeEffect(instance.getEffect());
+    OnDrinkTemplate CLEAR_HARMFUL_EFFECTS = register("clear_harmful_effects", (id, onDrinkData) -> new OnDrink() {
+        @Override
+        public void onDrink(ItemStack stack, Level level, LivingEntity user) {
+            Collection<MobEffectInstance> statusEffects = new ArrayList<>(user.getActiveEffects());
+            if (statusEffects.isEmpty()) return;
+            for (MobEffectInstance instance : statusEffects) {
+                if (!instance.getEffect().isBeneficial()) user.removeEffect(instance.getEffect());
+            }
+        }
+
+        @Override
+        public JsonObject toJson() {
+            return onDrinkData;
         }
     });
 
