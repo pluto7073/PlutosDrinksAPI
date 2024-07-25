@@ -1,20 +1,26 @@
 package ml.pluto7073.pdapi;
 
+import com.google.gson.JsonObject;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
 import ml.pluto7073.pdapi.entity.PDTrackedData;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
+import ml.pluto7073.pdapi.item.PDItems;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Stack;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public final class DrinkUtil {
 
@@ -48,6 +54,14 @@ public final class DrinkUtil {
             }
             currentPath.pop();
         }
+    }
+
+    public static Container copyContainerContents(Container source) {
+        Container container = new SimpleContainer(source.getContainerSize());
+        for (int i = 0; i < source.getContainerSize(); i++) {
+            container.setItem(i, source.getItem(i).copy());
+        }
+        return container;
     }
 
     public static DrinkAddition[] getAdditionsFromStack(ItemStack stack) {
@@ -95,6 +109,31 @@ public final class DrinkUtil {
 
     public static float getPlayerCaffeine(Player player) {
         return player.getEntityData().get(PDTrackedData.PLAYER_CAFFEINE_AMOUNT);
+    }
+
+    public static SpecialtyDrink getSpecialDrink(ItemStack stack) {
+        CompoundTag nbt = stack.getOrCreateTag();
+        String id = nbt.getString("Drink");
+        SpecialtyDrink drink = SpecialtyDrink.DRINKS.get(new ResourceLocation(id));
+        if (drink == null) throw new IllegalArgumentException("Drink " + id + " does not exist");
+        return drink;
+    }
+
+    public static ItemStack setSpecialDrink(ItemStack stack, SpecialtyDrink drink) {
+        CompoundTag nbt = stack.getOrCreateTag();
+        nbt.put("Drink", StringTag.valueOf(drink.id().toString()));
+        stack.setTag(nbt);
+        return stack;
+    }
+
+    public static int getDrinkColor(ItemStack stack) {
+        if (!stack.is(PDItems.SPECIALTY_DRINK)) return -1;
+        try {
+            SpecialtyDrink drink = getSpecialDrink(stack);
+            return drink.color();
+        } catch (IllegalArgumentException e) {
+            return 0xf918c5;
+        }
     }
 
     public interface Converter<T extends Tag> {

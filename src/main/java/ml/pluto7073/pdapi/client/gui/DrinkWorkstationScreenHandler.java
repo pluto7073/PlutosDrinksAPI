@@ -1,8 +1,12 @@
 package ml.pluto7073.pdapi.client.gui;
 
+import ml.pluto7073.pdapi.DrinkUtil;
 import ml.pluto7073.pdapi.block.PDBlocks;
+import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -71,13 +75,31 @@ public class DrinkWorkstationScreenHandler extends ItemCombinerMenu {
 
     @Override
     public void createResult() {
-        List<DrinkWorkstationRecipe> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, inputSlots, world);
+        Container testInput = DrinkUtil.copyContainerContents(inputSlots);
+
+        if (inputSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
+            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0)).getAsOriginalItemWithAdditions(inputSlots.getItem(0)));
+        }
+
+        List<DrinkWorkstationRecipe> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, testInput, world);
         if (list.isEmpty()) {
             resultSlots.setItem(0, ItemStack.EMPTY);
         } else {
             currentRecipe = list.get(0);
             ItemStack stack = currentRecipe.craft(inputSlots);
             resultSlots.setRecipeUsed(currentRecipe);
+            resultSlots.setItem(0, stack);
+
+            // Specialty Drink testing
+            Container testResults = DrinkUtil.copyContainerContents(resultSlots);
+            if (resultSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
+                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0)).getAsOriginalItemWithAdditions(resultSlots.getItem(0)));
+            }
+            List<SpecialtyDrink> matchingDrinks = world.getRecipeManager().getRecipesFor(PDRecipeTypes.SPECIALTY_DRINK_RECIPE_TYPE, testResults, world);
+            if (matchingDrinks.isEmpty()) return;
+            SpecialtyDrink drink = matchingDrinks.get(0);
+            stack = drink.getAsItem();
+            resultSlots.setRecipeUsed(drink);
             resultSlots.setItem(0, stack);
         }
     }

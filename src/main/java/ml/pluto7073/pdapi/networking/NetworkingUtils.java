@@ -6,8 +6,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.minecraft.network.FriendlyByteBuf;
 
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
+import java.util.function.Function;
 
 public final class NetworkingUtils {
 
@@ -145,6 +145,31 @@ public final class NetworkingUtils {
                 buf.writeUtf(primVal.getAsString());
             }
         }
+    }
+
+    public static <T> JsonObject[] convertToJson(T[] array, Function<T, JsonObject> converter) {
+        JsonObject[] result = new JsonObject[array.length];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = converter.apply(array[i]);
+        }
+        return result;
+    }
+
+    public static <T> void arrayToNetwork(FriendlyByteBuf buf, T[] array, FriendlyByteBuf.Writer<T> itemWriter) {
+        HashMap<Integer, T> intMap = new HashMap<>();
+        for (int i = 0; i < array.length; i++) {
+            intMap.put(i, array[i]);
+        }
+        buf.writeMap(intMap, FriendlyByteBuf::writeInt, itemWriter);
+    }
+
+    public static <T> List<T> listFromNetwork(FriendlyByteBuf buf, FriendlyByteBuf.Reader<T> itemReader) {
+        Map<Integer, T> intMap = buf.readMap(FriendlyByteBuf::readInt, itemReader);
+        List<T> list = new ArrayList<>();
+        for (int i = 0; i < intMap.size(); i++) {
+            list.add(intMap.get(i));
+        }
+        return list;
     }
 
 }

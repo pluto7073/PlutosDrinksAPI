@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.item;
 
+import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.Registry;
@@ -7,23 +8,26 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 public final class PDItems {
 
     public static final Item MILK_BOTTLE = new MilkBottleItem();
-    // public static final Item TEST_DRINK_ITEM = new TestDrinkItem(new Item.Settings().maxCount(1));
+    public static final Item SPECIALTY_DRINK = new SpecialtyDrinkItem(new Item.Properties().stacksTo(1).craftRemainder(Items.GLASS_BOTTLE));
+    //public static final Item TEST_DRINK_ITEM = new TestDrinkItem(new Item.Properties().stacksTo(1));
 
     public static final Item DRINK_WORKSTATION = new BlockItem(PDBlocks.DRINK_WORKSTATION, new Item.Properties());
 
     public static void init() {
         Registry.register(BuiltInRegistries.ITEM, "plutoscoffee:milk_bottle", MILK_BOTTLE); // Using the OG PlutosCoffee ids until I find a way to safely rename them
         Registry.register(BuiltInRegistries.ITEM, "plutoscoffee:coffee_workstation", DRINK_WORKSTATION);
+        Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("specialty_drink"), SPECIALTY_DRINK);
 
-        // Registry.register(Registries.ITEM, PDAPI.asId("test_drink"), TEST_DRINK_ITEM);
+        //Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("test_drink"), TEST_DRINK_ITEM);
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(entries -> entries.accept(DRINK_WORKSTATION));
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(entries -> entries.addAfter(Items.SMITHING_TABLE, DRINK_WORKSTATION));
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FOOD_AND_DRINKS).register(entries -> entries.accept(MILK_BOTTLE));
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FOOD_AND_DRINKS).register(entries -> entries.addAfter(Items.MILK_BUCKET, MILK_BOTTLE));
     }
 
 }

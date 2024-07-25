@@ -34,8 +34,6 @@ public interface OnDrinkTemplate {
 
     HashMap<ResourceLocation, OnDrinkTemplate> REGISTRY = new HashMap<>();
 
-    OnDrinkTemplate EMPTY = register("empty", (id, onDrinkData) -> (stack, world, user) -> {});
-
     OnDrinkTemplate APPLY_STATUS_EFFECT = register("apply_status_effect", (id, onDrinkData) -> {
         ResourceLocation effect = new ResourceLocation(GsonHelper.getAsString(onDrinkData, "effect"));
         int duration = GsonHelper.getAsInt(onDrinkData, "duration");
@@ -43,24 +41,50 @@ public interface OnDrinkTemplate {
         MobEffect statusEffect = BuiltInRegistries.MOB_EFFECT.get(effect);
         assert statusEffect != null;
 
-        return (stack, world, user) -> user.addEffect(new MobEffectInstance(statusEffect, duration, amplifier));
+        return new OnDrink() {
+            @Override
+            public void onDrink(ItemStack stack, Level level, LivingEntity user) {
+                user.addEffect(new MobEffectInstance(statusEffect, duration, amplifier));
+            }
+
+            @Override
+            public JsonObject toJson() {
+                return onDrinkData;
+            }
+        };
     });
 
     OnDrinkTemplate DEAL_DAMAGE = register("deal_damage", (id, onDrinkData) -> {
         float amount = GsonHelper.getAsFloat(onDrinkData, "amount");
         ResourceLocation damageSource = new ResourceLocation(GsonHelper.getAsString(onDrinkData, "source"));
-        return (stack, world, user) -> {
-            ResourceKey<DamageType> type = ResourceKey.create(Registries.DAMAGE_TYPE, damageSource);
-            user.hurt(user.damageSources().source(type), amount);
+        return new OnDrink() {
+            @Override
+            public void onDrink(ItemStack stack, Level level, LivingEntity user) {
+                ResourceKey<DamageType> type = ResourceKey.create(Registries.DAMAGE_TYPE, damageSource);
+                user.hurt(user.damageSources().source(type), amount);
+            }
+
+            @Override
+            public JsonObject toJson() {
+                return onDrinkData;
+            }
         };
     });
 
     OnDrinkTemplate RESTORE_HUNGER = register("restore_hunger", (id, onDrinkData) -> {
         int food = GsonHelper.getAsInt(onDrinkData, "food");
         int saturation = GsonHelper.getAsInt(onDrinkData, "saturation");
-        return (stack, world, user) -> {
-            if (!(user instanceof Player player)) return;
-            player.getFoodData().eat(food, saturation);
+        return new OnDrink() {
+            @Override
+            public void onDrink(ItemStack stack, Level level, LivingEntity user) {
+                if (!(user instanceof Player player)) return;
+                player.getFoodData().eat(food, saturation);
+            }
+
+            @Override
+            public JsonObject toJson() {
+                return onDrinkData;
+            }
         };
     });
 
@@ -82,28 +106,36 @@ public interface OnDrinkTemplate {
 
     OnDrinkTemplate CHORUS_TELEPORT = register("chorus_teleport", (id, onDrinkData) -> {
         int radius = GsonHelper.getAsInt(onDrinkData, "maxRadius");
-        return (stack, world, user) -> {
-            double d = user.getX();
-            double e = user.getY();
-            double f = user.getZ();
+        return new OnDrink() {
+            @Override
+            public void onDrink(ItemStack stack, Level level, LivingEntity user) {
+                double d = user.getX();
+                double e = user.getY();
+                double f = user.getZ();
 
-            for(int i = 0; i < 16; ++i) {
-                double g = user.getX() + (user.getRandom().nextDouble() - 0.5) * radius * 2;
-                double h = Mth.clamp(user.getY() + (double)(user.getRandom().nextInt(radius * 2) - radius), world.getMinBuildHeight(), world.getMinBuildHeight() + ((ServerLevel)world).getLogicalHeight() - 1);
-                double j = user.getZ() + (user.getRandom().nextDouble() - 0.5) * radius * 2;
-                if (user.isPassenger()) {
-                    user.stopRiding();
-                }
+                for(int i = 0; i < 16; ++i) {
+                    double g = user.getX() + (user.getRandom().nextDouble() - 0.5) * radius * 2;
+                    double h = Mth.clamp(user.getY() + (double)(user.getRandom().nextInt(radius * 2) - radius), level.getMinBuildHeight(), level.getMinBuildHeight() + ((ServerLevel)level).getLogicalHeight() - 1);
+                    double j = user.getZ() + (user.getRandom().nextDouble() - 0.5) * radius * 2;
+                    if (user.isPassenger()) {
+                        user.stopRiding();
+                    }
 
-                Vec3 vec3d = user.position();
-                if (user.randomTeleport(g, h, j, true)) {
-                    world.gameEvent(GameEvent.TELEPORT, vec3d, GameEvent.Context.of(user));
-                    SoundEvent soundEvent = user instanceof Fox ? SoundEvents.FOX_TELEPORT : SoundEvents.CHORUS_FRUIT_TELEPORT;
-                    world.playSound(null, d, e, f, soundEvent, SoundSource.PLAYERS, 1.0F, 1.0F);
-                    user.playSound(soundEvent, 1.0F, 1.0F);
-                    user.resetFallDistance();
-                    break;
+                    Vec3 vec3d = user.position();
+                    if (user.randomTeleport(g, h, j, true)) {
+                        level.gameEvent(GameEvent.TELEPORT, vec3d, GameEvent.Context.of(user));
+                        SoundEvent soundEvent = user instanceof Fox ? SoundEvents.FOX_TELEPORT : SoundEvents.CHORUS_FRUIT_TELEPORT;
+                        level.playSound(null, d, e, f, soundEvent, SoundSource.PLAYERS, 1.0F, 1.0F);
+                        user.playSound(soundEvent, 1.0F, 1.0F);
+                        user.resetFallDistance();
+                        break;
+                    }
                 }
+            }
+
+            @Override
+            public JsonObject toJson() {
+                return onDrinkData;
             }
         };
     });

@@ -3,6 +3,8 @@
   "container.drink_workstation": "Drink Workstation",
   "block.plutoscoffee.coffee_workstation": "Drink Workstation",
   "item.plutoscoffee.milk_bottle": "Milk Bottle",
+  "item.pdapi.specialty_drink": "Uncraftable Drink",
+  "creative_tab.pdapi.specialty_drinks": "Specialty Drinks",
   "drink_addition.pdapi.milk": "Milk x%1$s",
   "drink_addition.pdapi.sugar": "Sugar x%1$s",
   "drink_addition.pdapi.ice": "Iced",
