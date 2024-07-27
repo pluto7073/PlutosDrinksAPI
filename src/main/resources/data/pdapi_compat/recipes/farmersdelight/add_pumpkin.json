@@ -1,0 +1,18 @@
+{
+  "type": "pdapi:drink_workstation",
+  "base": {
+    "tag": "pdapi:workstation_drinks"
+  },
+  "addition": {
+    "item": "farmersdelight:pumpkin_slice"
+  },
+  "result": "pdapi_compat:farmersdelight/pumpkin",
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "farmersdelight"
+      ]
+    }
+  ]
+}

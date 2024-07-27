@@ -1,0 +1,31 @@
+{
+  "color": 13731084,
+  "changesColor": true,
+  "onDrinkActions": [
+    {
+      "type": "pdapi:apply_status_effect",
+      "effect": "minecraft:regeneration",
+      "duration": 200,
+      "amplifier": 0
+    },
+    {
+      "type": "pdapi:apply_status_effect",
+      "effect": "farmersdelight:comfort",
+      "duration": 600,
+      "amplifier": 0
+    },
+    {
+      "type": "pdapi:restore_hunger",
+      "food": 3,
+      "saturation": 5
+    }
+  ],
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "farmersdelight"
+      ]
+    }
+  ]
+}
