@@ -132,6 +132,7 @@ public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] 
             for (JsonElement e : additionsJson) {
                 additions.add(new ResourceLocation(e.getAsString()));
             }
+            if (additions.size() > 10) throw new IllegalStateException("Specialty Drink \"" + id.toString() + "\" cannot have more than 10 steps");
             int caffeine = GsonHelper.getAsInt(data, "caffeine");
             int color = GsonHelper.getAsInt(data, "color");
             JsonArray actionsArray = GsonHelper.getAsJsonArray(data, "onDrinkActions");
