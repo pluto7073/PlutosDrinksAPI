@@ -92,6 +92,9 @@ public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadL
         if (object.has("weight")) {
             builder.setWeight(GsonHelper.getAsInt(object, "weight"));
         }
+        if (object.has("name")) {
+            builder.name(GsonHelper.getAsString(object, "name"));
+        }
 
         return builder.build(object);
     }

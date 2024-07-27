@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +19,14 @@ public class DrinkAddition {
     private final int caffeine;
     private final int maxAmount;
     private final int currentWeight;
+    private final String name;
     private final JsonObject originalData;
 
-    public DrinkAddition(OnDrink[] actions, boolean changesColor, int color, int caffeine, int maxAmount, JsonObject originalData) {
-        this(actions, changesColor, color, caffeine, maxAmount, originalData, 0);
+    public DrinkAddition(OnDrink[] actions, boolean changesColor, int color, int caffeine, int maxAmount, @Nullable String name, JsonObject originalData) {
+        this(actions, changesColor, color, caffeine, maxAmount, name, originalData, 0);
     }
 
-    protected DrinkAddition(OnDrink[] actions, boolean changesColor, int color, int caffeine, int maxAmount, JsonObject originalData, int currentWeight) {
+    protected DrinkAddition(OnDrink[] actions, boolean changesColor, int color, int caffeine, int maxAmount, @Nullable String name, JsonObject originalData, int currentWeight) {
         this.actions = actions;
         this.changesColor = changesColor;
         this.color = color;
@@ -32,6 +34,7 @@ public class DrinkAddition {
         this.maxAmount = maxAmount;
         this.originalData = originalData;
         this.currentWeight = currentWeight;
+        this.name = name;
     }
 
     public void onDrink(ItemStack stack, Level level, LivingEntity user) {
@@ -65,6 +68,7 @@ public class DrinkAddition {
     }
 
     public String getTranslationKey() {
+        if (name != null) return name;
         try {
             ResourceLocation id = DrinkAdditions.getId(this);
             return "drink_addition." + id.getNamespace() + "." + id.getPath();
@@ -82,6 +86,7 @@ public class DrinkAddition {
         private int caffeine;
         private int maxAmount;
         private int weight;
+        private String name;
 
         public Builder() {
             actions = new ArrayList<>();
@@ -122,8 +127,13 @@ public class DrinkAddition {
             return this;
         }
 
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
         public DrinkAddition build(JsonObject data) {
-            return new DrinkAddition(actions.toArray(new OnDrink[0]), changesColor, color, caffeine, maxAmount, data, weight);
+            return new DrinkAddition(actions.toArray(new OnDrink[0]), changesColor, color, caffeine, maxAmount, name, data, weight);
         }
 
     }
