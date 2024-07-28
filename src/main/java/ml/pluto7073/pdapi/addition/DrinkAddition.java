@@ -95,6 +95,7 @@ public class DrinkAddition {
             caffeine = 0;
             maxAmount = 0;
             weight = 0;
+            name = null;
         }
 
         public Builder addAction(OnDrink action) {

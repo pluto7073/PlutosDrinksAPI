@@ -20,6 +20,9 @@
 		],
 		"client": [
 			"ml.pluto7073.pdapi.client.PDAPIClient"
+		],
+		"rei_client": [
+			"ml.pluto7073.pdapi.crossmodfeatures.rei.DrinkREI"
 		]
 	},
 	"custom": {

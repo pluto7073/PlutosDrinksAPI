@@ -1,26 +1,31 @@
 package ml.pluto7073.pdapi;
 
-import com.google.gson.JsonObject;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
 import ml.pluto7073.pdapi.entity.PDTrackedData;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
+import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
+import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.level.Level;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public final class DrinkUtil {
 
@@ -134,6 +139,21 @@ public final class DrinkUtil {
         } catch (IllegalArgumentException e) {
             return 0xf918c5;
         }
+    }
+
+    public static Ingredient additionToIngredient(ResourceLocation additionId) {
+        Level level = Minecraft.getInstance().level;
+        if (level == null) {
+            PDAPI.LOGGER.warn("Ingredient list for \"{}\" could not be determined cause you are not in a world", additionId);
+            return Ingredient.EMPTY;
+        }
+        List<DrinkWorkstationRecipe> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
+                .stream().filter(r -> r.getResultId().equals(additionId)).toList();
+        if (recipes.isEmpty()) return Ingredient.EMPTY;
+        List<ItemStack> matchingStacks = new ArrayList<>();
+        recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.getAddition().getItems())));
+        if (matchingStacks.isEmpty()) return Ingredient.EMPTY;
+        return Ingredient.of(matchingStacks.stream());
     }
 
     public interface Converter<T extends Tag> {

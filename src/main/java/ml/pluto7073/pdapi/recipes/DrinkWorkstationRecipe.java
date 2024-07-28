@@ -69,6 +69,12 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
         return stack;
     }
 
+    public ResourceLocation getResultId() {
+        return new ResourceLocation(result);
+    }
+
+    public Ingredient getAddition() { return addition; }
+
     @Override
     public ResourceLocation getId() {
         return this.id;

@@ -1,0 +1,21 @@
+{
+  "type": "pdapi:specialty_drink",
+  "base": "pdapi:test_drink",
+  "additions": [
+    "pdapi:milk",
+    "pdapi:milk",
+    "pdapi:sugar",
+    "pdapi:sugar"
+  ],
+  "caffeine": 1000,
+  "color": 0,
+  "onDrinkActions": [
+    {
+      "type": "pdapi:apply_status_effect",
+      "effect": "minecraft:regeneration",
+      "duration": 1200,
+      "amplifier": 1
+    }
+  ],
+  "name": "Testing Me Drinksies"
+}

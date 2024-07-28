@@ -19,17 +19,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.List;
 import java.util.Optional;
 
-public class DrinkWorkstationScreenHandler extends ItemCombinerMenu {
+public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     private final Level world;
     private DrinkWorkstationRecipe currentRecipe;
     private final List<DrinkWorkstationRecipe> recipes;
 
-    public DrinkWorkstationScreenHandler(int syncId, Inventory playerInventory) {
+    public DrinkWorkstationMenu(int syncId, Inventory playerInventory) {
         this(syncId, playerInventory, ContainerLevelAccess.NULL);
     }
 
-    public DrinkWorkstationScreenHandler(int syncId, Inventory playerInventory, ContainerLevelAccess context) {
+    public DrinkWorkstationMenu(int syncId, Inventory playerInventory, ContainerLevelAccess context) {
         super(PDScreens.WORKSTATION_MENU_TYPE, syncId, playerInventory, context);
         this.world = playerInventory.player.level();
         this.recipes = this.world.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE);

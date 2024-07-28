@@ -7,12 +7,12 @@ import net.minecraft.world.inventory.MenuType;
 
 public final class PDScreens {
 
-    public static final MenuType<DrinkWorkstationScreenHandler> WORKSTATION_MENU_TYPE;
+    public static final MenuType<DrinkWorkstationMenu> WORKSTATION_MENU_TYPE;
 
     public static void init() {}
 
     static {
-        WORKSTATION_MENU_TYPE = Registry.register(BuiltInRegistries.MENU, "plutoscoffee:coffee_workstation", new MenuType<>(DrinkWorkstationScreenHandler::new, FeatureFlags.VANILLA_SET));
+        WORKSTATION_MENU_TYPE = Registry.register(BuiltInRegistries.MENU, "plutoscoffee:coffee_workstation", new MenuType<>(DrinkWorkstationMenu::new, FeatureFlags.VANILLA_SET));
     }
 
 }

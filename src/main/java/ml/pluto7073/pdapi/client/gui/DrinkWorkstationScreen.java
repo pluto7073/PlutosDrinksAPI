@@ -7,11 +7,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-public class DrinkWorkstationScreen extends ItemCombinerScreen<DrinkWorkstationScreenHandler> {
+public class DrinkWorkstationScreen extends ItemCombinerScreen<DrinkWorkstationMenu> {
 
     private static final ResourceLocation TEXTURE = PDAPI.asId("textures/gui/container/drink_workstation.png");
 
-    public DrinkWorkstationScreen(DrinkWorkstationScreenHandler handler, Inventory playerInventory, Component title) {
+    public DrinkWorkstationScreen(DrinkWorkstationMenu handler, Inventory playerInventory, Component title) {
         super(handler, playerInventory, title, TEXTURE);
         this.titleLabelX = 60;
         this.titleLabelY = 18;

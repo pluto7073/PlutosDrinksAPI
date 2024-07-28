@@ -1,6 +1,6 @@
 package ml.pluto7073.pdapi.block;
 
-import ml.pluto7073.pdapi.client.gui.DrinkWorkstationScreenHandler;
+import ml.pluto7073.pdapi.client.gui.DrinkWorkstationMenu;
 import ml.pluto7073.pdapi.item.PDItems;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -41,7 +41,7 @@ public class DrinkWorkstationBlock extends CraftingTableBlock {
 
     @Override
     public MenuProvider getMenuProvider(BlockState state, Level world, BlockPos pos) {
-        return new SimpleMenuProvider((syncId, playerInventory, playerEntity) -> new DrinkWorkstationScreenHandler(syncId, playerInventory, ContainerLevelAccess.create(world, pos)), TITLE);
+        return new SimpleMenuProvider((syncId, playerInventory, playerEntity) -> new DrinkWorkstationMenu(syncId, playerInventory, ContainerLevelAccess.create(world, pos)), TITLE);
     }
 
     @Override

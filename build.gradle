@@ -31,6 +31,9 @@ dependencies {
 		it.parchment "org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip"
 		it.officialMojangMappings { nameSyntheticMembers = false }
 	})
+
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
+	modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"

@@ -119,6 +119,14 @@ public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] 
         return PDRecipeTypes.SPECIALTY_DRINK_RECIPE_TYPE;
     }
 
+    public List<Ingredient> stepsToIngredientList() {
+        List<Ingredient> ingredients = new ArrayList<>();
+        for (ResourceLocation addition : steps) {
+            ingredients.add(DrinkUtil.additionToIngredient(addition));
+        }
+        return ingredients;
+    }
+
     @MethodsReturnNonnullByDefault
     public static class Serializer implements RecipeSerializer<SpecialtyDrink> {
 
