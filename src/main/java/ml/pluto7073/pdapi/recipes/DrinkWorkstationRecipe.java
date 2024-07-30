@@ -73,6 +73,8 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
         return new ResourceLocation(result);
     }
 
+    public Ingredient getBase() { return base; }
+
     public Ingredient getAddition() { return addition; }
 
     @Override

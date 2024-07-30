@@ -8,6 +8,7 @@ import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
 import ml.pluto7073.pdapi.addition.OnDrink;
 import ml.pluto7073.pdapi.addition.OnDrinkTemplate;
+import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
@@ -49,7 +50,7 @@ public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadL
                 DrinkAdditions.register(id, loadFromJson(id, object), false);
                 i++;
             } catch (IOException e) {
-                PDAPI.LOGGER.error("Could not load Drink Addition " + id, e);
+                PDAPI.LOGGER.error("Could not load Drink Addition {}", id, e);
             }
         }
 
@@ -58,9 +59,12 @@ public class DrinkAdditionRegisterer implements SimpleSynchronousResourceReloadL
 
     public static DrinkAddition loadFromJson(ResourceLocation id, JsonObject object) {
         DrinkAddition.Builder builder = new DrinkAddition.Builder();
-        if (object.has("caffeine")) {
-            builder.caffeine(GsonHelper.getAsInt(object, "caffeine"));
-        }
+        ConsumableChemicalRegistry.forEach(handler -> {
+            String name = handler.getName();
+            if (object.has(name)) {
+                builder.chemical(name, GsonHelper.getAsInt(object, name));
+            }
+        });
         if (object.has("changesColor")) {
             builder.changesColor(GsonHelper.getAsBoolean(object, "changesColor"));
         }

@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.mixin;
 
+import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.entity.PDTrackedData;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Player;
@@ -16,9 +17,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
 
     @Inject(at = @At("TAIL"), method = "defineSynchedData")
     public void pdapi$initCustomDataTrackers(CallbackInfo ci) {
-        this.entityData.define(PDTrackedData.PLAYER_CAFFEINE_AMOUNT, 0F);
-        this.entityData.define(PDTrackedData.PLAYER_ORIGINAL_CAFFEINE_AMOUNT, 0F);
-        this.entityData.define(PDTrackedData.PLAYER_TICKS_SINCE_LAST_CAFFEINE, 0);
+        ConsumableChemicalRegistry.forEach(handler -> handler.defineDataForPlayer(this.entityData));
     }
 
 }

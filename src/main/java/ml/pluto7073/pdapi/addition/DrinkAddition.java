@@ -9,6 +9,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class DrinkAddition {
@@ -16,21 +17,21 @@ public class DrinkAddition {
     private final OnDrink[] actions;
     private final boolean changesColor;
     private final int color;
-    private final int caffeine;
+    private final HashMap<String, Integer> chemicals;
     private final int maxAmount;
     private final int currentWeight;
     private final String name;
     private final JsonObject originalData;
 
-    public DrinkAddition(OnDrink[] actions, boolean changesColor, int color, int caffeine, int maxAmount, @Nullable String name, JsonObject originalData) {
-        this(actions, changesColor, color, caffeine, maxAmount, name, originalData, 0);
+    public DrinkAddition(OnDrink[] actions, boolean changesColor, int color, HashMap<String, Integer> chemicals, int maxAmount, @Nullable String name, JsonObject originalData) {
+        this(actions, changesColor, color, chemicals, maxAmount, name, originalData, 0);
     }
 
-    protected DrinkAddition(OnDrink[] actions, boolean changesColor, int color, int caffeine, int maxAmount, @Nullable String name, JsonObject originalData, int currentWeight) {
+    protected DrinkAddition(OnDrink[] actions, boolean changesColor, int color, HashMap<String, Integer> chemicals, int maxAmount, @Nullable String name, JsonObject originalData, int currentWeight) {
         this.actions = actions;
         this.changesColor = changesColor;
         this.color = color;
-        this.caffeine = caffeine;
+        this.chemicals = chemicals;
         this.maxAmount = maxAmount;
         this.originalData = originalData;
         this.currentWeight = currentWeight;
@@ -51,8 +52,8 @@ public class DrinkAddition {
         return color;
     }
 
-    public int getCaffeine() {
-        return caffeine;
+    public HashMap<String, Integer> getChemicals() {
+        return chemicals;
     }
 
     public int getMaxAmount() {
@@ -83,7 +84,7 @@ public class DrinkAddition {
         private final List<OnDrink> actions;
         private boolean changesColor;
         private int color;
-        private int caffeine;
+        private HashMap<String, Integer> chemicals;
         private int maxAmount;
         private int weight;
         private String name;
@@ -92,7 +93,7 @@ public class DrinkAddition {
             actions = new ArrayList<>();
             changesColor = false;
             color = 0;
-            caffeine = 0;
+            chemicals = new HashMap<>();
             maxAmount = 0;
             weight = 0;
             name = null;
@@ -113,8 +114,8 @@ public class DrinkAddition {
             return this;
         }
 
-        public Builder caffeine(int caffeine) {
-            this.caffeine = caffeine;
+        public Builder chemical(String name, int amount) {
+            chemicals.put(name, amount);
             return this;
         }
 
@@ -134,7 +135,7 @@ public class DrinkAddition {
         }
 
         public DrinkAddition build(JsonObject data) {
-            return new DrinkAddition(actions.toArray(new OnDrink[0]), changesColor, color, caffeine, maxAmount, name, data, weight);
+            return new DrinkAddition(actions.toArray(new OnDrink[0]), changesColor, color, chemicals, maxAmount, name, data, weight);
         }
 
     }

@@ -4,6 +4,8 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import ml.pluto7073.pdapi.DrinkUtil;
+import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalHandler;
+import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.gamerule.PDGameRules;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
@@ -18,10 +20,18 @@ import static net.minecraft.commands.Commands.literal;
 public class PDCommands {
 
     public static void init() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("drink").then(caffeine())));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            LiteralArgumentBuilder<CommandSourceStack> drink = literal("drink");
+            ConsumableChemicalRegistry.forEach(handler -> {
+                LiteralArgumentBuilder<CommandSourceStack> subCommand = handler.getDrinkSubcommand();
+                if (subCommand == null) return;
+                drink.then(subCommand);
+            });
+            dispatcher.register(drink);
+        });
     }
 
-    private static LiteralArgumentBuilder<CommandSourceStack> caffeine() {
+    public static LiteralArgumentBuilder<CommandSourceStack> caffeine() {
         return literal("caffeine").then(caffeineGet()).then(caffeineSet());
     }
 
@@ -53,7 +63,7 @@ public class PDCommands {
                                 .executes(context -> {
                                     ServerPlayer target = EntityArgument.getPlayer(context, "target");
                                     int amount = IntegerArgumentType.getInteger(context, "amount");
-                                    DrinkUtil.setPlayerCaffeine(target, amount);
+                                    ConsumableChemicalRegistry.CAFFEINE.set(target, amount);
                                     return 1;
                                 })));
     }

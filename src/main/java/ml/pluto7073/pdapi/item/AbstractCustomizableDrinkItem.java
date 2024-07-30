@@ -3,6 +3,7 @@ package ml.pluto7073.pdapi.item;
 import ml.pluto7073.pdapi.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
+import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -47,12 +48,12 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
         return baseTemperature;
     }
 
-    public int getCaffeineContent(ItemStack stack) {
-        int caffeine = 0;
+    public int getChemicalContent(String name, ItemStack stack) {
+        int amount = 0;
         for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack)) {
-            caffeine += a.getCaffeine();
+            amount += a.getChemicals().get(name);
         }
-        return caffeine;
+        return amount;
     }
 
     @Override
@@ -72,9 +73,9 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
-        Player playerEntity = user instanceof Player ? (Player) user : null;
-        if (playerEntity instanceof ServerPlayer) {
-            CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer)playerEntity, stack);
+        Player player = user instanceof Player ? (Player) user : null;
+        if (player instanceof ServerPlayer) {
+            CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer)player, stack);
         }
 
         if (!world.isClientSide) {
@@ -82,28 +83,28 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
             for (DrinkAddition addition : additions) {
                 addition.onDrink(stack, world, user);
             }
-            int caffeine = this.getCaffeineContent(stack);
-            if (playerEntity != null) {
-                float currentCaffeine = DrinkUtil.getPlayerCaffeine(playerEntity);
-                currentCaffeine += caffeine;
-                DrinkUtil.setPlayerCaffeine(playerEntity, currentCaffeine);
+            if (player != null) {
+                ConsumableChemicalRegistry.forEach(handler -> {
+                    float amount = getChemicalContent(handler.getName(), stack);
+                    if (amount > 0) handler.add(player, amount);
+                });
             }
         }
 
-        if (playerEntity != null) {
-            playerEntity.awardStat(Stats.ITEM_USED.get(this));
-            if (!playerEntity.getAbilities().instabuild) {
+        if (player != null) {
+            player.awardStat(Stats.ITEM_USED.get(this));
+            if (!player.getAbilities().instabuild) {
                 stack.shrink(1);
             }
         }
 
-        if (playerEntity == null || !playerEntity.getAbilities().instabuild) {
+        if (player == null || !player.getAbilities().instabuild) {
             if (stack.isEmpty()) {
                 return new ItemStack(baseItem);
             }
 
-            if (playerEntity != null) {
-                playerEntity.getInventory().add(new ItemStack(baseItem));
+            if (player != null) {
+                player.getInventory().add(new ItemStack(baseItem));
             }
         }
         user.gameEvent(GameEvent.DRINK);
@@ -112,7 +113,6 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
-        float caffeine = getCaffeineContent(stack);
         DrinkAddition[] addIns = DrinkUtil.getAdditionsFromStack(stack);
         HashMap<ResourceLocation, Integer> additionCounts = new HashMap<>();
         for (DrinkAddition addIn : addIns) {
@@ -124,7 +124,8 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
             } else additionCounts.put(id, 1);
         }
         additionCounts.forEach((id, count) -> tooltip.add(Component.translatable(DrinkAdditions.get(id).getTranslationKey(), count).withStyle(ChatFormatting.GRAY)));
-        if (caffeine > 0) tooltip.add(Component.translatable("tooltip.pdapi.caffeine_content", caffeine).withStyle(ChatFormatting.AQUA));
+        ConsumableChemicalRegistry.forEach(handler ->
+                handler.appendTooltip(tooltip, getChemicalContent(handler.getName(), stack)));
     }
 
     public enum Temperature {

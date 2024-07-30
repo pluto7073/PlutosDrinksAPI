@@ -2,27 +2,23 @@ package ml.pluto7073.pdapi;
 
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
-import ml.pluto7073.pdapi.entity.PDTrackedData;
+import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
@@ -101,19 +97,13 @@ public final class DrinkUtil {
         return compound.get("string");
     }
 
-    public static void setPlayerCaffeine(Player player, float caffeine) {
-        player.getEntityData().set(PDTrackedData.PLAYER_TICKS_SINCE_LAST_CAFFEINE, 0);
-        player.getEntityData().set(PDTrackedData.PLAYER_CAFFEINE_AMOUNT, caffeine);
-        player.getEntityData().set(PDTrackedData.PLAYER_ORIGINAL_CAFFEINE_AMOUNT, caffeine);
-    }
-
     public static float calculateCaffeineDecay(int ticks, float originalCaffeine) {
         double exp = Math.pow(0.5, ticks / CAFFEINE_HALF_LIFE_TICKS);
         return (float) (exp * originalCaffeine);
     }
 
     public static float getPlayerCaffeine(Player player) {
-        return player.getEntityData().get(PDTrackedData.PLAYER_CAFFEINE_AMOUNT);
+        return ConsumableChemicalRegistry.CAFFEINE.get(player);
     }
 
     public static SpecialtyDrink getSpecialDrink(ItemStack stack) {
@@ -152,6 +142,21 @@ public final class DrinkUtil {
         if (recipes.isEmpty()) return Ingredient.EMPTY;
         List<ItemStack> matchingStacks = new ArrayList<>();
         recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.getAddition().getItems())));
+        if (matchingStacks.isEmpty()) return Ingredient.EMPTY;
+        return Ingredient.of(matchingStacks.stream());
+    }
+
+    public static Ingredient getValidBasesForAddition(ResourceLocation additionId) {
+        Level level = Minecraft.getInstance().level;
+        if (level == null) {
+            PDAPI.LOGGER.warn("Valid bases for \"{}\" can only be retrieved when a level is loaded", additionId);
+            return Ingredient.EMPTY;
+        }
+        List<DrinkWorkstationRecipe> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
+                .stream().filter(r -> r.getResultId().equals(additionId)).toList();
+        if (recipes.isEmpty()) return Ingredient.EMPTY;
+        List<ItemStack> matchingStacks = new ArrayList<>();
+        recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.getBase().getItems())));
         if (matchingStacks.isEmpty()) return Ingredient.EMPTY;
         return Ingredient.of(matchingStacks.stream());
     }

@@ -21,14 +21,14 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     }
 
     @Override
-    public int getCaffeineContent(ItemStack stack) {
-        int caffeine;
+    public int getChemicalContent(String name, ItemStack stack) {
+        int amount;
         try {
-            caffeine = DrinkUtil.getSpecialDrink(stack).caffeine();
+            amount = DrinkUtil.getSpecialDrink(stack).chemicals().get(name);
         } catch (Exception e) {
-            caffeine = 0;
+            amount = 0;
         }
-        return super.getCaffeineContent(stack) + caffeine;
+        return super.getChemicalContent(name, stack) + amount;
     }
 
     @Override

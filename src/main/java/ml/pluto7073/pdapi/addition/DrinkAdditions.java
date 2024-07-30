@@ -16,7 +16,7 @@ public class DrinkAdditions {
     private static final Map<ResourceLocation, DrinkAddition> STATIC_REGISTRY = new HashMap<>();
     public static final String ADDITIONS_NBT_KEY = "Additions";
 
-    public static final DrinkAddition EMPTY = register(PDAPI.asId("empty"), new DrinkAddition(new OnDrink[0], false, 0, 0, 0, null, new JsonObject()));
+    public static final DrinkAddition EMPTY = register(PDAPI.asId("empty"), new DrinkAddition(new OnDrink[0], false, 0, new HashMap<>(), 0, null, new JsonObject()));
 
     public static DrinkAddition register(ResourceLocation id, DrinkAddition addition) {
         return register(id, addition, true);

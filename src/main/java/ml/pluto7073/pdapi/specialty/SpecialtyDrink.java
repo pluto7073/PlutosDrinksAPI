@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.specialty;
 
+import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -9,6 +10,7 @@ import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
 import ml.pluto7073.pdapi.addition.OnDrink;
 import ml.pluto7073.pdapi.addition.OnDrinkTemplate;
+import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.networking.NetworkingUtils;
@@ -41,17 +43,17 @@ import java.util.List;
 import java.util.Optional;
 
 @MethodsReturnNonnullByDefault
-public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrink[] actions, int color, int caffeine, String name) implements Recipe<Container> {
+public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrink[] actions, int color, HashMap<String, Integer> chemicals, String name) implements Recipe<Container> {
 
     public static final HashMap<ResourceLocation, SpecialtyDrink> DRINKS = new HashMap<>();
 
-    public SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrink[] actions, int color, int caffeine, @Nullable String name) {
+    public SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrink[] actions, int color, HashMap<String, Integer> chemicals, @Nullable String name) {
         this.id = id;
         this.base = base;
         this.steps = steps;
         this.actions = actions;
         this.color = color;
-        this.caffeine = caffeine;
+        this.chemicals = chemicals;
         this.name = name != null ? name : "drink." + id.getNamespace() + "." + id.getPath();
         DRINKS.put(id, this);
     }
@@ -141,7 +143,14 @@ public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] 
                 additions.add(new ResourceLocation(e.getAsString()));
             }
             if (additions.size() > 10) throw new IllegalStateException("Specialty Drink \"" + id.toString() + "\" cannot have more than 10 steps");
-            int caffeine = GsonHelper.getAsInt(data, "caffeine");
+
+            HashMap<String, Integer> chemicals = new HashMap<>();
+            ConsumableChemicalRegistry.forEach(handler -> {
+                if (data.has(handler.getName())) {
+                    chemicals.put(handler.getName(), GsonHelper.getAsInt(data, handler.getName()));
+                }
+            });
+
             int color = GsonHelper.getAsInt(data, "color");
             JsonArray actionsArray = GsonHelper.getAsJsonArray(data, "onDrinkActions");
             List<OnDrink> actions = new ArrayList<>();
@@ -164,14 +173,14 @@ public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] 
             if (data.has("name")) {
                 name = GsonHelper.getAsString(data, "name");
             }
-            return new SpecialtyDrink(id, base, additions.toArray(new ResourceLocation[0]), actions.toArray(new OnDrink[0]), color, caffeine, name);
+            return new SpecialtyDrink(id, base, additions.toArray(new ResourceLocation[0]), actions.toArray(new OnDrink[0]), color, chemicals, name);
         }
 
         @Override
         public SpecialtyDrink fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
             ResourceLocation base = buf.readResourceLocation();
             ResourceLocation[] steps = NetworkingUtils.listFromNetwork(buf, FriendlyByteBuf::readResourceLocation).toArray(new ResourceLocation[0]);
-            int caffeine = buf.readInt();
+            HashMap<String, Integer> chemicals = Maps.newHashMap(buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readInt));
             int color = buf.readInt();
             List<JsonObject> objects = NetworkingUtils.listFromNetwork(buf, NetworkingUtils::readJsonObject);
             OnDrink[] actions = new OnDrink[objects.size()];
@@ -187,14 +196,14 @@ public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] 
                 actions[i] = (template.parseJson(id, actionObject));
             }
             String name = buf.readUtf();
-            return new SpecialtyDrink(id, BuiltInRegistries.ITEM.get(base), steps, actions, color, caffeine, name);
+            return new SpecialtyDrink(id, BuiltInRegistries.ITEM.get(base), steps, actions, color, chemicals, name);
         }
 
         @Override
         public void toNetwork(FriendlyByteBuf buf, SpecialtyDrink recipe) {
             buf.writeResourceLocation(BuiltInRegistries.ITEM.getKey(recipe.base));
             NetworkingUtils.arrayToNetwork(buf, recipe.steps, FriendlyByteBuf::writeResourceLocation);
-            buf.writeInt(recipe.caffeine);
+            buf.writeMap(recipe.chemicals, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeInt);
             buf.writeInt(recipe.color);
             JsonObject[] actions = NetworkingUtils.convertToJson(recipe.actions, OnDrink::toJson);
             NetworkingUtils.arrayToNetwork(buf, actions, NetworkingUtils::writeJsonObjectStart);

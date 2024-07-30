@@ -1,7 +1,6 @@
 {
   "replace": false,
   "values": [
-    "pdapi:specialty_drink",
-    "pdapi:test_drink"
+    "pdapi:specialty_drink"
   ]
 }
