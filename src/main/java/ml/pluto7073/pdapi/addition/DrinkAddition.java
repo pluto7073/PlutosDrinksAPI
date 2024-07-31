@@ -2,6 +2,7 @@ package ml.pluto7073.pdapi.addition;
 
 import com.google.gson.JsonObject;
 import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -23,7 +24,7 @@ public class DrinkAddition {
     private final String name;
     private final JsonObject originalData;
 
-    public DrinkAddition(OnDrink[] actions, boolean changesColor, int color, HashMap<String, Integer> chemicals, int maxAmount, @Nullable String name, JsonObject originalData) {
+    protected DrinkAddition(OnDrink[] actions, boolean changesColor, int color, HashMap<String, Integer> chemicals, int maxAmount, @Nullable String name, JsonObject originalData) {
         this(actions, changesColor, color, chemicals, maxAmount, name, originalData, 0);
     }
 
@@ -84,7 +85,7 @@ public class DrinkAddition {
         private final List<OnDrink> actions;
         private boolean changesColor;
         private int color;
-        private HashMap<String, Integer> chemicals;
+        private final HashMap<String, Integer> chemicals;
         private int maxAmount;
         private int weight;
         private String name;
@@ -94,6 +95,7 @@ public class DrinkAddition {
             changesColor = false;
             color = 0;
             chemicals = new HashMap<>();
+            ConsumableChemicalRegistry.forEach(handler -> chemical(handler.getName(), 0));
             maxAmount = 0;
             weight = 0;
             name = null;
