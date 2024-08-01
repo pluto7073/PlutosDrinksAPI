@@ -5,8 +5,11 @@ import ml.pluto7073.pdapi.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
+import ml.pluto7073.pdapi.specialty.InProgressItemRegistry;
+import ml.pluto7073.pdapi.tag.PDTags;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -21,6 +24,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import java.util.stream.Stream;
 
+@MethodsReturnNonnullByDefault
 public class DrinkWorkstationRecipe implements Recipe<Container> {
 
     final Ingredient base;
@@ -51,7 +55,11 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
                 .getList(DrinkAdditions.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
         resAdds.add(DrinkUtil.stringAsNbt(result));
         stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditions.ADDITIONS_NBT_KEY, resAdds);
-
+        if (stack.is(PDTags.HAS_IN_PROGRESS_ITEM)) {
+            CompoundTag tag = stack.getOrCreateTag();
+            stack = new ItemStack(InProgressItemRegistry.getInProgress(stack.getItem()));
+            stack.setTag(tag);
+        }
         return stack;
     }
 
@@ -63,6 +71,11 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
     @Override
     public ItemStack getResultItem(RegistryAccess registryManager) {
         ItemStack stack = base.getItems()[0].copy();
+        if (stack.is(PDTags.HAS_IN_PROGRESS_ITEM)) {
+            if (base.getItems().length > 1) {
+                stack = base.getItems()[1].copy();
+            } else stack = new ItemStack(InProgressItemRegistry.getInProgress(stack.getItem()));
+        }
         ListTag adds = new ListTag();
         adds.add(DrinkUtil.stringAsNbt(result));
         stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditions.ADDITIONS_NBT_KEY, adds);
