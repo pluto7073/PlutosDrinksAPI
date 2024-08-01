@@ -26,7 +26,7 @@ public interface ConsumableChemicalHandler {
     void saveToTag(SynchedEntityData data, CompoundTag tag);
     void loadFromTag(SynchedEntityData data, CompoundTag tag);
     void defineDataForPlayer(SynchedEntityData data);
-    void appendTooltip(List<Component> tooltip, float amount);
+    void appendTooltip(List<Component> tooltip, float amount, ItemStack stack);
     @Nullable LiteralArgumentBuilder<CommandSourceStack> getDrinkSubcommand();
 
 }

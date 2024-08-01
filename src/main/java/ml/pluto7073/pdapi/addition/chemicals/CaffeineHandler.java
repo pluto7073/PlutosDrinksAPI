@@ -152,7 +152,7 @@ public class CaffeineHandler implements ConsumableChemicalHandler {
     }
 
     @Override
-    public void appendTooltip(List<Component> tooltip, float caffeine) {
+    public void appendTooltip(List<Component> tooltip, float caffeine, ItemStack stack) {
         if (caffeine > 0) tooltip.add(Component.translatable("tooltip.pdapi.caffeine_content", caffeine).withStyle(ChatFormatting.AQUA));
     }
 

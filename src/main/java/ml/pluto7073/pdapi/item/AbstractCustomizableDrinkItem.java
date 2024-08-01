@@ -125,7 +125,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
         }
         additionCounts.forEach((id, count) -> tooltip.add(Component.translatable(DrinkAdditions.get(id).getTranslationKey(), count).withStyle(ChatFormatting.GRAY)));
         ConsumableChemicalRegistry.forEach(handler ->
-                handler.appendTooltip(tooltip, getChemicalContent(handler.getName(), stack)));
+                handler.appendTooltip(tooltip, getChemicalContent(handler.getName(), stack), stack));
     }
 
     public enum Temperature {
