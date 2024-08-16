@@ -2,7 +2,7 @@
 name: Bug report
 about: Create a report to help us improve
 title: ''
-labels: ''
+labels: bug
 assignees: ''
 
 ---
@@ -26,6 +26,8 @@ If applicable, add screenshots to help explain your problem.
 **More Info (please complete the following information):**
  - Minecraft Version [1.20.1, 1.20.2, etc.]
  - Mod Version [2.3.1, 3.0-beta.1, etc.]
+ - Other Mods Loaded:
+   - e.g PlutosCoffeeMod
 
 **Additional context**
 Add any other context about the problem here.
