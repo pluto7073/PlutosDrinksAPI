@@ -124,7 +124,8 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
             } else additionCounts.put(id, 1);
         }
         additionCounts.forEach((id, count) -> tooltip.add(Component.translatable(DrinkAdditions.get(id).getTranslationKey(), count).withStyle(ChatFormatting.GRAY)));
-        ConsumableChemicalRegistry.forEach(handler ->
+
+        if (context.isAdvanced() || context.isCreative()) ConsumableChemicalRegistry.forEach(handler ->
                 handler.appendTooltip(tooltip, getChemicalContent(handler.getName(), stack), stack));
     }
 
