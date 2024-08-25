@@ -142,7 +142,7 @@ public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] 
             for (JsonElement e : additionsJson) {
                 additions.add(new ResourceLocation(e.getAsString()));
             }
-            if (additions.size() > 10) throw new IllegalStateException("Specialty Drink \"" + id.toString() + "\" cannot have more than 10 steps");
+            if (additions.size() > 15) throw new IllegalStateException("Specialty Drink \"" + id.toString() + "\" cannot have more than 15 steps");
 
             HashMap<String, Integer> chemicals = new HashMap<>();
             ConsumableChemicalRegistry.forEach(handler -> {
