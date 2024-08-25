@@ -42,7 +42,8 @@ public class IngredientSequenceCategory implements DisplayCategory<IngredientSeq
         // Additions
         for (int i = 1; i < display.getInputEntries().size(); i++) {
             int offset = i > 5 ? 20 : 0;
-            widgets.add(Widgets.createSlot(new Point(x + 16 + 20 * i, y - 28 + offset))
+            int xOff = i > 5 ? i - 5 : i;
+            widgets.add(Widgets.createSlot(new Point(x + 16 + 20 * xOff, y - 28 + offset))
                     .markInput().entries(display.getInputEntries().get(i)));
         }
 
