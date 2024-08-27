@@ -13,7 +13,7 @@ import net.minecraft.world.item.Items;
 public final class PDItems {
 
     public static final Item MILK_BOTTLE = new MilkBottleItem();
-    public static final Item SPECIALTY_DRINK = new SpecialtyDrinkItem(new Item.Properties().stacksTo(1).craftRemainder(Items.GLASS_BOTTLE));
+    public static final Item SPECIALTY_DRINK = new SpecialtyDrinkItem(new Item.Properties().stacksTo(1));
     //public static final Item TEST_DRINK_ITEM = new TestDrinkItem(new Item.Properties().stacksTo(1));
 
     public static final Item DRINK_WORKSTATION = new BlockItem(PDBlocks.DRINK_WORKSTATION, new Item.Properties());

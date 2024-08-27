@@ -8,6 +8,7 @@
     "LivingEntityMixin",
     "PassiveEntityMixin",
     "PlayerEntityMixin",
+    "RecipeManagerMixin",
     "ServerPlayerEntityMixin"
   ],
   "injectors": {
