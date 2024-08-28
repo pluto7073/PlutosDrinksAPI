@@ -8,6 +8,8 @@ import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -131,6 +133,7 @@ public final class DrinkUtil {
         }
     }
 
+    @Environment(EnvType.CLIENT)
     public static Ingredient additionToIngredient(ResourceLocation additionId) {
         Level level = Minecraft.getInstance().level;
         if (level == null) {
@@ -146,6 +149,7 @@ public final class DrinkUtil {
         return Ingredient.of(matchingStacks.stream());
     }
 
+    @Environment(EnvType.CLIENT)
     public static Ingredient getValidBasesForAddition(ResourceLocation additionId) {
         Level level = Minecraft.getInstance().level;
         if (level == null) {
