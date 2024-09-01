@@ -11,6 +11,7 @@ import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import java.util.Collections;
@@ -21,9 +22,9 @@ public class IngredientSequenceDisplay extends BasicDisplay {
 
     public IngredientSequenceDisplay(SpecialtyDrink drink) {
         super(EntryIngredients.ofIngredients(Util.make(() -> {
-            Item base = drink.base();
-            if (InProgressItemRegistry.isInProgressItem(base)) {
-                base = InProgressItemRegistry.getBase(base);
+            ItemStack base = drink.baseAsStack();
+            if (InProgressItemRegistry.isInProgressItem(base.getItem())) {
+                base = new ItemStack(InProgressItemRegistry.getBase(base.getItem()));
             }
             List<Ingredient> list = Lists.newArrayList(Ingredient.of(base));
             list.addAll(drink.stepsToIngredientList());

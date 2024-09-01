@@ -17,7 +17,7 @@ public class InProgressItemRegistry {
             Item val = REGISTRY.get(key);
             if (val == inProgress) return key;
         }
-        return null;
+        throw new IllegalArgumentException("Item is not an in progress item");
     }
 
     public static void register(Item base, Item inProgress) {

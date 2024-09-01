@@ -40,9 +40,17 @@ import java.util.HashMap;
 import java.util.List;
 
 @MethodsReturnNonnullByDefault
-public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrinkAction[] actions, int color, HashMap<String, Integer> chemicals, String name) implements Recipe<Container> {
+public class SpecialtyDrink implements Recipe<Container> {
 
     public static final HashMap<ResourceLocation, SpecialtyDrink> DRINKS = new HashMap<>();
+
+    private final ResourceLocation id;
+    private final Item base;
+    private final ResourceLocation[] steps;
+    private final OnDrinkAction[] actions;
+    private final int color;
+    private final HashMap<String, Integer> chemicals;
+    private final String name;
 
     public SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrinkAction[] actions, int color, HashMap<String, Integer> chemicals, @Nullable String name) {
         this.id = id;
@@ -55,12 +63,44 @@ public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] 
         DRINKS.put(id, this);
     }
 
+    public ResourceLocation id() {
+        return id;
+    }
+
+    public Item base() {
+        return base;
+    }
+
+    public ItemStack baseAsStack() {
+        return new ItemStack(base);
+    }
+
+    public ResourceLocation[] steps() {
+        return steps;
+    }
+
+    public OnDrinkAction[] actions() {
+        return actions;
+    }
+
+    public int color() {
+        return color;
+    }
+
+    public HashMap<String, Integer> chemicals() {
+        return chemicals;
+    }
+
+    public String name() {
+        return name;
+    }
+
     public ItemStack getAsItem() {
         return DrinkUtil.setSpecialDrink(new ItemStack(PDItems.SPECIALTY_DRINK, 1), this);
     }
 
     public ItemStack getAsOriginalItemWithAdditions(ItemStack source) {
-        ItemStack stack = new ItemStack(base, 1);
+        ItemStack stack = baseAsStack();
         CompoundTag ogData = source.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
         CompoundTag drinkData = ogData.copy();
         ListTag list = new ListTag();
