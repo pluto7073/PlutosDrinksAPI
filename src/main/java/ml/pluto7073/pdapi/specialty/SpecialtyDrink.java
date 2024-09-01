@@ -91,6 +91,10 @@ public class SpecialtyDrink {
         return name;
     }
 
+    public ResourceLocation type() {
+        return PDAPI.asId("specialty_drink");
+    }
+
     public ItemStack getAsItem() {
         return DrinkUtil.setSpecialDrink(new ItemStack(PDItems.SPECIALTY_DRINK, 1), this);
     }
