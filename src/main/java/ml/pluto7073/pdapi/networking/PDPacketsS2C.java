@@ -32,11 +32,10 @@ public class PDPacketsS2C {
         DrinkAdditions.resetRegistry();
 
         packet.additions().entrySet().stream()
-                .map(entry -> new AbstractMap.SimpleEntry<>(
-                        entry.getKey(), DrinkAdditionRegisterer.loadFromJson(entry.getKey(), entry.getValue())
-                ))
                 .filter(Predicate.not(DrinkAdditions::contains))
                 .forEach(entry -> DrinkAdditions.register(entry.getKey(), entry.getValue()));
+
+        PDAPI.LOGGER.info("Received server-side Drink Additions list");
     }
 
 }

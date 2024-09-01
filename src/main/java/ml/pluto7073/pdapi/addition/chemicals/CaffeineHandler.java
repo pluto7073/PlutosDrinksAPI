@@ -1,7 +1,7 @@
 package ml.pluto7073.pdapi.addition.chemicals;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import ml.pluto7073.pdapi.DrinkUtil;
+import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.command.PDCommands;
 import ml.pluto7073.pdapi.entity.PDTrackedData;
 import ml.pluto7073.pdapi.entity.effect.PDMobEffects;
@@ -18,8 +18,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;

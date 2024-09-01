@@ -1,6 +1,6 @@
 package ml.pluto7073.pdapi.client;
 
-import ml.pluto7073.pdapi.DrinkUtil;
+import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.client.gui.DrinkWorkstationScreen;
 import ml.pluto7073.pdapi.client.gui.PDScreens;
 import ml.pluto7073.pdapi.item.PDItems;

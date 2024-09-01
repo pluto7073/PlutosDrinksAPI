@@ -8,11 +8,12 @@
 		"Pluto7073"
 	],
 	"contact": {
-		"homepage": "https://github.com/pluto7073/PlutosDrinksAPI",
+		"homepage": "https://modrinth.com/mod/pdapi",
 		"sources": "https://github.com/pluto7073/PlutosDrinksAPI"
 	},
 	"license": "MIT",
 	"icon": "assets/pdapi/icon.png",
+	"accessWidener": "pdapi.accesswidener",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
@@ -22,7 +23,7 @@
 			"ml.pluto7073.pdapi.client.PDAPIClient"
 		],
 		"rei_client": [
-			"ml.pluto7073.pdapi.crossmodfeatures.rei.DrinkREI"
+			"ml.pluto7073.pdapi.compat.rei.DrinkREI"
 		]
 	},
 	"custom": {
@@ -41,13 +42,16 @@
 		"pdapi.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.15.7",
+		"fabric": ">=0.15.7",
 		"minecraft": "~1.20.1",
 		"java": ">=17",
 		"fabric-api": "*"
 	},
 	"suggests": {
 		"modmenu": "*",
-		"dehydration": "*"
+		"dehydration": "*",
+		"plutoscoffee": "*",
+		"teatime": "*",
+		"bartending": "*"
 	}
 }

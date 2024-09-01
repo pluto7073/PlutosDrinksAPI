@@ -1,4 +1,4 @@
-package ml.pluto7073.pdapi.modmenu;
+package ml.pluto7073.pdapi.compat.modmenu;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;

@@ -4,7 +4,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.PDRegistries;
+import ml.pluto7073.pdapi.addition.DrinkAddition;
+import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
+import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 import java.util.function.Function;
@@ -170,6 +176,27 @@ public final class NetworkingUtils {
             list.add(intMap.get(i));
         }
         return list;
+    }
+
+    public static List<OnDrinkAction> readDrinkActionsList(FriendlyByteBuf buf) {
+        return listFromNetwork(buf, b -> {
+            ResourceLocation id = b.readResourceLocation();
+            @SuppressWarnings("unchecked")
+            OnDrinkSerializer<OnDrinkAction> serializer = (OnDrinkSerializer<OnDrinkAction>)
+                    PDRegistries.ON_DRINK_SERIALIZER.get(id);
+            if (serializer == null) throw new IllegalStateException();
+            return serializer.fromNetwork(b);
+        });
+    }
+
+    public static void writeDrinkActionsList(FriendlyByteBuf buf, OnDrinkAction[] actions) {
+        arrayToNetwork(buf, actions, (b, action) -> {
+            @SuppressWarnings("unchecked")
+            OnDrinkSerializer<OnDrinkAction> serializer = (OnDrinkSerializer<OnDrinkAction>) action.serializer();
+            ResourceLocation id = PDRegistries.ON_DRINK_SERIALIZER.getKey(serializer);
+            b.writeResourceLocation(id);
+            serializer.toNetwork(b, action);
+        });
     }
 
 }

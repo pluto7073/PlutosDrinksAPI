@@ -1,11 +1,8 @@
 package ml.pluto7073.pdapi.item;
 
-import ml.pluto7073.pdapi.DrinkUtil;
-import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;

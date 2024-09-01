@@ -16,7 +16,7 @@ public class DrinkAdditions {
     private static final Map<ResourceLocation, DrinkAddition> STATIC_REGISTRY = new HashMap<>();
     public static final String ADDITIONS_NBT_KEY = "Additions";
 
-    public static final DrinkAddition EMPTY = register(PDAPI.asId("empty"), new DrinkAddition.Builder().build(new JsonObject()));
+    public static final DrinkAddition EMPTY = register(PDAPI.asId("empty"), new DrinkAddition.Builder().build());
 
     public static DrinkAddition register(ResourceLocation id, DrinkAddition addition) {
         return register(id, addition, true);
@@ -67,10 +67,7 @@ public class DrinkAdditions {
 
     public static void send(ServerPlayer entity) {
 
-        Map<ResourceLocation, JsonObject> additions = new HashMap<>();
-        REGISTRY.forEach((id, add) -> additions.put(id, add.asJsonObject()));
-
-        ServerPlayNetworking.send(entity, new SyncAdditionRegistryS2CPacket(additions));
+        ServerPlayNetworking.send(entity, new SyncAdditionRegistryS2CPacket(REGISTRY));
 
     }
 

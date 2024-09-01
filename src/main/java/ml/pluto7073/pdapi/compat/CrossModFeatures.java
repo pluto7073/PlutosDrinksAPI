@@ -1,4 +1,4 @@
-package ml.pluto7073.pdapi.crossmodfeatures;
+package ml.pluto7073.pdapi.compat;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.entity.LivingEntity;

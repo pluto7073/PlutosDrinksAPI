@@ -1,11 +1,11 @@
-package ml.pluto7073.pdapi.crossmodfeatures.rei.display;
+package ml.pluto7073.pdapi.compat.rei.display;
 
 import com.google.common.collect.Lists;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
-import ml.pluto7073.pdapi.crossmodfeatures.rei.DrinkREI;
+import ml.pluto7073.pdapi.compat.rei.DrinkREI;
 import ml.pluto7073.pdapi.specialty.InProgressItemRegistry;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.Util;
@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;

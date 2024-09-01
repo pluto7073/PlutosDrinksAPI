@@ -1,6 +1,7 @@
 package ml.pluto7073.pdapi;
 
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
+import ml.pluto7073.pdapi.addition.action.OnDrinkSerializers;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.client.gui.PDScreens;
 import ml.pluto7073.pdapi.command.PDCommands;
@@ -10,6 +11,7 @@ import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.listeners.DrinkAdditionRegisterer;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
@@ -23,7 +25,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,6 +37,7 @@ public class PDAPI implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        OnDrinkSerializers.init();
         PDRecipeTypes.init();
         PDBlocks.init();
         PDItems.init();

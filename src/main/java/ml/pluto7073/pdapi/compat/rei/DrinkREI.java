@@ -1,4 +1,4 @@
-package ml.pluto7073.pdapi.crossmodfeatures.rei;
+package ml.pluto7073.pdapi.compat.rei;
 
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
@@ -8,8 +8,8 @@ import me.shedaniel.rei.api.common.display.DisplaySerializerRegistry;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import ml.pluto7073.pdapi.PDAPI;
-import ml.pluto7073.pdapi.crossmodfeatures.rei.category.IngredientSequenceCategory;
-import ml.pluto7073.pdapi.crossmodfeatures.rei.display.IngredientSequenceDisplay;
+import ml.pluto7073.pdapi.compat.rei.category.IngredientSequenceCategory;
+import ml.pluto7073.pdapi.compat.rei.display.IngredientSequenceDisplay;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;

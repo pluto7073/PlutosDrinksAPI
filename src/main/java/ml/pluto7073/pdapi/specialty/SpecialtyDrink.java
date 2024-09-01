@@ -4,19 +4,17 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import ml.pluto7073.pdapi.DrinkUtil;
+import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.PDAPI;
-import ml.pluto7073.pdapi.addition.DrinkAddition;
+import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
-import ml.pluto7073.pdapi.addition.OnDrink;
-import ml.pluto7073.pdapi.addition.OnDrinkTemplate;
+import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
+import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
 import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.networking.NetworkingUtils;
-import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
-import ml.pluto7073.pdapi.tag.PDTags;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -40,14 +38,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 @MethodsReturnNonnullByDefault
-public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrink[] actions, int color, HashMap<String, Integer> chemicals, String name) implements Recipe<Container> {
+public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrinkAction[] actions, int color, HashMap<String, Integer> chemicals, String name) implements Recipe<Container> {
 
     public static final HashMap<ResourceLocation, SpecialtyDrink> DRINKS = new HashMap<>();
 
-    public SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrink[] actions, int color, HashMap<String, Integer> chemicals, @Nullable String name) {
+    public SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrinkAction[] actions, int color, HashMap<String, Integer> chemicals, @Nullable String name) {
         this.id = id;
         this.base = base;
         this.steps = steps;
@@ -153,27 +150,25 @@ public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] 
 
             int color = GsonHelper.getAsInt(data, "color");
             JsonArray actionsArray = GsonHelper.getAsJsonArray(data, "onDrinkActions");
-            List<OnDrink> actions = new ArrayList<>();
+            List<OnDrinkAction> actions = new ArrayList<>();
             for (JsonElement e : actionsArray) {
                 if (!e.isJsonObject()) {
                     PDAPI.LOGGER.warn("Non-JsonObject item in 'onDrinkActions' in Specialty file: {}", id);
                     continue;
                 }
                 JsonObject actionObject = e.getAsJsonObject();
-                OnDrinkTemplate template;
-                try {
-                    template = OnDrinkTemplate.get(new ResourceLocation(GsonHelper.getAsString(actionObject, "type")));
-                } catch (IllegalStateException ex) {
-                    PDAPI.LOGGER.error("Could not load on drink action for add-in {} because of non-existent OnDrinkTemplate {}", id.toString(), GsonHelper.getAsString(actionObject, "type"), ex);
-                    continue;
-                }
-                actions.add(template.parseJson(id, actionObject));
+                ResourceLocation type = new ResourceLocation(GsonHelper.getAsString(actionObject, "type"));
+                @SuppressWarnings("unchecked")
+                OnDrinkSerializer<OnDrinkAction> serializer = (OnDrinkSerializer<OnDrinkAction>)
+                        PDRegistries.ON_DRINK_SERIALIZER.get(type);
+                if (serializer == null) throw new IllegalArgumentException("Unknown OnDrinkAction " + type);
+                actions.add(serializer.fromJson(actionObject));
             }
             String name = null;
             if (data.has("name")) {
                 name = GsonHelper.getAsString(data, "name");
             }
-            return new SpecialtyDrink(id, base, additions.toArray(new ResourceLocation[0]), actions.toArray(new OnDrink[0]), color, chemicals, name);
+            return new SpecialtyDrink(id, base, additions.toArray(new ResourceLocation[0]), actions.toArray(new OnDrinkAction[0]), color, chemicals, name);
         }
 
         @Override
@@ -182,21 +177,9 @@ public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] 
             ResourceLocation[] steps = NetworkingUtils.listFromNetwork(buf, FriendlyByteBuf::readResourceLocation).toArray(new ResourceLocation[0]);
             HashMap<String, Integer> chemicals = Maps.newHashMap(buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readInt));
             int color = buf.readInt();
-            List<JsonObject> objects = NetworkingUtils.listFromNetwork(buf, NetworkingUtils::readJsonObject);
-            OnDrink[] actions = new OnDrink[objects.size()];
-            for (int i = 0; i < actions.length; i++) {
-                JsonObject actionObject = objects.get(i);
-                OnDrinkTemplate template;
-                try {
-                    template = OnDrinkTemplate.get(new ResourceLocation(GsonHelper.getAsString(actionObject, "type")));
-                } catch (IllegalStateException ex) {
-                    PDAPI.LOGGER.error("Could not load on drink action for add-in {} because of non-existent OnDrinkTemplate {}", id.toString(), GsonHelper.getAsString(actionObject, "type"), ex);
-                    continue;
-                }
-                actions[i] = (template.parseJson(id, actionObject));
-            }
+            List<OnDrinkAction> list = NetworkingUtils.readDrinkActionsList(buf);
             String name = buf.readUtf();
-            return new SpecialtyDrink(id, BuiltInRegistries.ITEM.get(base), steps, actions, color, chemicals, name);
+            return new SpecialtyDrink(id, BuiltInRegistries.ITEM.get(base), steps, list.toArray(OnDrinkAction[]::new), color, chemicals, name);
         }
 
         @Override
@@ -205,8 +188,7 @@ public record SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] 
             NetworkingUtils.arrayToNetwork(buf, recipe.steps, FriendlyByteBuf::writeResourceLocation);
             buf.writeMap(recipe.chemicals, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeInt);
             buf.writeInt(recipe.color);
-            JsonObject[] actions = NetworkingUtils.convertToJson(recipe.actions, OnDrink::toJson);
-            NetworkingUtils.arrayToNetwork(buf, actions, NetworkingUtils::writeJsonObjectStart);
+            NetworkingUtils.writeDrinkActionsList(buf, recipe.actions);
             buf.writeUtf(recipe.name);
         }
 

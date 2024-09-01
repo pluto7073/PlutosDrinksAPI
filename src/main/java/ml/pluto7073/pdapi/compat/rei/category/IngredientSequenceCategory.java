@@ -1,4 +1,4 @@
-package ml.pluto7073.pdapi.crossmodfeatures.rei.category;
+package ml.pluto7073.pdapi.compat.rei.category;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.shedaniel.math.Point;
@@ -12,9 +12,8 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.block.PDBlocks;
-import ml.pluto7073.pdapi.crossmodfeatures.rei.DrinkREI;
-import ml.pluto7073.pdapi.crossmodfeatures.rei.display.IngredientSequenceDisplay;
-import net.minecraft.client.gui.GuiGraphics;
+import ml.pluto7073.pdapi.compat.rei.DrinkREI;
+import ml.pluto7073.pdapi.compat.rei.display.IngredientSequenceDisplay;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;

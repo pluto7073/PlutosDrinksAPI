@@ -1,5 +1,6 @@
-package ml.pluto7073.pdapi;
+package ml.pluto7073.pdapi.util;
 
+import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
 import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;

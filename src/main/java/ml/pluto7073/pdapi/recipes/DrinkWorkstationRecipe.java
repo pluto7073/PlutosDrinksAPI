@@ -1,7 +1,7 @@
 package ml.pluto7073.pdapi.recipes;
 
 import com.google.gson.JsonObject;
-import ml.pluto7073.pdapi.DrinkUtil;
+import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAdditions;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
