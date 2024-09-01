@@ -32,7 +32,7 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity user) {
         SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack);
 
-        Arrays.stream(drink.actions()).forEach(action -> action.onDrink(stack, level, user));
+        if (!level.isClientSide) Arrays.stream(drink.actions()).forEach(action -> action.onDrink(stack, level, user));
 
         return super.finishUsingItem(stack, level, user);
     }
