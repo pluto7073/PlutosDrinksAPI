@@ -1,6 +1,6 @@
 package ml.pluto7073.pdapi;
 
-import ml.pluto7073.pdapi.addition.DrinkAdditions;
+import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializers;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.client.gui.PDScreens;
@@ -8,9 +8,9 @@ import ml.pluto7073.pdapi.command.PDCommands;
 import ml.pluto7073.pdapi.entity.effect.PDMobEffects;
 import ml.pluto7073.pdapi.gamerule.PDGameRules;
 import ml.pluto7073.pdapi.item.PDItems;
-import ml.pluto7073.pdapi.listeners.DrinkAdditionRegisterer;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
@@ -45,14 +45,15 @@ public class PDAPI implements ModInitializer {
         PDGameRules.init();
         PDCommands.init();
 
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new DrinkAdditionRegisterer());
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new DrinkAdditionManager());
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new SpecialtyDrinkManager());
 
         DrinkUtil.registerOldToNewConverter("Coffee/Additions", (DrinkUtil.Converter<ListTag>) list -> {
             if (list == null) return null;
             if (list.isEmpty()) return null;
             for (int i = 0; i < list.size(); i++) {
                 ResourceLocation id = new ResourceLocation(list.getString(i));
-                boolean ogCoffee = !DrinkAdditions.containsId(id) && DrinkAdditions.containsId(PDAPI.asId(id.getPath()));
+                boolean ogCoffee = !DrinkAdditionManager.containsId(id) && DrinkAdditionManager.containsId(PDAPI.asId(id.getPath()));
                 if (!ogCoffee) continue;
                 id = PDAPI.asId(id.getPath());
                 list.set(i, DrinkUtil.stringAsNbt(id.toString()));
@@ -65,7 +66,8 @@ public class PDAPI implements ModInitializer {
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, SPECIALTY_DRINKS_TAB, FabricItemGroup.builder().icon(() -> new ItemStack(PDItems.MILK_BOTTLE))
                 .title(Component.translatable("creative_tab.pdapi.specialty_drinks")).build());
         ItemGroupEvents.modifyEntriesEvent(SPECIALTY_DRINKS_TAB).register(stacks -> {
-            for (SpecialtyDrink d : SpecialtyDrink.DRINKS.values()) {
+            for (SpecialtyDrink d : SpecialtyDrinkManager.values()
+                    .stream().sorted(DrinkUtil.alphabetizer(SpecialtyDrink::languageKey)).toList()) {
                 stacks.accept(d.getAsItem());
             }
         });

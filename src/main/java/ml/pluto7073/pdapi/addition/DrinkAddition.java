@@ -130,7 +130,7 @@ public class DrinkAddition {
     public String getTranslationKey() {
         if (name != null) return name;
         try {
-            ResourceLocation id = DrinkAdditions.getId(this);
+            ResourceLocation id = DrinkAdditionManager.getId(this);
             return id.toLanguageKey("drink_addition");
         } catch (IllegalArgumentException e) {
             PDAPI.LOGGER.error("Couldn't get translation key for a drink addition", e);

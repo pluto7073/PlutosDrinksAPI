@@ -13,6 +13,7 @@ import ml.pluto7073.pdapi.compat.rei.display.IngredientSequenceDisplay;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 
 public class DrinkREI implements REIClientPlugin {
 
@@ -26,7 +27,8 @@ public class DrinkREI implements REIClientPlugin {
 
     @Override
     public void registerDisplays(DisplayRegistry registry) {
-        registry.registerRecipeFiller(SpecialtyDrink.class, PDRecipeTypes.SPECIALTY_DRINK_RECIPE_TYPE, IngredientSequenceDisplay::new);
+        registry.registerFiller(SpecialtyDrink.class, IngredientSequenceDisplay::new);
+        SpecialtyDrinkManager.values().forEach(registry::add);
     }
 
     @Override

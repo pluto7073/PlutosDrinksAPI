@@ -2,7 +2,7 @@ package ml.pluto7073.pdapi.item;
 
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
-import ml.pluto7073.pdapi.addition.DrinkAdditions;
+import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -115,14 +115,14 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
         DrinkAddition[] addIns = DrinkUtil.getAdditionsFromStack(stack);
         HashMap<ResourceLocation, Integer> additionCounts = new HashMap<>();
         for (DrinkAddition addIn : addIns) {
-            if (addIn == DrinkAdditions.EMPTY) continue;
-            ResourceLocation id = DrinkAdditions.getId(addIn);
+            if (addIn == DrinkAdditionManager.EMPTY) continue;
+            ResourceLocation id = DrinkAdditionManager.getId(addIn);
             if (additionCounts.containsKey(id)) {
                 int count = additionCounts.get(id);
                 additionCounts.put(id, ++count);
             } else additionCounts.put(id, 1);
         }
-        additionCounts.forEach((id, count) -> tooltip.add(Component.translatable(DrinkAdditions.get(id).getTranslationKey(), count).withStyle(ChatFormatting.GRAY)));
+        additionCounts.forEach((id, count) -> tooltip.add(Component.translatable(DrinkAdditionManager.get(id).getTranslationKey(), count).withStyle(ChatFormatting.GRAY)));
 
         if (context.isAdvanced() || context.isCreative()) ConsumableChemicalRegistry.forEach(handler ->
                 handler.appendTooltip(tooltip, getChemicalContent(handler.getName(), stack), stack));

@@ -2,7 +2,7 @@ package ml.pluto7073.pdapi.recipes;
 
 import com.google.gson.JsonObject;
 import ml.pluto7073.pdapi.util.DrinkUtil;
-import ml.pluto7073.pdapi.addition.DrinkAdditions;
+import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.specialty.InProgressItemRegistry;
@@ -52,9 +52,9 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
     public ItemStack craft(Container inventory) {
         ItemStack stack = inventory.getItem(0).copy();
         ListTag resAdds = stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY)
-                .getList(DrinkAdditions.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
+                .getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
         resAdds.add(DrinkUtil.stringAsNbt(result));
-        stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditions.ADDITIONS_NBT_KEY, resAdds);
+        stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditionManager.ADDITIONS_NBT_KEY, resAdds);
         if (stack.is(PDTags.HAS_IN_PROGRESS_ITEM)) {
             CompoundTag tag = stack.getOrCreateTag();
             stack = new ItemStack(InProgressItemRegistry.getInProgress(stack.getItem()));
@@ -78,7 +78,7 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
         }
         ListTag adds = new ListTag();
         adds.add(DrinkUtil.stringAsNbt(result));
-        stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditions.ADDITIONS_NBT_KEY, adds);
+        stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditionManager.ADDITIONS_NBT_KEY, adds);
         return stack;
     }
 

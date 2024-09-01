@@ -2,13 +2,14 @@ package ml.pluto7073.pdapi.util;
 
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
-import ml.pluto7073.pdapi.addition.DrinkAdditions;
+import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -25,11 +26,31 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
+import java.util.function.Function;
 
 public final class DrinkUtil {
 
     private static final HashMap<String, Converter> OLD_CONVERSION_REGISTRY = new HashMap<>();
     private static final double CAFFEINE_HALF_LIFE_TICKS = 2500.0;
+
+    public static ResourceLocation getAsId(ResourceLocation file, String dir) {
+        return file.withPath(s -> s.replace(dir + '/', "").replace(".json", ""));
+    }
+
+    public static <T> Comparator<T> alphabetizer(Function<T, String> toString) {
+        return (o1, o2) -> {
+            String first = toString.apply(o1);
+            String second = toString.apply(o2);
+            int length = Math.min(first.length(), second.length());
+            for (int i = 0; i < length; i++) {
+                char c1 = first.charAt(i);
+                char c2 = second.charAt(i);
+                if (c1 == c2) continue;
+                return Character.compare(c1, c2);
+            }
+            return Integer.compare(first.length(), second.length());
+        };
+    }
 
     public static void convertStackFromPlutosCoffee(ItemStack stack) {
         CompoundTag nbt = stack.getOrCreateTag();
@@ -71,12 +92,12 @@ public final class DrinkUtil {
     public static DrinkAddition[] getAdditionsFromStack(ItemStack stack) {
         convertStackFromPlutosCoffee(stack);
         CompoundTag drinkData = stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
-        ListTag additions = drinkData.getList(DrinkAdditions.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
+        ListTag additions = drinkData.getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
         ArrayList<DrinkAddition> additionsList = new ArrayList<>();
         for (int i = 0; i < additions.size(); i++) {
             String id = additions.getString(i);
             ResourceLocation identifier = new ResourceLocation(id);
-            additionsList.add(DrinkAdditions.get(identifier));
+            additionsList.add(DrinkAdditionManager.get(identifier));
         }
         return additionsList.toArray(new DrinkAddition[0]);
     }
@@ -112,7 +133,7 @@ public final class DrinkUtil {
     public static SpecialtyDrink getSpecialDrink(ItemStack stack) {
         CompoundTag nbt = stack.getOrCreateTag();
         String id = nbt.getString("Drink");
-        SpecialtyDrink drink = SpecialtyDrink.DRINKS.get(new ResourceLocation(id));
+        SpecialtyDrink drink = SpecialtyDrinkManager.get(new ResourceLocation(id));
         if (drink == null) throw new IllegalArgumentException("Drink " + id + " does not exist");
         return drink;
     }
