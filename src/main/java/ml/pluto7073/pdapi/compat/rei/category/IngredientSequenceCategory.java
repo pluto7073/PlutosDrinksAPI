@@ -47,9 +47,7 @@ public class IngredientSequenceCategory implements DisplayCategory<IngredientSeq
         }
 
         // Output
-        widgets.add(Widgets.createDrawableWidget((graphics, mouseX, mouseY, delta) -> {
-            graphics.blit(RECIPE_ARROW, x + 16 + 20 * (display.getInputEntries().size() - 1), y, 0, 0, 18, 18);
-        }));
+        widgets.add(Widgets.createTexturedWidget(RECIPE_ARROW, new Rectangle(x + 16 + 20 * (display.getInputEntries().size() - 1), y, 18, 18), 0, 0));
         widgets.add(Widgets.createResultSlotBackground(new Point(x + bounds.getWidth() - 32, y + 20)));
         widgets.add(Widgets.createSlot(new Point(x + bounds.getWidth() - 32, y + 20))
                 .markOutput().disableBackground().entries(display.getOutputEntries().get(0)));
