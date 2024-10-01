@@ -14,6 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -21,15 +22,15 @@ import java.util.Optional;
 public class IngredientSequenceDisplay extends BasicDisplay {
 
     public IngredientSequenceDisplay(SpecialtyDrink drink) {
-        super(EntryIngredients.ofIngredients(Util.make(() -> {
+        super(Util.make(() -> {
             ItemStack base = drink.baseAsStack();
             if (InProgressItemRegistry.isInProgressItem(base.getItem())) {
                 base = new ItemStack(InProgressItemRegistry.getBase(base.getItem()));
             }
-            List<Ingredient> list = Lists.newArrayList(Ingredient.of(base));
-            list.addAll(drink.stepsToIngredientList());
+            List<EntryIngredient> list = new ArrayList<>(List.of(EntryIngredients.of(base)));
+            list.addAll(DrinkREI.Util.condenseIngredients(drink.stepsToIngredientList()));
             return list;
-        })), Collections.singletonList(EntryIngredients.of(drink.getAsItem())), Optional.of(drink.id()));
+        }), Collections.singletonList(EntryIngredients.of(drink.getAsItem())), Optional.of(drink.id()));
     }
 
     public IngredientSequenceDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, Optional<ResourceLocation> id) {

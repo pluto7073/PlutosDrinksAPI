@@ -1,5 +1,8 @@
 package ml.pluto7073.pdapi.util;
 
+import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
@@ -12,6 +15,7 @@ import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -30,7 +34,7 @@ import java.util.function.Function;
 
 public final class DrinkUtil {
 
-    private static final HashMap<String, Converter> OLD_CONVERSION_REGISTRY = new HashMap<>();
+    private static final HashMap<String, Converter<Tag>> OLD_CONVERSION_REGISTRY = new HashMap<>();
     private static final double CAFFEINE_HALF_LIFE_TICKS = 2500.0;
 
     public static ResourceLocation getAsId(ResourceLocation file, String dir) {
@@ -52,6 +56,10 @@ public final class DrinkUtil {
         };
     }
 
+    public static boolean dev() {
+        return FabricLoader.getInstance().isDevelopmentEnvironment();
+    }
+
     public static void convertStackFromPlutosCoffee(ItemStack stack) {
         CompoundTag nbt = stack.getOrCreateTag();
         if (!nbt.contains("Coffee")) return;
@@ -61,6 +69,33 @@ public final class DrinkUtil {
         handleCompound(currentPath, oldCoffeeData);
         nbt.put(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY, oldCoffeeData);
         nbt.remove("Coffee");
+    }
+
+    public static <T> List<T> condense(List<T> base) {
+        ArrayList<T> list = new ArrayList<>();
+
+        for (T t : base) {
+            if (list.isEmpty()) {
+                list.add(t);
+                continue;
+            }
+            if (t.equals(list.get(list.size() - 1))) continue;
+            list.add(t);
+        }
+        return list;
+    }
+
+    public static <T> boolean sameItems(T[] array1, T[] array2) {
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null) return false;
+        if (array1.length != array2.length) return false;
+        List<T> list1 = List.of(array1);
+        List<T> list2 = Lists.newArrayList(array2);
+        for (T t1 : list1) {
+            if (!list2.contains(t1)) return false;
+            list2.remove(t1);
+        }
+        return list2.isEmpty();
     }
 
     private static void handleCompound(Stack<String> currentPath, CompoundTag compound) {
@@ -102,7 +137,7 @@ public final class DrinkUtil {
         return additionsList.toArray(new DrinkAddition[0]);
     }
 
-    public static void registerOldToNewConverter(String nbtPath, Converter converter) {
+    public static void registerOldToNewConverter(String nbtPath, Converter<Tag> converter) {
         OLD_CONVERSION_REGISTRY.put(nbtPath, converter);
     }
 
