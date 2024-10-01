@@ -2,6 +2,7 @@ package ml.pluto7073.pdapi.item;
 
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.block.PDBlocks;
+import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -14,7 +15,7 @@ public final class PDItems {
 
     public static final Item MILK_BOTTLE = new MilkBottleItem();
     public static final Item SPECIALTY_DRINK = new SpecialtyDrinkItem(new Item.Properties().stacksTo(1));
-    //public static final Item TEST_DRINK_ITEM = new TestDrinkItem(new Item.Properties().stacksTo(1));
+    public static final Item TEST_DRINK_ITEM = DrinkUtil.dev() ? new TestDrinkItem(new Item.Properties().stacksTo(1)) : null;
 
     public static final Item DRINK_WORKSTATION = new BlockItem(PDBlocks.DRINK_WORKSTATION, new Item.Properties());
 
@@ -23,7 +24,7 @@ public final class PDItems {
         Registry.register(BuiltInRegistries.ITEM, "plutoscoffee:coffee_workstation", DRINK_WORKSTATION);
         Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("specialty_drink"), SPECIALTY_DRINK);
 
-        //Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("test_drink"), TEST_DRINK_ITEM);
+        if (DrinkUtil.dev()) Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("test_drink"), TEST_DRINK_ITEM);
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(entries -> entries.addAfter(Items.SMITHING_TABLE, DRINK_WORKSTATION));
 

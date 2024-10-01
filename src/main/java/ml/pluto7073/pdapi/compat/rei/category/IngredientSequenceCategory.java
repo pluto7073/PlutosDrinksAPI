@@ -29,7 +29,7 @@ public class IngredientSequenceCategory implements DisplayCategory<IngredientSeq
     public List<Widget> setupDisplay(IngredientSequenceDisplay display, Rectangle bounds) {
         ArrayList<Widget> widgets = new ArrayList<>();
         int x = bounds.x;
-        int y = bounds.getCenterY();
+        int y = (DisplayCategory.super.getDisplayHeight() + 32) / 2 + bounds.y;
 
         widgets.add(Widgets.createRecipeBase(bounds));
 
@@ -40,16 +40,17 @@ public class IngredientSequenceCategory implements DisplayCategory<IngredientSeq
 
         // Additions
         for (int i = 1; i < display.getInputEntries().size(); i++) {
-            int offset = i > 5 ? 20 : 0;
-            int xOff = i > 5 ? i - 5 : i;
+            int offset = i > 10 ? 40 : i > 5 ? 20 : 0;
+            int xOff = i > 10 ? i - 10 : i > 5 ? i - 5 : i;
             widgets.add(Widgets.createSlot(new Point(x + 16 + 20 * xOff, y - 28 + offset))
                     .markInput().entries(display.getInputEntries().get(i)));
         }
 
         // Output
-        widgets.add(Widgets.createTexturedWidget(RECIPE_ARROW, new Rectangle(x + 16 + 20 * (display.getInputEntries().size() - 1), y, 18, 18), 0, 0));
-        widgets.add(Widgets.createResultSlotBackground(new Point(x + bounds.getWidth() - 32, y + 20)));
-        widgets.add(Widgets.createSlot(new Point(x + bounds.getWidth() - 32, y + 20))
+        int xBase = Math.min(display.getInputEntries().size() - 1, 5);
+        widgets.add(Widgets.createResultSlotBackground(new Point(x + bounds.getWidth() - 32, y + 40)));
+        widgets.add(Widgets.createArrow(new Point(x + 14 + 20 * xBase, y + 38)));
+        widgets.add(Widgets.createSlot(new Point(x + bounds.getWidth() - 32, y + 40))
                 .markOutput().disableBackground().entries(display.getOutputEntries().get(0)));
 
         return widgets;
@@ -77,7 +78,7 @@ public class IngredientSequenceCategory implements DisplayCategory<IngredientSeq
 
     @Override
     public int getDisplayHeight() {
-        return DisplayCategory.super.getDisplayHeight() + 32;
+        return DisplayCategory.super.getDisplayHeight() + 52;
     }
 
     private static DrawableConsumer arrow(Point point) {

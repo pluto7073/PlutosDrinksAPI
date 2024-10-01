@@ -28,7 +28,7 @@ dependencies {
 
 `gradle.properties`
 ```properties
-pdapi_version=MOST_RECENT_VERSION
+pdapi_version=0.2.20
 ```
 
 ## Forge Version?
