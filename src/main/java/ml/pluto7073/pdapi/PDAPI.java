@@ -11,6 +11,7 @@ import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkSerializer;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
@@ -20,6 +21,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -38,6 +40,7 @@ public class PDAPI implements ModInitializer {
     @Override
     public void onInitialize() {
         OnDrinkSerializers.init();
+        SpecialtyDrinkSerializer.init();
         PDRecipeTypes.init();
         PDBlocks.init();
         PDItems.init();
@@ -48,9 +51,9 @@ public class PDAPI implements ModInitializer {
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new DrinkAdditionManager());
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new SpecialtyDrinkManager());
 
-        DrinkUtil.registerOldToNewConverter("Coffee/Additions", (DrinkUtil.Converter<ListTag>) list -> {
-            if (list == null) return null;
-            if (list.isEmpty()) return null;
+        DrinkUtil.registerOldToNewConverter("Coffee/Additions", tag -> {
+            if (!(tag instanceof ListTag list)) return tag;
+            if (list.isEmpty()) return list;
             for (int i = 0; i < list.size(); i++) {
                 ResourceLocation id = new ResourceLocation(list.getString(i));
                 boolean ogCoffee = !DrinkAdditionManager.containsId(id) && DrinkAdditionManager.containsId(PDAPI.asId(id.getPath()));

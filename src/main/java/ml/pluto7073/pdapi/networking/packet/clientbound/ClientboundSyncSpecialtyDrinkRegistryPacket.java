@@ -1,8 +1,10 @@
 package ml.pluto7073.pdapi.networking.packet.clientbound;
 
 import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkSerializer;
 import net.fabricmc.fabric.api.networking.v1.FabricPacket;
 import net.fabricmc.fabric.api.networking.v1.PacketType;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,7 +26,8 @@ public record ClientboundSyncSpecialtyDrinkRegistryPacket(Map<ResourceLocation, 
                 FriendlyByteBuf::readResourceLocation,
                 (b) -> {
                     ResourceLocation type = b.readResourceLocation();
-                    return SpecialtyDrinkManager.PACKET_READERS.get(type).apply(b);
+                    SpecialtyDrinkSerializer serializer = PDRegistries.SPECIALTY_DRINK_SERIALIZER.getOptional(type).orElseThrow(IllegalStateException::new);
+                    return serializer.fromNetwork(b);
                 }
         ));
     }
@@ -33,7 +36,7 @@ public record ClientboundSyncSpecialtyDrinkRegistryPacket(Map<ResourceLocation, 
     public void write(FriendlyByteBuf buf) {
         buf.writeMap(registry, FriendlyByteBuf::writeResourceLocation, (b, d) -> {
             b.writeResourceLocation(d.type());
-            SpecialtyDrinkManager.PACKET_WRITERS.get(d.type()).accept(d, b);
+            d.serializer().toNetwork(d, b);
         });
     }
 

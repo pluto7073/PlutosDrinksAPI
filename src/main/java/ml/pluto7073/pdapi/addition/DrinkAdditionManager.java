@@ -33,7 +33,6 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
     public static final String ADDITIONS_NBT_KEY = "Additions";
     public static final DrinkAddition EMPTY = register(PDAPI.asId("empty"), new DrinkAddition.Builder().build());
     public static final ResourceLocation PHASE = PDAPI.asId("phase/additions");
-    public static final List<ResourceLocation> DEPENDENCIES = new ArrayList<>();
 
     public DrinkAdditionManager() {
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(PHASE, (player, joined) -> send(player));
@@ -128,8 +127,8 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
     }
 
     @Override
-    public Collection<ResourceLocation> getFabricDependencies() {
-        return DEPENDENCIES;
+    public ArrayList<ResourceLocation> getFabricDependencies() {
+        return new ArrayList<>();
     }
 
     public static DrinkAddition loadFromJson(ResourceLocation id, JsonObject object) {

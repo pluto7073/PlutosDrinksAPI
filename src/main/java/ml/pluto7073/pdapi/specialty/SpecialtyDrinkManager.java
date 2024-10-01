@@ -2,6 +2,7 @@ package ml.pluto7073.pdapi.specialty;
 
 import com.google.gson.JsonObject;
 import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncSpecialtyDrinkRegistryPacket;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -27,10 +28,6 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
     private static final HashMap<ResourceLocation, SpecialtyDrink> DRINKS = new HashMap<>();
 
     public static final ResourceLocation PHASE = PDAPI.asId("phase/specialty_drinks");
-    public static final List<ResourceLocation> DEPENDENCIES = new ArrayList<>();
-    public static final HashMap<ResourceLocation, BiFunction<ResourceLocation, JsonObject, SpecialtyDrink>> JSON_READERS = new HashMap<>();
-    public static final HashMap<ResourceLocation, Function<FriendlyByteBuf, SpecialtyDrink>> PACKET_READERS = new HashMap<>();
-    public static final HashMap<ResourceLocation, BiConsumer<SpecialtyDrink, FriendlyByteBuf>> PACKET_WRITERS = new HashMap<>();
 
     public SpecialtyDrinkManager() {
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(PHASE, (player, joined) ->
@@ -66,7 +63,10 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
                     type = new ResourceLocation(GsonHelper.getAsString(object, "type"));
                 } else type = PDAPI.asId("specialty_drink");
 
-                SpecialtyDrink drink = JSON_READERS.get(type).apply(id, object);
+                SpecialtyDrinkSerializer serializer = PDRegistries.SPECIALTY_DRINK_SERIALIZER.getOptional(type)
+                        .orElseThrow(() -> new IllegalArgumentException("No such Specialty Drink serializer: " + type));
+
+                SpecialtyDrink drink = serializer.fromJson(id, object);
 
                 DRINKS.put(id, drink);
             } catch (IOException e) {
@@ -78,8 +78,8 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
     }
 
     @Override
-    public Collection<ResourceLocation> getFabricDependencies() {
-        return DEPENDENCIES;
+    public ArrayList<ResourceLocation> getFabricDependencies() {
+        return new ArrayList<>();
     }
 
     public static void register(ResourceLocation id, SpecialtyDrink drink) {
@@ -103,12 +103,6 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
 
     public static void reset() {
         DRINKS.clear();
-    }
-
-    static {
-        JSON_READERS.put(PDAPI.asId("specialty_drink"), SpecialtyDrink::fromJson);
-        PACKET_READERS.put(PDAPI.asId("specialty_drink"), SpecialtyDrink::fromNetwork);
-        PACKET_WRITERS.put(PDAPI.asId("specialty_drink"), SpecialtyDrink::toNetwork);
     }
 
 }

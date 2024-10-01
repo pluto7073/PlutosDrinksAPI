@@ -95,6 +95,10 @@ public class SpecialtyDrink {
         return PDAPI.asId("specialty_drink");
     }
 
+    public SpecialtyDrinkSerializer serializer() {
+        return SpecialtyDrinkSerializer.DEFAULT_SERIALIZER;
+    }
+
     public ItemStack getAsItem() {
         return DrinkUtil.setSpecialDrink(new ItemStack(PDItems.SPECIALTY_DRINK, 1), this);
     }
@@ -149,54 +153,64 @@ public class SpecialtyDrink {
         buf.writeUtf(name);
     }
 
-    public static SpecialtyDrink fromJson(ResourceLocation id, JsonObject data) {
-        Item base = BuiltInRegistries.ITEM.get(new ResourceLocation(GsonHelper.getAsString(data, "base")));
-        JsonArray additionsJson = GsonHelper.getAsJsonArray(data, "additions");
-        List<ResourceLocation> additions = new ArrayList<>();
-        for (JsonElement e : additionsJson) {
-            additions.add(new ResourceLocation(e.getAsString()));
-        }
-        if (additions.size() > 15) throw new IllegalStateException("Specialty Drink \"" + id.toString() + "\" cannot have more than 15 steps");
+    public static class BaseSerializer implements SpecialtyDrinkSerializer {
 
-        HashMap<String, Integer> chemicals = new HashMap<>();
-        ConsumableChemicalRegistry.forEach(handler -> {
-            if (data.has(handler.getName())) {
-                chemicals.put(handler.getName(), GsonHelper.getAsInt(data, handler.getName()));
+        @Override
+        public SpecialtyDrink fromJson(ResourceLocation id, JsonObject data) {
+            Item base = BuiltInRegistries.ITEM.get(new ResourceLocation(GsonHelper.getAsString(data, "base")));
+            JsonArray additionsJson = GsonHelper.getAsJsonArray(data, "additions");
+            List<ResourceLocation> additions = new ArrayList<>();
+            for (JsonElement e : additionsJson) {
+                additions.add(new ResourceLocation(e.getAsString()));
             }
-        });
+            if (DrinkUtil.condense(additions).size() > 15) throw new IllegalStateException("Specialty Drink \"" + id.toString() + "\" cannot have more than 15 steps");
 
-        int color = GsonHelper.getAsInt(data, "color");
-        JsonArray actionsArray = GsonHelper.getAsJsonArray(data, "onDrinkActions");
-        List<OnDrinkAction> actions = new ArrayList<>();
-        for (JsonElement e : actionsArray) {
-            if (!e.isJsonObject()) {
-                PDAPI.LOGGER.warn("Non-JsonObject item in 'onDrinkActions' in Specialty file: {}", id);
-                continue;
+            HashMap<String, Integer> chemicals = new HashMap<>();
+            ConsumableChemicalRegistry.forEach(handler -> {
+                if (data.has(handler.getName())) {
+                    chemicals.put(handler.getName(), GsonHelper.getAsInt(data, handler.getName()));
+                }
+            });
+
+            int color = GsonHelper.getAsInt(data, "color");
+            JsonArray actionsArray = GsonHelper.getAsJsonArray(data, "onDrinkActions");
+            List<OnDrinkAction> actions = new ArrayList<>();
+            for (JsonElement e : actionsArray) {
+                if (!e.isJsonObject()) {
+                    PDAPI.LOGGER.warn("Non-JsonObject item in 'onDrinkActions' in Specialty file: {}", id);
+                    continue;
+                }
+                JsonObject actionObject = e.getAsJsonObject();
+                ResourceLocation type = new ResourceLocation(GsonHelper.getAsString(actionObject, "type"));
+                @SuppressWarnings("unchecked")
+                OnDrinkSerializer<OnDrinkAction> serializer = (OnDrinkSerializer<OnDrinkAction>)
+                        PDRegistries.ON_DRINK_SERIALIZER.get(type);
+                if (serializer == null) throw new IllegalArgumentException("Unknown OnDrinkAction " + type);
+                actions.add(serializer.fromJson(actionObject));
             }
-            JsonObject actionObject = e.getAsJsonObject();
-            ResourceLocation type = new ResourceLocation(GsonHelper.getAsString(actionObject, "type"));
-            @SuppressWarnings("unchecked")
-            OnDrinkSerializer<OnDrinkAction> serializer = (OnDrinkSerializer<OnDrinkAction>)
-                    PDRegistries.ON_DRINK_SERIALIZER.get(type);
-            if (serializer == null) throw new IllegalArgumentException("Unknown OnDrinkAction " + type);
-            actions.add(serializer.fromJson(actionObject));
+            String name = null;
+            if (data.has("name")) {
+                name = GsonHelper.getAsString(data, "name");
+            }
+            return new SpecialtyDrink(id, base, additions.toArray(new ResourceLocation[0]), actions.toArray(new OnDrinkAction[0]), color, chemicals, name);
         }
-        String name = null;
-        if (data.has("name")) {
-            name = GsonHelper.getAsString(data, "name");
-        }
-        return new SpecialtyDrink(id, base, additions.toArray(new ResourceLocation[0]), actions.toArray(new OnDrinkAction[0]), color, chemicals, name);
-    }
 
-    public static SpecialtyDrink fromNetwork(FriendlyByteBuf buf) {
-        ResourceLocation id = buf.readResourceLocation();
-        ResourceLocation base = buf.readResourceLocation();
-        ResourceLocation[] steps = NetworkingUtils.listFromNetwork(buf, FriendlyByteBuf::readResourceLocation).toArray(new ResourceLocation[0]);
-        HashMap<String, Integer> chemicals = Maps.newHashMap(buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readInt));
-        int color = buf.readInt();
-        List<OnDrinkAction> list = NetworkingUtils.readDrinkActionsList(buf);
-        String name = buf.readUtf();
-        return new SpecialtyDrink(id, BuiltInRegistries.ITEM.get(base), steps, list.toArray(OnDrinkAction[]::new), color, chemicals, name);
+        @Override
+        public SpecialtyDrink fromNetwork(FriendlyByteBuf buf) {
+            ResourceLocation id = buf.readResourceLocation();
+            ResourceLocation base = buf.readResourceLocation();
+            ResourceLocation[] steps = NetworkingUtils.listFromNetwork(buf, FriendlyByteBuf::readResourceLocation).toArray(new ResourceLocation[0]);
+            HashMap<String, Integer> chemicals = Maps.newHashMap(buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readInt));
+            int color = buf.readInt();
+            List<OnDrinkAction> list = NetworkingUtils.readDrinkActionsList(buf);
+            String name = buf.readUtf();
+            return new SpecialtyDrink(id, BuiltInRegistries.ITEM.get(base), steps, list.toArray(OnDrinkAction[]::new), color, chemicals, name);
+        }
+
+        @Override
+        public void toNetwork(SpecialtyDrink drink, FriendlyByteBuf buf) {
+            drink.toNetwork(buf);
+        }
     }
 
 }
