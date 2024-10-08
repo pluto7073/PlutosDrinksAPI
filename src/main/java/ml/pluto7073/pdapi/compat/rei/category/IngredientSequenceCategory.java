@@ -69,7 +69,6 @@ public class IngredientSequenceCategory implements DisplayCategory<IngredientSeq
     @Override
     public Renderer getIcon() {
         return EntryStacks.of(new ItemStack(PDBlocks.DRINK_WORKSTATION));
-        // TODO Fix whatever weirdness is going on with REI
     }
 
     @Override
