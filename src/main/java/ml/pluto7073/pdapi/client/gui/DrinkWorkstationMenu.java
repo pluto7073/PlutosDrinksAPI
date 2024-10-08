@@ -15,6 +15,7 @@ import net.minecraft.world.inventory.ItemCombinerMenu;
 import net.minecraft.world.inventory.ItemCombinerMenuSlotDefinition;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import java.util.List;
@@ -23,8 +24,8 @@ import java.util.Optional;
 public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     private final Level world;
-    private DrinkWorkstationRecipe currentRecipe;
-    private final List<DrinkWorkstationRecipe> recipes;
+    private RecipeHolder<DrinkWorkstationRecipe> currentRecipe;
+    private final List<RecipeHolder<DrinkWorkstationRecipe>> recipes;
 
     public DrinkWorkstationMenu(int syncId, Inventory playerInventory) {
         this(syncId, playerInventory, ContainerLevelAccess.NULL);
@@ -38,7 +39,7 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     @Override
     protected boolean mayPickup(Player player, boolean present) {
-        return currentRecipe != null && currentRecipe.matches(inputSlots, world);
+        return currentRecipe != null && currentRecipe.value().matches(inputSlots, world);
     }
 
     @Override
@@ -82,12 +83,12 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
             testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0)).getAsOriginalItemWithAdditions(inputSlots.getItem(0)));
         }
 
-        List<DrinkWorkstationRecipe> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, testInput, world);
+        List<RecipeHolder<DrinkWorkstationRecipe>> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, testInput, world);
         if (list.isEmpty()) {
             resultSlots.setItem(0, ItemStack.EMPTY);
         } else {
             currentRecipe = list.get(0);
-            ItemStack stack = currentRecipe.craft(inputSlots);
+            ItemStack stack = currentRecipe.value().craft(inputSlots);
             resultSlots.setRecipeUsed(currentRecipe);
             resultSlots.setItem(0, stack);
 
@@ -109,11 +110,11 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
     protected ItemCombinerMenuSlotDefinition createInputSlotDefinitions() {
         return ItemCombinerMenuSlotDefinition.create().withSlot(0, 27, 47, stack -> {
             return this.recipes.stream().anyMatch(recipe -> {
-                return recipe.testBase(stack);
+                return recipe.value().testBase(stack);
             });
         }).withSlot(1, 76, 47, stack -> {
             return this.recipes.stream().anyMatch(recipe -> {
-                return recipe.testAddition(stack);
+                return recipe.value().testAddition(stack);
             });
         }).withResultSlot(2, 134, 47).build();
     }
@@ -129,7 +130,7 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
     @Override
     protected boolean canMoveIntoInputSlots(ItemStack stack) {
         return this.recipes.stream().map((recipe) -> {
-            return getQuickMoveSlot(recipe, stack);
+            return getQuickMoveSlot(recipe.value(), stack);
         }).anyMatch(Optional::isPresent);
     }
 

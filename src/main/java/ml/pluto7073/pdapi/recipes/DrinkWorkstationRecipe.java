@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.recipes;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.block.PDBlocks;
@@ -11,9 +13,11 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -29,14 +33,12 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
 
     final Ingredient base;
     final Ingredient addition;
-    final String result;
-    private final ResourceLocation id;
+    final ResourceLocation result;
 
-    public DrinkWorkstationRecipe(ResourceLocation id, Ingredient base, Ingredient addition, String result) {
+    public DrinkWorkstationRecipe(Ingredient base, Ingredient addition, ResourceLocation result) {
         this.base = base;
         this.addition = addition;
         this.result = result;
-        this.id = id;
     }
 
     @Override
@@ -53,7 +55,7 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
         ItemStack stack = inventory.getItem(0).copy();
         ListTag resAdds = stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY)
                 .getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
-        resAdds.add(DrinkUtil.stringAsNbt(result));
+        resAdds.add(DrinkUtil.stringAsNbt(result.toString()));
         stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditionManager.ADDITIONS_NBT_KEY, resAdds);
         if (stack.is(PDTags.HAS_IN_PROGRESS_ITEM)) {
             CompoundTag tag = stack.getOrCreateTag();
@@ -77,23 +79,16 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
             } else stack = new ItemStack(InProgressItemRegistry.getInProgress(stack.getItem()));
         }
         ListTag adds = new ListTag();
-        adds.add(DrinkUtil.stringAsNbt(result));
+        adds.add(DrinkUtil.stringAsNbt(result.toString()));
         stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditionManager.ADDITIONS_NBT_KEY, adds);
         return stack;
-    }
-
-    public ResourceLocation getResultId() {
-        return new ResourceLocation(result);
     }
 
     public Ingredient getBase() { return base; }
 
     public Ingredient getAddition() { return addition; }
 
-    @Override
-    public ResourceLocation getId() {
-        return this.id;
-    }
+    public ResourceLocation getResult() { return result; }
 
     public boolean testAddition(ItemStack stack) {
         return addition.test(stack);
@@ -124,29 +119,32 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
     @MethodsReturnNonnullByDefault
     public static class Serializer implements RecipeSerializer<DrinkWorkstationRecipe> {
 
+        private static final Codec<DrinkWorkstationRecipe> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(Ingredient.CODEC.fieldOf("base").forGetter(recipe -> recipe.base),
+                        Ingredient.CODEC.fieldOf("addition").forGetter(recipe -> recipe.addition),
+                        ResourceLocation.CODEC.fieldOf("result").forGetter(recipe -> recipe.result))
+                .apply(instance, DrinkWorkstationRecipe::new));
+
         public Serializer() {}
 
         @Override
-        public DrinkWorkstationRecipe fromJson(ResourceLocation id, JsonObject jsonObject) {
-            Ingredient ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(jsonObject, "base"));
-            Ingredient ingredient2 = Ingredient.fromJson(GsonHelper.getAsJsonObject(jsonObject, "addition"));
-            String result = GsonHelper.getAsString(jsonObject, "result");
-            return new DrinkWorkstationRecipe(id, ingredient, ingredient2, result);
+        public Codec<DrinkWorkstationRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public DrinkWorkstationRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        public DrinkWorkstationRecipe fromNetwork(FriendlyByteBuf buf) {
             Ingredient ingredient = Ingredient.fromNetwork(buf);
             Ingredient ingredient2 = Ingredient.fromNetwork(buf);
-            String result = buf.readUtf();
-            return new DrinkWorkstationRecipe(id, ingredient, ingredient2, result);
+            ResourceLocation result = buf.readResourceLocation();
+            return new DrinkWorkstationRecipe(ingredient, ingredient2, result);
         }
 
         @Override
         public void toNetwork(FriendlyByteBuf buf, DrinkWorkstationRecipe recipe) {
             recipe.base.toNetwork(buf);
             recipe.addition.toNetwork(buf);
-            buf.writeUtf(recipe.result);
+            buf.writeResourceLocation(recipe.result);
         }
 
     }

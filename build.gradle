@@ -14,8 +14,8 @@ repositories {
 	maven { url "https://maven.shedaniel.me/" }
 	maven { url "https://maven.terraformersmc.com/releases/" }
 	maven { url "https://pluto-mod-maven.web.app/maven" }
-	maven { url = "https://maven.parchmentmc.org" }
-	maven { url = "https://maven.quiltmc.org/repository/release" }
+	maven { url "https://maven.parchmentmc.org" }
+	maven { url "https://maven.quiltmc.org/repository/release" }
 	maven { url "https://api.modrinth.com/maven" }
 }
 

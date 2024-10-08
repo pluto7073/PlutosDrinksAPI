@@ -27,6 +27,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
@@ -197,11 +198,11 @@ public final class DrinkUtil {
             PDAPI.LOGGER.warn("Ingredient list for \"{}\" could not be determined cause you are not in a world", additionId);
             return Ingredient.EMPTY;
         }
-        List<DrinkWorkstationRecipe> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
-                .stream().filter(r -> r.getResultId().equals(additionId)).toList();
+        List<RecipeHolder<DrinkWorkstationRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
+                .stream().filter(r -> r.value().getResult().equals(additionId)).toList();
         if (recipes.isEmpty()) return Ingredient.EMPTY;
         List<ItemStack> matchingStacks = new ArrayList<>();
-        recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.getAddition().getItems())));
+        recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.value().getAddition().getItems())));
         if (matchingStacks.isEmpty()) return Ingredient.EMPTY;
         return Ingredient.of(matchingStacks.stream());
     }
@@ -213,11 +214,11 @@ public final class DrinkUtil {
             PDAPI.LOGGER.warn("Valid bases for \"{}\" can only be retrieved when a level is loaded", additionId);
             return Ingredient.EMPTY;
         }
-        List<DrinkWorkstationRecipe> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
-                .stream().filter(r -> r.getResultId().equals(additionId)).toList();
+        List<RecipeHolder<DrinkWorkstationRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
+                .stream().filter(r -> r.value().getResult().equals(additionId)).toList();
         if (recipes.isEmpty()) return Ingredient.EMPTY;
         List<ItemStack> matchingStacks = new ArrayList<>();
-        recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.getBase().getItems())));
+        recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.value().getBase().getItems())));
         if (matchingStacks.isEmpty()) return Ingredient.EMPTY;
         return Ingredient.of(matchingStacks.stream());
     }

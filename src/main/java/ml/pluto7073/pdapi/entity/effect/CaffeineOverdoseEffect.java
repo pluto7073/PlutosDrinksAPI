@@ -18,8 +18,4 @@ public class CaffeineOverdoseEffect extends MobEffect {
         entity.hurt(PDDamageTypes.of(entity.level(), PDDamageTypes.CAFFEINE_OVERDOSE), (float) entity.level().getGameRules().getRule(PDGameRules.CAFFEINE_DAMAGE_MODIFIER).get());
     }
 
-    @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        return true;
-    }
 }

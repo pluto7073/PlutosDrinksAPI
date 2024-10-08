@@ -3,9 +3,12 @@ package ml.pluto7073.pdapi.datagen.builder;
 import com.google.gson.JsonObject;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeBuilder;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -28,7 +31,7 @@ public class WorkstationRecipeBuilder implements RecipeBuilder {
     }
 
     @Override
-    public RecipeBuilder unlockedBy(String criterionName, CriterionTriggerInstance criterionTrigger) {
+    public RecipeBuilder unlockedBy(String name, Criterion<?> criterion) {
         return this;
     }
 
@@ -43,8 +46,8 @@ public class WorkstationRecipeBuilder implements RecipeBuilder {
     }
 
     @Override
-    public void save(Consumer<FinishedRecipe> finishedRecipeConsumer, ResourceLocation recipeId) {
-        finishedRecipeConsumer.accept(new Result(recipeId, base, addition, result));
+    public void save(RecipeOutput recipeOutput, ResourceLocation id) {
+        recipeOutput.accept(new Result(id, base, addition, result));
     }
 
     public static class Result implements FinishedRecipe {
@@ -63,30 +66,26 @@ public class WorkstationRecipeBuilder implements RecipeBuilder {
 
         @Override
         public void serializeRecipeData(JsonObject json) {
-            json.add("base", base.toJson());
-            json.add("addition", addition.toJson());
+            json.add("base", base.toJson(true));
+            json.add("addition", addition.toJson(true));
             json.addProperty("result", result.toString());
         }
 
         @Override
-        public ResourceLocation getId() {
+        public ResourceLocation id() {
             return id;
         }
 
         @Override
-        public RecipeSerializer<?> getType() {
+        public RecipeSerializer<?> type() {
             return PDRecipeTypes.DRINK_WORKSTATION_RECIPE_SERIALIZER;
         }
 
         @Override
-        public @Nullable JsonObject serializeAdvancement() {
+        public @Nullable AdvancementHolder advancement() {
             return null;
         }
 
-        @Override
-        public @Nullable ResourceLocation getAdvancementId() {
-            return null;
-        }
     }
 
 }
