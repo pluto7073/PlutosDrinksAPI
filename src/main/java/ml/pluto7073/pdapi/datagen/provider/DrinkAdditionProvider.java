@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @MethodsReturnNonnullByDefault
@@ -26,24 +27,19 @@ public abstract class DrinkAdditionProvider implements DataProvider {
         this.additionPathProvider = out.createPathProvider(PackOutput.Target.DATA_PACK, "drink_additions");
     }
 
-    public abstract void buildAdditions(Consumer<Builder> consumer);
+    public abstract void buildAdditions(BiConsumer<ResourceLocation, DrinkAddition> consumer);
 
     @Override
     public CompletableFuture<?> run(CachedOutput output) {
         Set<ResourceLocation> generatedAdditions = Sets.newHashSet();
         List<CompletableFuture<?>> list = new ArrayList<>();
 
-        buildAdditions(builder -> {
-            DrinkAddition addition = builder.build();
-
-            ResourceLocation id = builder.id;
+        buildAdditions((id, addition) -> {
             if (!generatedAdditions.add(id)) {
                 throw new IllegalStateException("Duplicate Addition " + id);
             }
 
-            JsonObject json = addition.toJson();
-
-            list.add(DataProvider.saveStable(output, json, additionPathProvider.json(id)));
+            list.add(DataProvider.saveStable(output, DrinkAddition.CODEC, addition, additionPathProvider.json(id)));
         });
         return CompletableFuture.allOf(list.toArray(CompletableFuture[]::new));
     }
@@ -53,18 +49,8 @@ public abstract class DrinkAdditionProvider implements DataProvider {
         return "Drink Additions";
     }
 
-    protected static Builder builder(ResourceLocation id) {
-        return new Builder(id);
-    }
-
-    public static class Builder extends DrinkAddition.Builder {
-
-        private final ResourceLocation id;
-
-        private Builder(ResourceLocation id) {
-            this.id = id;
-        }
-
+    protected static DrinkAddition.Builder builder() {
+        return new DrinkAddition.Builder();
     }
 
 }

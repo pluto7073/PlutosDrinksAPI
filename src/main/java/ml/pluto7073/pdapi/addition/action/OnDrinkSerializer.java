@@ -1,6 +1,7 @@
 package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
 import ml.pluto7073.pdapi.PDAPI;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -29,8 +30,7 @@ import java.util.Collection;
 
 public interface OnDrinkSerializer<T extends OnDrinkAction> {
 
-    T fromJson(JsonObject json);
-    void toJson(JsonObject json, T action);
+    Codec<T> codec();
     T fromNetwork(FriendlyByteBuf buf);
     void toNetwork(FriendlyByteBuf buf, T action);
 

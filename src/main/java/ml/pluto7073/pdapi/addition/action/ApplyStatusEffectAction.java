@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -34,25 +36,15 @@ public class ApplyStatusEffectAction implements OnDrinkAction {
 
     public static class Serializer implements OnDrinkSerializer<ApplyStatusEffectAction> {
 
-        @Override
-        public ApplyStatusEffectAction fromJson(JsonObject json) {
-            ResourceLocation effectId = new ResourceLocation(GsonHelper.getAsString(json, "effect"));
-            int duration = GsonHelper.getAsInt(json, "duration");
-            int amplifier = GsonHelper.getAsInt(json, "amplifier");
-            MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(effectId);
-            if (effect == null) {
-                throw new IllegalArgumentException("Effect ID must point to a Mob Effect that actually exists");
-            }
-            return new ApplyStatusEffectAction(effect, duration, amplifier);
-        }
+        public static final Codec<ApplyStatusEffectAction> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(BuiltInRegistries.MOB_EFFECT.byNameCodec().fieldOf("effect").forGetter(action -> action.effect),
+                        Codec.INT.fieldOf("duration").forGetter(action -> action.duration),
+                        Codec.INT.fieldOf("amplifier").forGetter(action -> action.amplifier))
+                        .apply(instance, ApplyStatusEffectAction::new));
 
         @Override
-        public void toJson(JsonObject json, ApplyStatusEffectAction action) {
-            ResourceLocation id = BuiltInRegistries.MOB_EFFECT.getKey(action.effect);
-            if (id == null) throw new IllegalStateException();
-            json.addProperty("effect", id.toString());
-            json.addProperty("duration", action.duration);
-            json.addProperty("amplifier", action.amplifier);
+        public Codec<ApplyStatusEffectAction> codec() {
+            return CODEC;
         }
 
         @Override

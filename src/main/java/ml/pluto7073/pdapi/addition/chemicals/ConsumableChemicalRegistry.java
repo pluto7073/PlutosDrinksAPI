@@ -1,6 +1,6 @@
 package ml.pluto7073.pdapi.addition.chemicals;
 
-import java.util.HashMap;
+import java.util.*;
 import java.util.function.Consumer;
 
 public final class ConsumableChemicalRegistry {
@@ -20,6 +20,17 @@ public final class ConsumableChemicalRegistry {
 
     public static void forEach(Consumer<ConsumableChemicalHandler> handlerConsumer) {
         REGISTRY.values().forEach(handlerConsumer);
+    }
+
+    public static Set<String> ids() {
+        return REGISTRY.keySet();
+    }
+
+    public static void fillChemicalMap(Map<String, Integer> chemicals) {
+        forEach(handler -> {
+            if (!chemicals.containsKey(handler.getName()))
+                chemicals.put(handler.getName(), 0);
+        });
     }
 
 }

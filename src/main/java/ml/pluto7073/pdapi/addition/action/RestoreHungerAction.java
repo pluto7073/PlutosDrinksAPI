@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,17 +32,14 @@ public class RestoreHungerAction implements OnDrinkAction {
 
     public static class Serializer implements OnDrinkSerializer<RestoreHungerAction> {
 
-        @Override
-        public RestoreHungerAction fromJson(JsonObject json) {
-            int food = GsonHelper.getAsInt(json, "food");
-            int saturation = GsonHelper.getAsInt(json, "saturation");
-            return new RestoreHungerAction(food, saturation);
-        }
+        public static final Codec<RestoreHungerAction> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(Codec.INT.fieldOf("food").forGetter(action -> action.food),
+                        Codec.INT.fieldOf("saturation").forGetter(action -> action.saturation))
+                        .apply(instance, RestoreHungerAction::new));
 
         @Override
-        public void toJson(JsonObject json, RestoreHungerAction action) {
-            json.addProperty("food", action.food);
-            json.addProperty("saturation", action.saturation);
+        public Codec<RestoreHungerAction> codec() {
+            return CODEC;
         }
 
         @Override

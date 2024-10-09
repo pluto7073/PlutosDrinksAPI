@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.specialty;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncSpecialtyDrinkRegistryPacket;
@@ -9,6 +11,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
+import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -57,18 +60,8 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
 
                     if (!b) continue;
                 }
-                ResourceLocation type;
 
-                if (object.has("type")) {
-                    type = new ResourceLocation(GsonHelper.getAsString(object, "type"));
-                } else type = PDAPI.asId("specialty_drink");
-
-                SpecialtyDrinkSerializer serializer = PDRegistries.SPECIALTY_DRINK_SERIALIZER.getOptional(type)
-                        .orElseThrow(() -> new IllegalArgumentException("No such Specialty Drink serializer: " + type));
-
-                SpecialtyDrink drink = serializer.fromJson(id, object);
-
-                DRINKS.put(id, drink);
+                DRINKS.put(id, Util.getOrThrow(SpecialtyDrink.CODEC.parse(JsonOps.INSTANCE, object), JsonParseException::new));
             } catch (IOException e) {
                 PDAPI.LOGGER.error("Couldn't load Specialty Drink {}", id, e);
             }

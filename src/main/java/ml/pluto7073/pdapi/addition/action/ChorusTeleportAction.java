@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -56,14 +58,13 @@ public class ChorusTeleportAction implements OnDrinkAction {
 
     public static class Serializer implements OnDrinkSerializer<ChorusTeleportAction> {
 
-        @Override
-        public ChorusTeleportAction fromJson(JsonObject json) {
-            return new ChorusTeleportAction(GsonHelper.getAsInt(json, "maxRadius"));
-        }
+        public static final Codec<ChorusTeleportAction> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(Codec.INT.fieldOf("maxRadius").forGetter(action -> action.radius))
+                        .apply(instance, ChorusTeleportAction::new));
 
         @Override
-        public void toJson(JsonObject json, ChorusTeleportAction action) {
-            json.addProperty("maxRadius", action.radius);
+        public Codec<ChorusTeleportAction> codec() {
+            return CODEC;
         }
 
         @Override

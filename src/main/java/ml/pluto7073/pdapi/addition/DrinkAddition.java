@@ -2,14 +2,20 @@ package ml.pluto7073.pdapi.addition;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.Keyable;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
 import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.networking.NetworkingUtils;
+import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -19,6 +25,18 @@ import java.util.*;
 
 public class DrinkAddition {
 
+    public static final Codec<DrinkAddition> CODEC = RecordCodecBuilder.create(instance ->
+            instance.group(Codec.list(OnDrinkAction.CODEC).fieldOf("onDrinkActions").orElse(new ArrayList<>())
+                                    .forGetter(addition -> List.of(addition.actions)),
+                            Codec.BOOL.fieldOf("changesColor").orElse(false).forGetter(addition -> addition.changesColor),
+                            Codec.INT.fieldOf("color").orElse(0).forGetter(addition -> addition.color),
+                            Codec.simpleMap(Codec.STRING, Codec.INT, Keyable.forStrings(() -> ConsumableChemicalRegistry.ids().stream()))
+                                    .fieldOf("chemicals").orElse(new HashMap<>()).forGetter(addition -> addition.chemicals),
+                            Codec.INT.fieldOf("maxAmount").orElse(0).forGetter(addition -> addition.maxAmount),
+                            Codec.STRING.fieldOf("name").orElse("").forGetter(addition -> addition.name),
+                            Codec.INT.fieldOf("weight").orElse(0).forGetter(addition -> addition.currentWeight))
+                    .apply(instance, DrinkAddition::new));
+
     private final OnDrinkAction[] actions;
     private final boolean changesColor;
     private final int color;
@@ -27,15 +45,12 @@ public class DrinkAddition {
     private final int currentWeight;
     private final String name;
 
-    protected DrinkAddition(OnDrinkAction[] actions, boolean changesColor, int color, Map<String, Integer> chemicals, int maxAmount, @Nullable String name) {
-        this(actions, changesColor, color, chemicals, maxAmount, name, 0);
-    }
-
-    protected DrinkAddition(OnDrinkAction[] actions, boolean changesColor, int color, Map<String, Integer> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
-        this.actions = actions;
+    protected DrinkAddition(List<OnDrinkAction> actions, boolean changesColor, int color, Map<String, Integer> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
+        this.actions = actions.toArray(OnDrinkAction[]::new);
         this.changesColor = changesColor;
         this.color = color;
-        this.chemicals = chemicals;
+        this.chemicals = new HashMap<>(chemicals);
+        ConsumableChemicalRegistry.fillChemicalMap(this.chemicals);
         this.maxAmount = maxAmount;
         this.currentWeight = currentWeight;
         this.name = name;
@@ -86,49 +101,11 @@ public class DrinkAddition {
         int currentWeight = buf.readInt();
         String name = buf.readUtf();
         if (name.isEmpty()) name = null;
-        return new DrinkAddition(actions.toArray(OnDrinkAction[]::new), changesColor, color, chemicals, maxAmount, name, currentWeight);
-    }
-
-    public JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        if (changesColor) {
-            json.addProperty("changesColor", true);
-            json.addProperty("color", color);
-        }
-        if (maxAmount > 0) {
-            json.addProperty("maxAmount", maxAmount);
-        }
-        chemicals.forEach((id, amount) -> {
-            if (amount > 0) {
-                json.addProperty(id, amount);
-            }
-        });
-        if (currentWeight != 0) {
-            json.addProperty("weight", currentWeight);
-        }
-        if (name != null) {
-            json.addProperty("name", name);
-        }
-        JsonArray actions = new JsonArray();
-        for (OnDrinkAction action : this.actions) {
-            JsonObject a = new JsonObject();
-            @SuppressWarnings("unchecked")
-            OnDrinkSerializer<OnDrinkAction> serializer = (OnDrinkSerializer<OnDrinkAction>) action.serializer();
-            ResourceLocation id = PDRegistries.ON_DRINK_SERIALIZER.getKey(serializer);
-            if (id == null) {
-                PDAPI.LOGGER.error("Couldn't serialize OnDrink Action");
-                continue;
-            }
-            a.addProperty("type", id.toString());
-            serializer.toJson(a, action);
-            actions.add(a);
-        }
-        json.add("onDrinkActions", actions);
-        return json;
+        return new DrinkAddition(actions, changesColor, color, chemicals, maxAmount, name, currentWeight);
     }
 
     public String getTranslationKey() {
-        if (name != null) return name;
+        if (name != null && !name.isEmpty()) return name;
         try {
             ResourceLocation id = DrinkAdditionManager.getId(this);
             return id.toLanguageKey("drink_addition");
@@ -196,7 +173,7 @@ public class DrinkAddition {
         }
 
         public DrinkAddition build() {
-            return new DrinkAddition(actions.toArray(OnDrinkAction[]::new), changesColor, color, chemicals, maxAmount, name, weight);
+            return new DrinkAddition(actions, changesColor, color, chemicals, maxAmount, name, weight);
         }
 
     }

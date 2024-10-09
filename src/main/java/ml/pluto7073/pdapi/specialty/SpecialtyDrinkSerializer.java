@@ -1,6 +1,7 @@
 package ml.pluto7073.pdapi.specialty;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import net.minecraft.core.Registry;
@@ -11,7 +12,7 @@ public interface SpecialtyDrinkSerializer {
 
     SpecialtyDrinkSerializer DEFAULT_SERIALIZER = register("specialty_drink", new SpecialtyDrink.BaseSerializer());
 
-    SpecialtyDrink fromJson(ResourceLocation id, JsonObject data);
+    Codec<SpecialtyDrink> codec();
     SpecialtyDrink fromNetwork(FriendlyByteBuf buf);
     void toNetwork(SpecialtyDrink drink, FriendlyByteBuf buf);
 

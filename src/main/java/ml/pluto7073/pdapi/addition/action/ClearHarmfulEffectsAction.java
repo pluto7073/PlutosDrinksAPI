@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -35,19 +37,13 @@ public class ClearHarmfulEffectsAction implements OnDrinkAction {
 
     public static class Serializer implements OnDrinkSerializer<ClearHarmfulEffectsAction> {
 
-        @Override
-        public ClearHarmfulEffectsAction fromJson(JsonObject json) {
-            int limit = -1;
-            if (json.has("limit")) {
-                limit = GsonHelper.getAsInt(json, "limit");
-            }
-            return new ClearHarmfulEffectsAction(limit);
-        }
+        public static final Codec<ClearHarmfulEffectsAction> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(Codec.INT.fieldOf("limit").orElse(-1).forGetter(action -> action.limit))
+                        .apply(instance, ClearHarmfulEffectsAction::new));
 
         @Override
-        public void toJson(JsonObject json, ClearHarmfulEffectsAction action) {
-            if (action.limit == -1) return;
-            json.addProperty("limit", action.limit);
+        public Codec<ClearHarmfulEffectsAction> codec() {
+            return CODEC;
         }
 
         @Override

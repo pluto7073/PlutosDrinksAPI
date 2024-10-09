@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
@@ -33,17 +35,14 @@ public class DealDamageAction implements OnDrinkAction {
 
     public static class Serializer implements OnDrinkSerializer<DealDamageAction> {
 
-        @Override
-        public DealDamageAction fromJson(JsonObject json) {
-            ResourceLocation sourceId = new ResourceLocation(GsonHelper.getAsString(json, "source"));
-            float amount = GsonHelper.getAsFloat(json, "amount");
-            return new DealDamageAction(amount, ResourceKey.create(Registries.DAMAGE_TYPE, sourceId));
-        }
+        public static final Codec<DealDamageAction> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(Codec.FLOAT.fieldOf("amount").forGetter(action -> action.amount),
+                        ResourceKey.codec(Registries.DAMAGE_TYPE).fieldOf("source").forGetter(action -> action.source))
+                        .apply(instance, DealDamageAction::new));
 
         @Override
-        public void toJson(JsonObject json, DealDamageAction action) {
-            json.addProperty("source", action.source.location().toString());
-            json.addProperty("amount", action.amount);
+        public Codec<DealDamageAction> codec() {
+            return CODEC;
         }
 
         @Override

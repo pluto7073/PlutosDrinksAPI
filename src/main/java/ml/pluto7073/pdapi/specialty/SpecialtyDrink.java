@@ -4,6 +4,11 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.Keyable;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
@@ -15,6 +20,7 @@ import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.networking.NetworkingUtils;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -33,34 +39,37 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @MethodsReturnNonnullByDefault
 public class SpecialtyDrink {
 
-    private final ResourceLocation id;
+    public static final Codec<SpecialtyDrink> CODEC =
+            PDRegistries.SPECIALTY_DRINK_SERIALIZER.byNameCodec().dispatch(SpecialtyDrink::serializer, SpecialtyDrinkSerializer::codec);
+
     private final Item base;
     private final ResourceLocation[] steps;
     private final OnDrinkAction[] actions;
     private final int color;
-    private final HashMap<String, Integer> chemicals;
+    private final Map<String, Integer> chemicals;
     private final String name;
 
-    public SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrinkAction[] actions, int color, HashMap<String, Integer> chemicals, @Nullable String name) {
-        this.id = id;
+    public SpecialtyDrink(Item base, List<ResourceLocation> steps, List<OnDrinkAction> actions, int color, Map<String, Integer> chemicals, @Nullable String name) {
         this.base = base;
-        this.steps = steps;
-        this.actions = actions;
+        this.steps = steps.toArray(ResourceLocation[]::new);
+        this.actions = actions.toArray(OnDrinkAction[]::new);
         this.color = color;
-        this.chemicals = chemicals;
-        this.name = name != null ? name : id.toLanguageKey("drink");
+        this.chemicals = new HashMap<>(chemicals);
+        ConsumableChemicalRegistry.fillChemicalMap(this.chemicals);
+        this.name = name;
     }
 
     public String languageKey() {
-        return id.toLanguageKey("drink");
+        return id().toLanguageKey("drink");
     }
 
     public ResourceLocation id() {
-        return id;
+        return SpecialtyDrinkManager.getId(this);
     }
 
     public Item base() {
@@ -83,12 +92,12 @@ public class SpecialtyDrink {
         return color;
     }
 
-    public HashMap<String, Integer> chemicals() {
+    public Map<String, Integer> chemicals() {
         return chemicals;
     }
 
     public String name() {
-        return name;
+        return name == null || name.isEmpty() ? languageKey() : name;
     }
 
     public ResourceLocation type() {
@@ -131,10 +140,6 @@ public class SpecialtyDrink {
         return true;
     }
 
-    public ResourceLocation getId() {
-        return id;
-    }
-
     public List<Ingredient> stepsToIngredientList() {
         List<Ingredient> ingredients = new ArrayList<>();
         for (ResourceLocation addition : steps) {
@@ -144,7 +149,6 @@ public class SpecialtyDrink {
     }
 
     public void toNetwork(FriendlyByteBuf buf) {
-        buf.writeResourceLocation(id);
         buf.writeResourceLocation(BuiltInRegistries.ITEM.getKey(base));
         NetworkingUtils.arrayToNetwork(buf, steps, FriendlyByteBuf::writeResourceLocation);
         buf.writeMap(chemicals, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeInt);
@@ -155,56 +159,30 @@ public class SpecialtyDrink {
 
     public static class BaseSerializer implements SpecialtyDrinkSerializer {
 
+        public static final Codec<SpecialtyDrink> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(BuiltInRegistries.ITEM.byNameCodec().fieldOf("base").forGetter(drink -> drink.base),
+                                Codec.list(ResourceLocation.CODEC).fieldOf("additions").forGetter(drink -> List.of(drink.steps)),
+                                Codec.list(OnDrinkAction.CODEC).fieldOf("onDrinkActions").forGetter(drink -> List.of(drink.actions)),
+                                Codec.INT.fieldOf("color").forGetter(drink -> drink.color),
+                                Codec.simpleMap(Codec.STRING, Codec.INT, Keyable.forStrings(() -> ConsumableChemicalRegistry.ids().stream()))
+                                        .orElse(new HashMap<>()).fieldOf("chemicals").forGetter(drink -> drink.chemicals),
+                                Codec.STRING.fieldOf("name").orElse("").forGetter(drink -> drink.name))
+                        .apply(instance, SpecialtyDrink::new));
+
         @Override
-        public SpecialtyDrink fromJson(ResourceLocation id, JsonObject data) {
-            Item base = BuiltInRegistries.ITEM.get(new ResourceLocation(GsonHelper.getAsString(data, "base")));
-            JsonArray additionsJson = GsonHelper.getAsJsonArray(data, "additions");
-            List<ResourceLocation> additions = new ArrayList<>();
-            for (JsonElement e : additionsJson) {
-                additions.add(new ResourceLocation(e.getAsString()));
-            }
-            if (DrinkUtil.condense(additions).size() > 15) throw new IllegalStateException("Specialty Drink \"" + id.toString() + "\" cannot have more than 15 steps");
-
-            HashMap<String, Integer> chemicals = new HashMap<>();
-            ConsumableChemicalRegistry.forEach(handler -> {
-                if (data.has(handler.getName())) {
-                    chemicals.put(handler.getName(), GsonHelper.getAsInt(data, handler.getName()));
-                }
-            });
-
-            int color = GsonHelper.getAsInt(data, "color");
-            JsonArray actionsArray = GsonHelper.getAsJsonArray(data, "onDrinkActions");
-            List<OnDrinkAction> actions = new ArrayList<>();
-            for (JsonElement e : actionsArray) {
-                if (!e.isJsonObject()) {
-                    PDAPI.LOGGER.warn("Non-JsonObject item in 'onDrinkActions' in Specialty file: {}", id);
-                    continue;
-                }
-                JsonObject actionObject = e.getAsJsonObject();
-                ResourceLocation type = new ResourceLocation(GsonHelper.getAsString(actionObject, "type"));
-                @SuppressWarnings("unchecked")
-                OnDrinkSerializer<OnDrinkAction> serializer = (OnDrinkSerializer<OnDrinkAction>)
-                        PDRegistries.ON_DRINK_SERIALIZER.get(type);
-                if (serializer == null) throw new IllegalArgumentException("Unknown OnDrinkAction " + type);
-                actions.add(serializer.fromJson(actionObject));
-            }
-            String name = null;
-            if (data.has("name")) {
-                name = GsonHelper.getAsString(data, "name");
-            }
-            return new SpecialtyDrink(id, base, additions.toArray(new ResourceLocation[0]), actions.toArray(new OnDrinkAction[0]), color, chemicals, name);
+        public Codec<SpecialtyDrink> codec() {
+            return CODEC;
         }
 
         @Override
         public SpecialtyDrink fromNetwork(FriendlyByteBuf buf) {
-            ResourceLocation id = buf.readResourceLocation();
             ResourceLocation base = buf.readResourceLocation();
-            ResourceLocation[] steps = NetworkingUtils.listFromNetwork(buf, FriendlyByteBuf::readResourceLocation).toArray(new ResourceLocation[0]);
+            List<ResourceLocation> steps = NetworkingUtils.listFromNetwork(buf, FriendlyByteBuf::readResourceLocation);
             HashMap<String, Integer> chemicals = Maps.newHashMap(buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readInt));
             int color = buf.readInt();
             List<OnDrinkAction> list = NetworkingUtils.readDrinkActionsList(buf);
             String name = buf.readUtf();
-            return new SpecialtyDrink(id, BuiltInRegistries.ITEM.get(base), steps, list.toArray(OnDrinkAction[]::new), color, chemicals, name);
+            return new SpecialtyDrink(BuiltInRegistries.ITEM.get(base), steps, list, color, chemicals, name);
         }
 
         @Override

@@ -3,6 +3,8 @@ package ml.pluto7073.pdapi.addition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
@@ -14,6 +16,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
+import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.Resource;
@@ -132,53 +135,7 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
     }
 
     public static DrinkAddition loadFromJson(ResourceLocation id, JsonObject object) {
-        DrinkAddition.Builder builder = new DrinkAddition.Builder();
-        ConsumableChemicalRegistry.forEach(handler -> {
-            String name = handler.getName();
-            if (object.has(name)) {
-                builder.chemical(name, GsonHelper.getAsInt(object, name));
-            }
-        });
-        if (object.has("changesColor")) {
-            builder.changesColor(GsonHelper.getAsBoolean(object, "changesColor"));
-        }
-        if (object.has("color")) {
-            builder.color(GsonHelper.getAsInt(object, "color"));
-        }
-        if (object.has("maxAmount")) {
-            builder.maxAmount(GsonHelper.getAsInt(object, "maxAmount"));
-        }
-        if (object.has("onDrinkActions")) {
-            JsonArray actionsArray = GsonHelper.getAsJsonArray(object, "onDrinkActions");
-            for (JsonElement e : actionsArray) {
-                if (!e.isJsonObject()) {
-                    PDAPI.LOGGER.warn("Non-JsonObject item in 'onDrinkActions' in Drink Addition file: {}", id);
-                    continue;
-                }
-                JsonObject actionObject = e.getAsJsonObject();
-                ResourceLocation type =
-                        new ResourceLocation(GsonHelper.getAsString(actionObject, "type"));
-                OnDrinkSerializer<?> template = PDRegistries.ON_DRINK_SERIALIZER.get(type);
-                if (template == null) {
-                    PDAPI.LOGGER.error("Could not load OnDrinkAction for add-in {} because of non-existent OnDrinkTemplate {}", id.toString(), GsonHelper.getAsString(actionObject, "type"));
-                    continue;
-                }
-                try {
-                    OnDrinkAction action = template.fromJson(actionObject);
-                    builder.addAction(action);
-                } catch (Exception ex) {
-                    PDAPI.LOGGER.error("Could not load OnDrinkAction for addition {}", id, new RuntimeException(ex));
-                }
-            }
-        }
-        if (object.has("weight")) {
-            builder.setWeight(GsonHelper.getAsInt(object, "weight"));
-        }
-        if (object.has("name")) {
-            builder.name(GsonHelper.getAsString(object, "name"));
-        }
-
-        return builder.build();
+        return Util.getOrThrow(DrinkAddition.CODEC.parse(JsonOps.INSTANCE, object), JsonParseException::new);
     }
 
 }
