@@ -44,14 +44,4 @@ public class DrinkWorkstationBlock extends CraftingTableBlock {
         return new SimpleMenuProvider((syncId, playerInventory, playerEntity) -> new DrinkWorkstationMenu(syncId, playerInventory, ContainerLevelAccess.create(world, pos)), TITLE);
     }
 
-    @Override
-    public Item asItem() {
-        return PDItems.DRINK_WORKSTATION;
-    }
-
-    @Override
-    public ItemStack getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state) {
-        return new ItemStack(PDItems.DRINK_WORKSTATION, 1);
-    }
-
 }
