@@ -62,7 +62,7 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
                 return entry.getKey();
             }
         }
-        throw new IllegalArgumentException("Unregistered drink addition: " + addition.toString());
+        return new ResourceLocation("empty");
     }
 
     public static DrinkAddition get(ResourceLocation id) {

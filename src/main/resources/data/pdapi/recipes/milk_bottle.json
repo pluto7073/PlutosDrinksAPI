@@ -14,8 +14,8 @@
     }
   },
   "result": {
-    "item": "plutoscoffee:milk_bottle",
-    "count": 4
+    "id": "plutoscoffee:milk_bottle",
+    "Count": 4
   },
   "fabric:load_conditions": [
     {

@@ -13,7 +13,7 @@
     }
   },
   "result": {
-    "item": "plutoscoffee:coffee_workstation",
-    "count": 1
+    "id": "plutoscoffee:coffee_workstation",
+    "Count": 1
   }
 }
