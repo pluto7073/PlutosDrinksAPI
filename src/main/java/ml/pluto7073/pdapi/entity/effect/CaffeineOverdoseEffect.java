@@ -13,9 +13,10 @@ public class CaffeineOverdoseEffect extends MobEffect {
     }
 
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         super.applyEffectTick(entity, amplifier);
         entity.hurt(PDDamageTypes.of(entity.level(), PDDamageTypes.CAFFEINE_OVERDOSE), (float) entity.level().getGameRules().getRule(PDGameRules.CAFFEINE_DAMAGE_MODIFIER).get());
+        return true;
     }
 
 }

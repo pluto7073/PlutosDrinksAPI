@@ -1,5 +1,7 @@
 package ml.pluto7073.pdapi.item;
 
+import ml.pluto7073.pdapi.component.DrinkAdditions;
+import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
@@ -50,7 +52,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
     public int getChemicalContent(String name, ItemStack stack) {
         int amount = 0;
         for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack)) {
-            amount += a.getChemicals().get(name);
+            amount += a.chemicals().get(name);
         }
         return amount;
     }
@@ -111,21 +113,13 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
-        DrinkAddition[] addIns = DrinkUtil.getAdditionsFromStack(stack);
-        HashMap<ResourceLocation, Integer> additionCounts = new HashMap<>();
-        for (DrinkAddition addIn : addIns) {
-            if (addIn == DrinkAdditionManager.EMPTY) continue;
-            ResourceLocation id = DrinkAdditionManager.getId(addIn);
-            if (additionCounts.containsKey(id)) {
-                int count = additionCounts.get(id);
-                additionCounts.put(id, ++count);
-            } else additionCounts.put(id, 1);
-        }
-        additionCounts.forEach((id, count) -> tooltip.add(Component.translatable(DrinkAdditionManager.get(id).getTranslationKey(), count).withStyle(ChatFormatting.GRAY)));
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag config) {
+        super.appendHoverText(stack, context, tooltip, config);
 
-        if (context.isAdvanced() || context.isCreative()) ConsumableChemicalRegistry.forEach(handler ->
+        if (config.isAdvanced() || config.isCreative()) ConsumableChemicalRegistry.forEach(handler ->
                 handler.appendTooltip(tooltip, getChemicalContent(handler.getName(), stack), stack));
+
+        stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).addToTooltip(context, tooltip::add, config);
     }
 
     public enum Temperature {

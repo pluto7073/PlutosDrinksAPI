@@ -19,7 +19,7 @@ import net.minecraft.world.level.Level;
 
 public class MilkBottleItem extends Item {
 
-    private static final FoodProperties MilkFood = (new FoodProperties.Builder()).alwaysEat().nutrition(1).saturationMod(5).build();
+    private static final FoodProperties MilkFood = (new FoodProperties.Builder()).alwaysEdible().nutrition(1).saturationModifier(5).build();
 
     public MilkBottleItem() {
         super(new Item.Properties().stacksTo(16).food(MilkFood).craftRemainder(Items.GLASS_BOTTLE));

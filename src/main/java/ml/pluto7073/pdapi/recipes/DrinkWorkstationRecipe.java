@@ -2,7 +2,10 @@ package ml.pluto7073.pdapi.recipes;
 
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import ml.pluto7073.pdapi.component.DrinkAdditions;
+import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.block.PDBlocks;
@@ -10,12 +13,15 @@ import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.specialty.InProgressItemRegistry;
 import ml.pluto7073.pdapi.tag.PDTags;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.GsonHelper;
@@ -47,21 +53,18 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ItemStack assemble(Container inventory, RegistryAccess registryManager) {
+    public ItemStack assemble(Container inventory, HolderLookup.Provider registryManager) {
         return craft(inventory);
     }
 
     public ItemStack craft(Container inventory) {
         ItemStack stack = inventory.getItem(0).copy();
-        ListTag resAdds = stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY)
-                .getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
-        resAdds.add(DrinkUtil.stringAsNbt(result.toString()));
-        stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditionManager.ADDITIONS_NBT_KEY, resAdds);
         if (stack.is(PDTags.HAS_IN_PROGRESS_ITEM)) {
-            CompoundTag tag = stack.getOrCreateTag();
             stack = new ItemStack(InProgressItemRegistry.getInProgress(stack.getItem()));
-            stack.setTag(tag);
         }
+        DrinkAdditions additions = stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY)
+                .withAddition(DrinkAdditionManager.get(result));
+        stack.set(PDComponents.ADDITIONS, additions);
         return stack;
     }
 
@@ -71,16 +74,9 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryManager) {
+    public ItemStack getResultItem(HolderLookup.Provider registryManager) {
         ItemStack stack = base.getItems()[0].copy();
-        if (stack.is(PDTags.HAS_IN_PROGRESS_ITEM)) {
-            if (base.getItems().length > 1) {
-                stack = base.getItems()[1].copy();
-            } else stack = new ItemStack(InProgressItemRegistry.getInProgress(stack.getItem()));
-        }
-        ListTag adds = new ListTag();
-        adds.add(DrinkUtil.stringAsNbt(result.toString()));
-        stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditionManager.ADDITIONS_NBT_KEY, adds);
+        stack.set(PDComponents.ADDITIONS, DrinkAdditions.of(result));
         return stack;
     }
 
@@ -119,32 +115,38 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
     @MethodsReturnNonnullByDefault
     public static class Serializer implements RecipeSerializer<DrinkWorkstationRecipe> {
 
-        private static final Codec<DrinkWorkstationRecipe> CODEC = RecordCodecBuilder.create(instance ->
-                instance.group(Ingredient.CODEC.fieldOf("base").forGetter(recipe -> recipe.base),
-                        Ingredient.CODEC.fieldOf("addition").forGetter(recipe -> recipe.addition),
-                        ResourceLocation.CODEC.fieldOf("result").forGetter(recipe -> recipe.result))
+        private static final MapCodec<DrinkWorkstationRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
+                instance.group(Ingredient.CODEC.fieldOf("base").forGetter(DrinkWorkstationRecipe::getBase),
+                        Ingredient.CODEC.fieldOf("addition").forGetter(DrinkWorkstationRecipe::getAddition),
+                        ResourceLocation.CODEC.fieldOf("result").forGetter(DrinkWorkstationRecipe::getResult))
                 .apply(instance, DrinkWorkstationRecipe::new));
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, DrinkWorkstationRecipe> STREAM_CODEC =
+                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
         public Serializer() {}
 
         @Override
-        public Codec<DrinkWorkstationRecipe> codec() {
+        public MapCodec<DrinkWorkstationRecipe> codec() {
             return CODEC;
         }
 
         @Override
-        public DrinkWorkstationRecipe fromNetwork(FriendlyByteBuf buf) {
-            Ingredient ingredient = Ingredient.fromNetwork(buf);
-            Ingredient ingredient2 = Ingredient.fromNetwork(buf);
-            ResourceLocation result = buf.readResourceLocation();
+        public StreamCodec<RegistryFriendlyByteBuf, DrinkWorkstationRecipe> streamCodec() {
+            return STREAM_CODEC;
+        }
+
+        public static DrinkWorkstationRecipe fromNetwork(RegistryFriendlyByteBuf buf) {
+            Ingredient ingredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buf);
+            Ingredient ingredient2 = Ingredient.CONTENTS_STREAM_CODEC.decode(buf);
+            ResourceLocation result = ResourceLocation.STREAM_CODEC.decode(buf);
             return new DrinkWorkstationRecipe(ingredient, ingredient2, result);
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, DrinkWorkstationRecipe recipe) {
-            recipe.base.toNetwork(buf);
-            recipe.addition.toNetwork(buf);
-            buf.writeResourceLocation(recipe.result);
+        public static void toNetwork(RegistryFriendlyByteBuf buf, DrinkWorkstationRecipe recipe) {
+            Ingredient.CONTENTS_STREAM_CODEC.encode(buf, recipe.base);
+            Ingredient.CONTENTS_STREAM_CODEC.encode(buf, recipe.addition);
+            ResourceLocation.STREAM_CODEC.encode(buf, recipe.result);
         }
 
     }

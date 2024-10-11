@@ -1,23 +1,21 @@
 package ml.pluto7073.pdapi.addition;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.PDAPI;
-import ml.pluto7073.pdapi.PDRegistries;
-import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
-import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
-import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncAdditionRegistryPacket;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
+import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -47,11 +45,15 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
 
     public static DrinkAddition register(ResourceLocation id, DrinkAddition addition, boolean staticAdd) {
         if (containsId(id)) {
-            if (get(id).getCurrentWeight() >= addition.getCurrentWeight()) return get(id);
+            if (get(id).currentWeight() >= addition.currentWeight()) return get(id);
         }
         REGISTRY.put(id, addition);
         if (staticAdd) STATIC_REGISTRY.put(id, addition);
         return addition;
+    }
+
+    public static void register(AdditionHolder holder) {
+        REGISTRY.put(holder.id(), holder.value());
     }
 
     public static ResourceLocation getId(DrinkAddition addition) {
@@ -76,22 +78,9 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
         return REGISTRY.containsKey(id);
     }
 
-    public static boolean containsAddition(DrinkAddition addition) {
-        return REGISTRY.containsValue(addition);
-    }
-
-    public static boolean contains(ResourceLocation id, DrinkAddition addition) {
-        return containsId(id) && containsAddition(addition) && get(id).equals(addition);
-    }
-
-    public static boolean contains(Map.Entry<ResourceLocation, DrinkAddition> entry) {
-        return contains(entry.getKey(), entry.getValue());
-    }
-
     public static void send(ServerPlayer entity) {
-
-        ServerPlayNetworking.send(entity, new ClientboundSyncAdditionRegistryPacket(REGISTRY));
-
+        ServerPlayNetworking.send(entity, new ClientboundSyncAdditionRegistryPacket(REGISTRY.entrySet().stream()
+                .map(entry -> new AdditionHolder(entry.getKey(), entry.getValue())).toList()));
     }
 
     @Override
@@ -111,17 +100,14 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
                 JsonObject object = GsonHelper.parse(new InputStreamReader(stream));
 
                 if (object.has("fabric:load_conditions")) {
-                    boolean b = ResourceConditions.conditionsMatch(
-                            GsonHelper.getAsJsonArray(object, "fabric:load_conditions"),
-                            true
-                    );
-
+                    boolean b = ResourceCondition.CONDITION_CODEC.parse(JsonOps.INSTANCE, object.get("fabric:load_conditions"))
+                            .getOrThrow().test(null);
                     if (!b) continue;
                 }
 
-                register(id, loadFromJson(id, object), false);
+                register(id, DrinkAddition.CODEC.parse(JsonOps.INSTANCE, object).getOrThrow(), false);
                 i++;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 PDAPI.LOGGER.error("Could not load Drink Addition {}", id, e);
             }
         }
@@ -132,10 +118,6 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
     @Override
     public ArrayList<ResourceLocation> getFabricDependencies() {
         return new ArrayList<>();
-    }
-
-    public static DrinkAddition loadFromJson(ResourceLocation id, JsonObject object) {
-        return Util.getOrThrow(DrinkAddition.CODEC.parse(JsonOps.INSTANCE, object), JsonParseException::new);
     }
 
 }

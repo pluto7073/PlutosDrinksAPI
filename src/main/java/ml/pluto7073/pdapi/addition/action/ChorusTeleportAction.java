@@ -2,8 +2,11 @@ package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -58,22 +61,27 @@ public class ChorusTeleportAction implements OnDrinkAction {
 
     public static class Serializer implements OnDrinkSerializer<ChorusTeleportAction> {
 
-        public static final Codec<ChorusTeleportAction> CODEC = RecordCodecBuilder.create(instance ->
+        public static final MapCodec<ChorusTeleportAction> CODEC = RecordCodecBuilder.mapCodec(instance ->
                 instance.group(Codec.INT.fieldOf("maxRadius").forGetter(action -> action.radius))
                         .apply(instance, ChorusTeleportAction::new));
+        public static final StreamCodec<RegistryFriendlyByteBuf, ChorusTeleportAction> STREAM_CODEC =
+                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
         @Override
-        public Codec<ChorusTeleportAction> codec() {
+        public MapCodec<ChorusTeleportAction> codec() {
             return CODEC;
         }
 
         @Override
-        public ChorusTeleportAction fromNetwork(FriendlyByteBuf buf) {
+        public StreamCodec<RegistryFriendlyByteBuf, ChorusTeleportAction> streamCodec() {
+            return STREAM_CODEC;
+        }
+
+        public static ChorusTeleportAction fromNetwork(FriendlyByteBuf buf) {
             return new ChorusTeleportAction(buf.readInt());
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, ChorusTeleportAction action) {
+        public static void toNetwork(FriendlyByteBuf buf, ChorusTeleportAction action) {
             buf.writeInt(action.radius);
         }
     }

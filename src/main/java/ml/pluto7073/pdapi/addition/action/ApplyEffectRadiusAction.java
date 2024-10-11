@@ -2,10 +2,14 @@ package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.effect.MobEffect;
@@ -26,11 +30,11 @@ public class ApplyEffectRadiusAction implements OnDrinkAction {
 
     private final int radius;
     private final boolean includeDrinker;
-    private final MobEffect effect;
+    private final Holder<MobEffect> effect;
     private final int duration;
     private final int amplifier;
 
-    public ApplyEffectRadiusAction(int radius, boolean includeDrinker, MobEffect effect, int duration, int amplifier) {
+    public ApplyEffectRadiusAction(int radius, boolean includeDrinker, Holder<MobEffect> effect, int duration, int amplifier) {
         this.radius = radius;
         this.includeDrinker = includeDrinker;
         this.effect = effect;
@@ -58,22 +62,28 @@ public class ApplyEffectRadiusAction implements OnDrinkAction {
 
     public static class Serializer implements OnDrinkSerializer<ApplyEffectRadiusAction> {
 
-        public static Codec<ApplyEffectRadiusAction> CODEC = RecordCodecBuilder.create(instance ->
+        public static MapCodec<ApplyEffectRadiusAction> CODEC = RecordCodecBuilder.mapCodec(instance ->
                 instance.group(Codec.INT.fieldOf("radius").forGetter(action -> action.radius),
                                 Codec.BOOL.fieldOf("includeDrinker").forGetter(action -> action.includeDrinker),
-                                BuiltInRegistries.MOB_EFFECT.byNameCodec().fieldOf("effect").forGetter(action -> action.effect),
+                                BuiltInRegistries.MOB_EFFECT.holderByNameCodec().fieldOf("effect").forGetter(action -> action.effect),
                                 Codec.INT.fieldOf("duration").forGetter(action -> action.duration),
                                 Codec.INT.fieldOf("amplifier").forGetter(action -> action.amplifier))
                         .apply(instance, ApplyEffectRadiusAction::new));
+        public static StreamCodec<RegistryFriendlyByteBuf, ApplyEffectRadiusAction> STREAM_CODEC =
+                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
         @Override
-        public Codec<ApplyEffectRadiusAction> codec() {
+        public MapCodec<ApplyEffectRadiusAction> codec() {
             return CODEC;
         }
 
         @Override
-        public ApplyEffectRadiusAction fromNetwork(FriendlyByteBuf buf) {
-            MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(buf.readResourceKey(Registries.MOB_EFFECT));
+        public StreamCodec<RegistryFriendlyByteBuf, ApplyEffectRadiusAction> streamCodec() {
+            return STREAM_CODEC;
+        }
+
+        public static ApplyEffectRadiusAction fromNetwork(FriendlyByteBuf buf) {
+            Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.getHolder(buf.readResourceKey(Registries.MOB_EFFECT)).orElseThrow();
             int duration = buf.readInt();
             int amplifier = buf.readInt();
             boolean includeDrinker = buf.readBoolean();
@@ -81,9 +91,8 @@ public class ApplyEffectRadiusAction implements OnDrinkAction {
             return new ApplyEffectRadiusAction(radius, includeDrinker, effect, duration, amplifier);
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, ApplyEffectRadiusAction action) {
-            buf.writeResourceKey(BuiltInRegistries.MOB_EFFECT.getResourceKey(action.effect)
+        public static void toNetwork(FriendlyByteBuf buf, ApplyEffectRadiusAction action) {
+            buf.writeResourceKey(BuiltInRegistries.MOB_EFFECT.getResourceKey(action.effect.value())
                     .orElseThrow(IllegalStateException::new));
             buf.writeInt(action.duration);
             buf.writeInt(action.amplifier);

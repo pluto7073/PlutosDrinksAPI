@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
@@ -22,15 +23,22 @@ import java.util.function.Consumer;
 public abstract class DrinkAdditionProvider implements DataProvider {
 
     private final PackOutput.PathProvider additionPathProvider;
+    private final CompletableFuture<HolderLookup.Provider> registries;
 
-    public DrinkAdditionProvider(FabricDataOutput out) {
+    public DrinkAdditionProvider(FabricDataOutput out, CompletableFuture<HolderLookup.Provider> completableFuture) {
         this.additionPathProvider = out.createPathProvider(PackOutput.Target.DATA_PACK, "drink_additions");
+        this.registries = completableFuture;
     }
 
     public abstract void buildAdditions(BiConsumer<ResourceLocation, DrinkAddition> consumer);
 
-    @Override
-    public CompletableFuture<?> run(CachedOutput output) {
+    public final CompletableFuture<?> run(CachedOutput writer) {
+        return this.registries.thenCompose((provider) -> {
+            return this.run(writer, provider);
+        });
+    }
+
+    public CompletableFuture<?> run(CachedOutput output, final HolderLookup.Provider provider) {
         Set<ResourceLocation> generatedAdditions = Sets.newHashSet();
         List<CompletableFuture<?>> list = new ArrayList<>();
 
@@ -39,7 +47,7 @@ public abstract class DrinkAdditionProvider implements DataProvider {
                 throw new IllegalStateException("Duplicate Addition " + id);
             }
 
-            list.add(DataProvider.saveStable(output, DrinkAddition.CODEC, addition, additionPathProvider.json(id)));
+            list.add(DataProvider.saveStable(output, provider, DrinkAddition.CODEC, addition, additionPathProvider.json(id)));
         });
         return CompletableFuture.allOf(list.toArray(CompletableFuture[]::new));
     }

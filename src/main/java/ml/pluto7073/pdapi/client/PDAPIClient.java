@@ -13,7 +13,7 @@ public class PDAPIClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        PDClientboundPackets.register();
+        PDClientboundPackets.registerReceivers();
 
         MenuScreens.register(PDScreens.WORKSTATION_MENU_TYPE, DrinkWorkstationScreen::new);
 

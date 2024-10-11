@@ -29,7 +29,7 @@ public class DrinkWorkstationBlock extends CraftingTableBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (world.isClientSide) {
             return InteractionResult.SUCCESS;
         } else {

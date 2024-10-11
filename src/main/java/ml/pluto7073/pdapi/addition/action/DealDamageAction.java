@@ -2,9 +2,12 @@ package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -35,25 +38,30 @@ public class DealDamageAction implements OnDrinkAction {
 
     public static class Serializer implements OnDrinkSerializer<DealDamageAction> {
 
-        public static final Codec<DealDamageAction> CODEC = RecordCodecBuilder.create(instance ->
+        public static final MapCodec<DealDamageAction> CODEC = RecordCodecBuilder.mapCodec(instance ->
                 instance.group(Codec.FLOAT.fieldOf("amount").forGetter(action -> action.amount),
                         ResourceKey.codec(Registries.DAMAGE_TYPE).fieldOf("source").forGetter(action -> action.source))
                         .apply(instance, DealDamageAction::new));
+        public static final StreamCodec<RegistryFriendlyByteBuf, DealDamageAction> STREAM_CODEC =
+                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
         @Override
-        public Codec<DealDamageAction> codec() {
+        public MapCodec<DealDamageAction> codec() {
             return CODEC;
         }
 
         @Override
-        public DealDamageAction fromNetwork(FriendlyByteBuf buf) {
+        public StreamCodec<RegistryFriendlyByteBuf, DealDamageAction> streamCodec() {
+            return STREAM_CODEC;
+        }
+
+        public static DealDamageAction fromNetwork(FriendlyByteBuf buf) {
             float amount = buf.readFloat();
             ResourceKey<DamageType> source = buf.readResourceKey(Registries.DAMAGE_TYPE);
             return new DealDamageAction(amount, source);
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, DealDamageAction action) {
+        public static void toNetwork(FriendlyByteBuf buf, DealDamageAction action) {
             buf.writeFloat(action.amount);
             buf.writeResourceKey(action.source);
         }

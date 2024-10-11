@@ -7,6 +7,8 @@ import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
+import ml.pluto7073.pdapi.component.DrinkAdditions;
+import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
@@ -61,17 +63,6 @@ public final class DrinkUtil {
         return FabricLoader.getInstance().isDevelopmentEnvironment();
     }
 
-    public static void convertStackFromPlutosCoffee(ItemStack stack) {
-        CompoundTag nbt = stack.getOrCreateTag();
-        if (!nbt.contains("Coffee")) return;
-        Stack<String> currentPath = new Stack<>();
-        currentPath.push("Coffee");
-        CompoundTag oldCoffeeData = nbt.getCompound("Coffee");
-        handleCompound(currentPath, oldCoffeeData);
-        nbt.put(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY, oldCoffeeData);
-        nbt.remove("Coffee");
-    }
-
     public static <T> List<T> condense(List<T> base) {
         ArrayList<T> list = new ArrayList<>();
 
@@ -80,7 +71,7 @@ public final class DrinkUtil {
                 list.add(t);
                 continue;
             }
-            if (t.equals(list.get(list.size() - 1))) continue;
+            if (t.equals(list.getLast())) continue;
             list.add(t);
         }
         return list;
@@ -126,16 +117,9 @@ public final class DrinkUtil {
     }
 
     public static DrinkAddition[] getAdditionsFromStack(ItemStack stack) {
-        convertStackFromPlutosCoffee(stack);
-        CompoundTag drinkData = stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
-        ListTag additions = drinkData.getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
-        ArrayList<DrinkAddition> additionsList = new ArrayList<>();
-        for (int i = 0; i < additions.size(); i++) {
-            String id = additions.getString(i);
-            ResourceLocation identifier = new ResourceLocation(id);
-            additionsList.add(DrinkAdditionManager.get(identifier));
-        }
-        return additionsList.toArray(new DrinkAddition[0]);
+        DrinkAdditions additions = stack.get(PDComponents.ADDITIONS);
+        assert additions != null: stack.getItem() + " doesn't contain 'pdapi:additions'";
+        return additions.additions().toArray(new DrinkAddition[0]);
     }
 
     public static void registerOldToNewConverter(String nbtPath, Converter<Tag> converter) {
@@ -167,17 +151,11 @@ public final class DrinkUtil {
     }
 
     public static SpecialtyDrink getSpecialDrink(ItemStack stack) {
-        CompoundTag nbt = stack.getOrCreateTag();
-        String id = nbt.getString("Drink");
-        SpecialtyDrink drink = SpecialtyDrinkManager.get(new ResourceLocation(id));
-        if (drink == null) throw new IllegalArgumentException("Drink " + id + " does not exist");
-        return drink;
+        return stack.getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY);
     }
 
     public static ItemStack setSpecialDrink(ItemStack stack, SpecialtyDrink drink) {
-        CompoundTag nbt = stack.getOrCreateTag();
-        nbt.put("Drink", StringTag.valueOf(drink.id().toString()));
-        stack.setTag(nbt);
+        stack.set(PDComponents.SPECIALTY_DRINK, drink);
         return stack;
     }
 
@@ -185,9 +163,9 @@ public final class DrinkUtil {
         if (!stack.is(PDItems.SPECIALTY_DRINK)) return -1;
         try {
             SpecialtyDrink drink = getSpecialDrink(stack);
-            return drink.color();
+            return 255 << 24 | drink.color();
         } catch (IllegalArgumentException e) {
-            return 0xf918c5;
+            return 0xfff918c5;
         }
     }
 

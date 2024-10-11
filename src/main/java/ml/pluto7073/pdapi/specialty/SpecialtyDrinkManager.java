@@ -10,6 +10,7 @@ import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
@@ -34,7 +35,8 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
 
     public SpecialtyDrinkManager() {
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(PHASE, (player, joined) ->
-                ServerPlayNetworking.send(player, new ClientboundSyncSpecialtyDrinkRegistryPacket(DRINKS)));
+                ServerPlayNetworking.send(player, new ClientboundSyncSpecialtyDrinkRegistryPacket(DRINKS.entrySet().stream().map(entry ->
+                        new SpecialtyDrinkHolder(entry.getKey(), entry.getValue())).toList())));
     }
 
     @Override
@@ -53,16 +55,13 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
                 JsonObject object = GsonHelper.parse(new InputStreamReader(stream));
 
                 if (object.has("fabric:load_conditions")) {
-                    boolean b = ResourceConditions.conditionsMatch(
-                            GsonHelper.getAsJsonArray(object, "fabric:load_conditions"),
-                            true
-                    );
-
+                    boolean b = ResourceCondition.CONDITION_CODEC.parse(JsonOps.INSTANCE, object.get("fabric:load_conditions"))
+                            .getOrThrow().test(null);
                     if (!b) continue;
                 }
 
-                DRINKS.put(id, Util.getOrThrow(SpecialtyDrink.CODEC.parse(JsonOps.INSTANCE, object), JsonParseException::new));
-            } catch (IOException e) {
+                DRINKS.put(id, SpecialtyDrink.CODEC.parse(JsonOps.INSTANCE, object).getOrThrow());
+            } catch (Exception e) {
                 PDAPI.LOGGER.error("Couldn't load Specialty Drink {}", id, e);
             }
         }
@@ -75,12 +74,12 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
         return new ArrayList<>();
     }
 
-    public static void register(ResourceLocation id, SpecialtyDrink drink) {
-        DRINKS.put(id, drink);
+    public static void register(SpecialtyDrinkHolder holder) {
+        DRINKS.put(holder.id(), holder.value());
     }
 
     public static SpecialtyDrink get(ResourceLocation id) {
-        return DRINKS.get(id);
+        return DRINKS.getOrDefault(id, SpecialtyDrink.EMPTY);
     }
 
     public static ResourceLocation getId(SpecialtyDrink drink) {

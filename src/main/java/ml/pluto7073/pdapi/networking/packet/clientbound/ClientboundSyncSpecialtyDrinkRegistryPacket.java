@@ -3,45 +3,30 @@ package ml.pluto7073.pdapi.networking.packet.clientbound;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkHolder;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkSerializer;
-import net.fabricmc.fabric.api.networking.v1.FabricPacket;
-import net.fabricmc.fabric.api.networking.v1.PacketType;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.repository.Pack;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 
-public record ClientboundSyncSpecialtyDrinkRegistryPacket(Map<ResourceLocation, SpecialtyDrink> registry)
-        implements FabricPacket {
+public record ClientboundSyncSpecialtyDrinkRegistryPacket(List<SpecialtyDrinkHolder> drinks) implements CustomPacketPayload {
 
-    public static final PacketType<ClientboundSyncSpecialtyDrinkRegistryPacket> TYPE = PacketType.create(
-            PDAPI.asId("clientbound/sync_specialty_drink_registry"),
-            ClientboundSyncSpecialtyDrinkRegistryPacket::read
-    );
-
-    private static ClientboundSyncSpecialtyDrinkRegistryPacket read(FriendlyByteBuf buf) {
-        return new ClientboundSyncSpecialtyDrinkRegistryPacket(buf.readMap(
-                FriendlyByteBuf::readResourceLocation,
-                (b) -> {
-                    ResourceLocation type = b.readResourceLocation();
-                    SpecialtyDrinkSerializer serializer = PDRegistries.SPECIALTY_DRINK_SERIALIZER.getOptional(type).orElseThrow(IllegalStateException::new);
-                    return serializer.fromNetwork(b);
-                }
-        ));
-    }
+    public static final Type<ClientboundSyncSpecialtyDrinkRegistryPacket> TYPE = new Type<>(PDAPI.asId("clientbound/sync_specialty_drink_registry"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundSyncSpecialtyDrinkRegistryPacket> STREAM_CODEC =
+            StreamCodec.composite(SpecialtyDrinkHolder.STREAM_CODEC.apply(ByteBufCodecs.list()), ClientboundSyncSpecialtyDrinkRegistryPacket::drinks,
+                    ClientboundSyncSpecialtyDrinkRegistryPacket::new);
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeMap(registry, FriendlyByteBuf::writeResourceLocation, (b, d) -> {
-            b.writeResourceLocation(d.type());
-            d.serializer().toNetwork(d, b);
-        });
-    }
-
-    @Override
-    public PacketType<?> getType() {
+    public @NotNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

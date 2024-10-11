@@ -5,6 +5,7 @@
   "item.plutoscoffee.milk_bottle": "Milk Bottle",
   "item.pdapi.specialty_drink": "Uncraftable Drink",
   "creative_tab.pdapi.specialty_drinks": "Specialty Drinks",
+  "drink.minecraft.empty": "Uncraftable Drink",
   "drink_addition.pdapi.milk": "Milk x%1$s",
   "drink_addition.pdapi.sugar": "Sugar x%1$s",
   "drink_addition.pdapi.ice": "Iced",
@@ -31,5 +32,8 @@
   "option.pdapi.caffeineVisibleToNonOps": "Caffeine Visible to Non-Ops",
   "option.pdapi.caffeineVisibleToNonOps.tooltip": "Whether or not Non-Operators can use /drink caffeine get to see their own exact caffeine levels (NOT other players')",
   "option.pdapi.caffeineDamageMultiplier": "Caffeine Damage Multiplier",
-  "option.pdapi.lethalCaffeineDose": "Lethal Dose of Caffeine"
+  "option.pdapi.lethalCaffeineDose": "Lethal Dose of Caffeine",
+  "tag.item.pdapi.workstation_drinks": "Workstation Drinks",
+  "tag.item.pdapi.has_in_progress_item": "Has In Progress Item",
+  "tag.item.c.milk/milk_bottle": "Milk Bottle"
 }

@@ -5,9 +5,12 @@ import ml.pluto7073.pdapi.addition.action.OnDrinkSerializers;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.client.gui.PDScreens;
 import ml.pluto7073.pdapi.command.PDCommands;
+import ml.pluto7073.pdapi.component.PDComponents;
+import ml.pluto7073.pdapi.entity.PDTrackedData;
 import ml.pluto7073.pdapi.entity.effect.PDMobEffects;
 import ml.pluto7073.pdapi.gamerule.PDGameRules;
 import ml.pluto7073.pdapi.item.PDItems;
+import ml.pluto7073.pdapi.networking.PDClientboundPackets;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
@@ -17,6 +20,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -41,12 +45,16 @@ public class PDAPI implements ModInitializer {
     public void onInitialize() {
         OnDrinkSerializers.init();
         SpecialtyDrinkSerializer.init();
+        PDTrackedData.init();
         PDRecipeTypes.init();
         PDBlocks.init();
+        PDComponents.init();
         PDItems.init();
         PDMobEffects.init();
         PDGameRules.init();
         PDCommands.init();
+
+        PDClientboundPackets.registerPackets();
 
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new DrinkAdditionManager());
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new SpecialtyDrinkManager());

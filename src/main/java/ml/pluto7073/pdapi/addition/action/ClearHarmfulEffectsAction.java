@@ -2,8 +2,11 @@ package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -24,7 +27,7 @@ public class ClearHarmfulEffectsAction implements OnDrinkAction {
 
         if (limit == -1) limit = user.getActiveEffects().size();
         for (MobEffectInstance effect : user.getActiveEffects()) {
-            if (effect.getEffect().isBeneficial()) continue;
+            if (effect.getEffect().value().isBeneficial()) continue;
             limit--;
             user.removeEffect(effect.getEffect());
         }
@@ -37,22 +40,27 @@ public class ClearHarmfulEffectsAction implements OnDrinkAction {
 
     public static class Serializer implements OnDrinkSerializer<ClearHarmfulEffectsAction> {
 
-        public static final Codec<ClearHarmfulEffectsAction> CODEC = RecordCodecBuilder.create(instance ->
+        public static final MapCodec<ClearHarmfulEffectsAction> CODEC = RecordCodecBuilder.mapCodec(instance ->
                 instance.group(Codec.INT.fieldOf("limit").orElse(-1).forGetter(action -> action.limit))
                         .apply(instance, ClearHarmfulEffectsAction::new));
+        public static final StreamCodec<RegistryFriendlyByteBuf, ClearHarmfulEffectsAction> STREAM_CODEC =
+                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
         @Override
-        public Codec<ClearHarmfulEffectsAction> codec() {
+        public MapCodec<ClearHarmfulEffectsAction> codec() {
             return CODEC;
         }
 
         @Override
-        public ClearHarmfulEffectsAction fromNetwork(FriendlyByteBuf buf) {
+        public StreamCodec<RegistryFriendlyByteBuf, ClearHarmfulEffectsAction> streamCodec() {
+            return STREAM_CODEC;
+        }
+
+        public static ClearHarmfulEffectsAction fromNetwork(FriendlyByteBuf buf) {
             return new ClearHarmfulEffectsAction(buf.readInt());
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, ClearHarmfulEffectsAction action) {
+        public static void toNetwork(FriendlyByteBuf buf, ClearHarmfulEffectsAction action) {
             buf.writeInt(action.limit);
         }
 

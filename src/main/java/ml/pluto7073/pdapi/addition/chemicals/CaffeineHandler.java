@@ -66,8 +66,7 @@ public class CaffeineHandler implements ConsumableChemicalHandler {
             list.add(new MobEffectInstance(MobEffects.HUNGER, 600));
         }
         if (amount >= 400 && FabricLoader.getInstance().isModLoaded("dehydration")) {
-            //noinspection DataFlowIssue
-            list.add(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.get(new ResourceLocation("dehydration:thirst_effect")),
+            list.add(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.getHolder(new ResourceLocation("dehydration:thirst_effect")).orElseThrow(),
                     600, 0));
         }
         if (amount >= 450) {
@@ -143,7 +142,7 @@ public class CaffeineHandler implements ConsumableChemicalHandler {
     }
 
     @Override
-    public void defineDataForPlayer(SynchedEntityData data) {
+    public void defineDataForPlayer(SynchedEntityData.Builder data) {
         data.define(PDTrackedData.PLAYER_CAFFEINE_AMOUNT, 0F);
         data.define(PDTrackedData.PLAYER_ORIGINAL_CAFFEINE_AMOUNT, 0F);
         data.define(PDTrackedData.PLAYER_TICKS_SINCE_LAST_CAFFEINE, 0);
