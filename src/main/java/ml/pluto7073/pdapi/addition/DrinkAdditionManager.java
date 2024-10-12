@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class DrinkAdditionManager implements SimpleSynchronousResourceReloadListener {
 
@@ -62,7 +63,7 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
                 return entry.getKey();
             }
         }
-        return new ResourceLocation("empty");
+        return ResourceLocation.withDefaultNamespace("empty");
     }
 
     public static DrinkAddition get(ResourceLocation id) {
@@ -80,6 +81,7 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
 
     public static void send(ServerPlayer entity) {
         ServerPlayNetworking.send(entity, new ClientboundSyncAdditionRegistryPacket(REGISTRY.entrySet().stream()
+                .filter(Predicate.not(e -> e.getKey().equals(ResourceLocation.withDefaultNamespace("empty"))))
                 .map(entry -> new AdditionHolder(entry.getKey(), entry.getValue())).toList()));
     }
 

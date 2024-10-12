@@ -16,7 +16,7 @@ public class PDAPIModMenuImpl implements ModMenuApi {
                     .setParentScreen(parent)
                     .setTitle(Component.translatable("title.pdapi.config"))
                     .setSavingRunnable(() -> {})
-                    .setDefaultBackgroundTexture(new ResourceLocation("minecraft:textures/gui/options_background.png"));
+                    .setDefaultBackgroundTexture(ResourceLocation.withDefaultNamespace("textures/gui/options_background.png"));
 
             ConfigCategory client = builder.getOrCreateCategory(Component.literal("Client"));
             ConfigCategory server = builder.getOrCreateCategory(Component.literal("Server"));

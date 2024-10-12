@@ -63,7 +63,7 @@ public class PDAPI implements ModInitializer {
             if (!(tag instanceof ListTag list)) return tag;
             if (list.isEmpty()) return list;
             for (int i = 0; i < list.size(); i++) {
-                ResourceLocation id = new ResourceLocation(list.getString(i));
+                ResourceLocation id = ResourceLocation.parse(list.getString(i));
                 boolean ogCoffee = !DrinkAdditionManager.containsId(id) && DrinkAdditionManager.containsId(PDAPI.asId(id.getPath()));
                 if (!ogCoffee) continue;
                 id = PDAPI.asId(id.getPath());
@@ -87,7 +87,7 @@ public class PDAPI implements ModInitializer {
     }
 
     public static ResourceLocation asId(String name) {
-        return new ResourceLocation(ID, name);
+        return ResourceLocation.fromNamespaceAndPath(ID, name);
     }
 
 }

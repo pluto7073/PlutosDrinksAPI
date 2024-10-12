@@ -1,32 +1,21 @@
 package ml.pluto7073.pdapi.recipes;
 
-import com.google.gson.JsonObject;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
-import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.block.PDBlocks;
-import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.specialty.InProgressItemRegistry;
 import ml.pluto7073.pdapi.tag.PDTags;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ExtraCodecs;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -35,7 +24,7 @@ import net.minecraft.world.level.Level;
 import java.util.stream.Stream;
 
 @MethodsReturnNonnullByDefault
-public class DrinkWorkstationRecipe implements Recipe<Container> {
+public class DrinkWorkstationRecipe implements Recipe<DrinkWorkstationRecipeInput> {
 
     final Ingredient base;
     final Ingredient addition;
@@ -48,17 +37,17 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
     }
 
     @Override
-    public boolean matches(Container inventory, Level world) {
-        return base.test(inventory.getItem(0)) && addition.test(inventory.getItem(1));
+    public boolean matches(DrinkWorkstationRecipeInput inventory, Level world) {
+        return base.test(inventory.base()) && addition.test(inventory.addition());
     }
 
     @Override
-    public ItemStack assemble(Container inventory, HolderLookup.Provider registryManager) {
+    public ItemStack assemble(DrinkWorkstationRecipeInput inventory, HolderLookup.Provider registryManager) {
         return craft(inventory);
     }
 
-    public ItemStack craft(Container inventory) {
-        ItemStack stack = inventory.getItem(0).copy();
+    public ItemStack craft(DrinkWorkstationRecipeInput inventory) {
+        ItemStack stack = inventory.base().copy();
         if (stack.is(PDTags.HAS_IN_PROGRESS_ITEM)) {
             stack = new ItemStack(InProgressItemRegistry.getInProgress(stack.getItem()));
         }
@@ -75,6 +64,7 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
 
     @Override
     public ItemStack getResultItem(HolderLookup.Provider registryManager) {
+        if (base.getItems().length == 0) return new ItemStack(Items.AIR);
         ItemStack stack = base.getItems()[0].copy();
         stack.set(PDComponents.ADDITIONS, DrinkAdditions.of(result));
         return stack;

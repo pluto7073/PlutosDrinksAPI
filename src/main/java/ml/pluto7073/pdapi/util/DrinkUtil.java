@@ -1,27 +1,21 @@
 package ml.pluto7073.pdapi.util;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
-import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
-import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
+import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipeInput;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -108,7 +102,11 @@ public final class DrinkUtil {
         }
     }
 
-    public static Container copyContainerContents(Container source) {
+    public static DrinkWorkstationRecipeInput copyContainerToInput(Container source) {
+        return new DrinkWorkstationRecipeInput(source.getItem(0).copy(), source.getItem(1).copy());
+    }
+
+    public static Container copyContainer(Container source) {
         Container container = new SimpleContainer(source.getContainerSize());
         for (int i = 0; i < source.getContainerSize(); i++) {
             container.setItem(i, source.getItem(i).copy());

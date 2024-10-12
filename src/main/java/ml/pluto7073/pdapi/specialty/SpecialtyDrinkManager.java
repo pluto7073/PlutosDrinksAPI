@@ -86,7 +86,7 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
         for (ResourceLocation id : DRINKS.keySet()) {
             if (drink.equals(DRINKS.get(id))) return id;
         }
-        return new ResourceLocation("empty");
+        return ResourceLocation.withDefaultNamespace("empty");
     }
 
     public static Collection<SpecialtyDrink> values() {

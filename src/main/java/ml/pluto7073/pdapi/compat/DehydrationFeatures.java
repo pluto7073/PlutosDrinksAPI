@@ -10,7 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 public class DehydrationFeatures {
 
     static void addThirstEffect(LivingEntity user, int duration, int amplifier, boolean onlyIfNonExistent) {
-        Holder<MobEffect> thirst = BuiltInRegistries.MOB_EFFECT.getHolder(new ResourceLocation("dehydration:thirst_effect")).orElseThrow();
+        Holder<MobEffect> thirst = BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.parse("dehydration:thirst_effect")).orElseThrow();
         if (user.hasEffect(thirst)) return;
         user.addEffect(new MobEffectInstance(thirst, duration, amplifier));
     }

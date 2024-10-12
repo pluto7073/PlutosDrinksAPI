@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.client.gui;
 
+import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipeInput;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.block.PDBlocks;
@@ -41,7 +42,7 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     @Override
     protected boolean mayPickup(Player player, boolean present) {
-        return currentRecipe != null && currentRecipe.value().matches(inputSlots, world);
+        return currentRecipe != null && currentRecipe.value().matches(new DrinkWorkstationRecipeInput(inputSlots), world);
     }
 
     @Override
@@ -79,30 +80,31 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     @Override
     public void createResult() {
-        Container testInput = DrinkUtil.copyContainerContents(inputSlots);
+        DrinkWorkstationRecipeInput testInput = DrinkUtil.copyContainerToInput(inputSlots);
 
         if (inputSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0)).getAsOriginalItemWithAdditions(inputSlots.getItem(0)));
+            testInput = new DrinkWorkstationRecipeInput(DrinkUtil.getSpecialDrink(inputSlots.getItem(0))
+                    .getAsOriginalItemWithAdditions(inputSlots.getItem(0)), testInput.addition());
         }
 
         List<RecipeHolder<DrinkWorkstationRecipe>> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, testInput, world);
         if (list.isEmpty()) {
             resultSlots.setItem(0, ItemStack.EMPTY);
         } else {
-            currentRecipe = list.get(0);
-            ItemStack stack = currentRecipe.value().craft(inputSlots);
+            currentRecipe = list.getFirst();
+            ItemStack stack = currentRecipe.value().craft(new DrinkWorkstationRecipeInput(inputSlots));
             resultSlots.setRecipeUsed(currentRecipe);
             resultSlots.setItem(0, stack);
 
             // Specialty Drink testing
-            Container testResults = DrinkUtil.copyContainerContents(resultSlots);
+            Container testResults = DrinkUtil.copyContainer(resultSlots);
             if (resultSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
                 testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0)).getAsOriginalItemWithAdditions(resultSlots.getItem(0)));
             }
             List<SpecialtyDrink> matchingDrinks = SpecialtyDrinkManager.values().stream()
                     .filter(drink -> drink.matches(testResults)).toList();
             if (matchingDrinks.isEmpty()) return;
-            SpecialtyDrink drink = matchingDrinks.get(0);
+            SpecialtyDrink drink = matchingDrinks.getFirst();
             stack = drink.getAsItem();
             resultSlots.setItem(0, stack);
         }
