@@ -3,7 +3,11 @@ package ml.pluto7073.pdapi.datagen.builder;
 import com.google.gson.JsonObject;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.CriterionTriggerInstance;
+import net.minecraft.advancements.RequirementsStrategy;
+import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
@@ -20,6 +24,7 @@ public class WorkstationRecipeBuilder implements RecipeBuilder {
     private final Ingredient base;
     private final Ingredient addition;
     private final ResourceLocation result;
+    private final Advancement.Builder advancement = Advancement.Builder.recipeAdvancement();
 
     public WorkstationRecipeBuilder(Ingredient base, Ingredient addition, ResourceLocation result) {
         this.base = base;
@@ -29,6 +34,7 @@ public class WorkstationRecipeBuilder implements RecipeBuilder {
 
     @Override
     public RecipeBuilder unlockedBy(String criterionName, CriterionTriggerInstance criterionTrigger) {
+        advancement.addCriterion(criterionName, criterionTrigger);
         return this;
     }
 
@@ -44,7 +50,11 @@ public class WorkstationRecipeBuilder implements RecipeBuilder {
 
     @Override
     public void save(Consumer<FinishedRecipe> finishedRecipeConsumer, ResourceLocation recipeId) {
-        finishedRecipeConsumer.accept(new Result(recipeId, base, addition, result));
+        advancement.parent(ROOT_RECIPE_ADVANCEMENT)
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId.withPrefix("workstation/")))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId.withPrefix("workstation/")))
+                .requirements(RequirementsStrategy.OR);
+        finishedRecipeConsumer.accept(new Result(recipeId, base, addition, result, advancement, recipeId.withPrefix("recipes/workstation/")));
     }
 
     public static class Result implements FinishedRecipe {
@@ -53,12 +63,16 @@ public class WorkstationRecipeBuilder implements RecipeBuilder {
         private final Ingredient base;
         private final Ingredient addition;
         private final ResourceLocation result;
+        private final Advancement.Builder advancement;
+        private final ResourceLocation advancementId;
 
-        public Result(ResourceLocation id, Ingredient base, Ingredient addition, ResourceLocation result) {
+        public Result(ResourceLocation id, Ingredient base, Ingredient addition, ResourceLocation result, Advancement.Builder advancement, ResourceLocation advancementId) {
             this.id = id;
             this.base = base;
             this.addition = addition;
             this.result = result;
+            this.advancement = advancement;
+            this.advancementId = advancementId;
         }
 
         @Override
@@ -80,12 +94,12 @@ public class WorkstationRecipeBuilder implements RecipeBuilder {
 
         @Override
         public @Nullable JsonObject serializeAdvancement() {
-            return null;
+            return advancement.serializeToJson();
         }
 
         @Override
         public @Nullable ResourceLocation getAdvancementId() {
-            return null;
+            return advancementId;
         }
     }
 
