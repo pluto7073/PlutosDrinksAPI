@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "plutoscoffee:coffee_workstation",
+          "name": "pdapi:drink_workstation",
           "functions": [
             {
               "function": "minecraft:set_count",

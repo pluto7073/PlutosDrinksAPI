@@ -20,8 +20,8 @@ public final class PDItems {
     public static final Item DRINK_WORKSTATION = new BlockItem(PDBlocks.DRINK_WORKSTATION, new Item.Properties());
 
     public static void init() {
-        Registry.register(BuiltInRegistries.ITEM, "plutoscoffee:milk_bottle", MILK_BOTTLE); // Using the OG PlutosCoffee ids until I find a way to safely rename them
-        Registry.register(BuiltInRegistries.ITEM, "plutoscoffee:coffee_workstation", DRINK_WORKSTATION);
+        Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("milk_bottle"), MILK_BOTTLE);
+        Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("drink_workstation"), DRINK_WORKSTATION);
         Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("specialty_drink"), SPECIALTY_DRINK);
 
         if (DrinkUtil.dev()) Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("test_drink"), TEST_DRINK_ITEM);
