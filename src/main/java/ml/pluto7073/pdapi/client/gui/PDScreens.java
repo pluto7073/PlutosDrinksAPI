@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.client.gui;
 
+import ml.pluto7073.pdapi.PDAPI;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.flag.FeatureFlags;
@@ -12,7 +13,7 @@ public final class PDScreens {
     public static void init() {}
 
     static {
-        WORKSTATION_MENU_TYPE = Registry.register(BuiltInRegistries.MENU, "plutoscoffee:coffee_workstation", new MenuType<>(DrinkWorkstationMenu::new, FeatureFlags.VANILLA_SET));
+        WORKSTATION_MENU_TYPE = Registry.register(BuiltInRegistries.MENU, PDAPI.asId("drink_workstation"), new MenuType<>(DrinkWorkstationMenu::new, FeatureFlags.VANILLA_SET));
     }
 
 }
