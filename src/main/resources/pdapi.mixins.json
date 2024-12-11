@@ -7,9 +7,7 @@
     "DefaultedMappedRegistryMixin",
     "EntityMixin",
     "LivingEntityMixin",
-    "PassiveEntityMixin",
-    "PlayerEntityMixin",
-    "ServerPlayerEntityMixin"
+    "PassiveEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

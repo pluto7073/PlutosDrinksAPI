@@ -3,6 +3,7 @@ package ml.pluto7073.pdapi.item;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -18,8 +19,8 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     }
 
     @Override
-    public int getChemicalContent(String name, ItemStack stack) {
-        int amount;
+    public float getChemicalContent(ResourceLocation name, ItemStack stack) {
+        float amount;
         try {
             amount = DrinkUtil.getSpecialDrink(stack).chemicals().get(name);
         } catch (Exception e) {

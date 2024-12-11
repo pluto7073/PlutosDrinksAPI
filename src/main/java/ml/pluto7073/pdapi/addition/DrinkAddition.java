@@ -2,11 +2,11 @@ package ml.pluto7073.pdapi.addition;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
-import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.networking.NetworkingUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -22,16 +22,16 @@ public class DrinkAddition {
     private final OnDrinkAction[] actions;
     private final boolean changesColor;
     private final int color;
-    private final Map<String, Integer> chemicals;
+    private final Map<ResourceLocation, Integer> chemicals;
     private final int maxAmount;
     private final int currentWeight;
     private final String name;
 
-    protected DrinkAddition(OnDrinkAction[] actions, boolean changesColor, int color, Map<String, Integer> chemicals, int maxAmount, @Nullable String name) {
+    protected DrinkAddition(OnDrinkAction[] actions, boolean changesColor, int color, Map<ResourceLocation, Integer> chemicals, int maxAmount, @Nullable String name) {
         this(actions, changesColor, color, chemicals, maxAmount, name, 0);
     }
 
-    protected DrinkAddition(OnDrinkAction[] actions, boolean changesColor, int color, Map<String, Integer> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
+    protected DrinkAddition(OnDrinkAction[] actions, boolean changesColor, int color, Map<ResourceLocation, Integer> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
         this.actions = actions;
         this.changesColor = changesColor;
         this.color = color;
@@ -55,7 +55,7 @@ public class DrinkAddition {
         return color;
     }
 
-    public Map<String, Integer> getChemicals() {
+    public Map<ResourceLocation, Integer> getChemicals() {
         return chemicals;
     }
 
@@ -71,7 +71,7 @@ public class DrinkAddition {
         NetworkingUtils.writeDrinkActionsList(buf, actions);
         buf.writeBoolean(changesColor);
         buf.writeInt(color);
-        buf.writeMap(chemicals, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeInt);
+        buf.writeMap(chemicals, FriendlyByteBuf::writeResourceLocation, FriendlyByteBuf::writeInt);
         buf.writeInt(maxAmount);
         buf.writeInt(currentWeight);
         buf.writeUtf(Objects.requireNonNullElse(name, ""));
@@ -81,7 +81,7 @@ public class DrinkAddition {
         List<OnDrinkAction> actions = NetworkingUtils.readDrinkActionsList(buf);
         boolean changesColor = buf.readBoolean();
         int color = buf.readInt();
-        Map<String, Integer> chemicals = buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readInt);
+        Map<ResourceLocation, Integer> chemicals = buf.readMap(FriendlyByteBuf::readResourceLocation, FriendlyByteBuf::readInt);
         int maxAmount = buf.readInt();
         int currentWeight = buf.readInt();
         String name = buf.readUtf();
@@ -100,7 +100,7 @@ public class DrinkAddition {
         }
         chemicals.forEach((id, amount) -> {
             if (amount > 0) {
-                json.addProperty(id, amount);
+                json.addProperty(id.toString(), amount);
             }
         });
         if (currentWeight != 0) {
@@ -144,7 +144,7 @@ public class DrinkAddition {
         private final List<OnDrinkAction> actions;
         private boolean changesColor;
         private int color;
-        private final HashMap<String, Integer> chemicals;
+        private final HashMap<ResourceLocation, Integer> chemicals;
         private int maxAmount;
         private int weight;
         private String name;
@@ -154,7 +154,7 @@ public class DrinkAddition {
             changesColor = false;
             color = 0;
             chemicals = new HashMap<>();
-            ConsumableChemicalRegistry.forEach(handler -> chemical(handler.getName(), 0));
+            Chemicals.REGISTRY.forEach(handler -> chemical(handler.getId(), 0));
             maxAmount = 0;
             weight = 0;
             name = null;
@@ -175,7 +175,7 @@ public class DrinkAddition {
             return this;
         }
 
-        public Builder chemical(String name, int amount) {
+        public Builder chemical(ResourceLocation name, int amount) {
             chemicals.put(name, amount);
             return this;
         }

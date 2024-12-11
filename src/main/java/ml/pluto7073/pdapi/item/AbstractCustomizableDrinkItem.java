@@ -1,9 +1,9 @@
 package ml.pluto7073.pdapi.item;
 
+import ml.pluto7073.chemicals.item.ChemicalContaining;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
-import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @MethodsReturnNonnullByDefault
-public abstract class AbstractCustomizableDrinkItem extends Item {
+public abstract class AbstractCustomizableDrinkItem extends Item implements ChemicalContaining {
 
     public static final String DRINK_DATA_NBT_KEY = "DrinkData";
 
@@ -47,7 +47,8 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
         return baseTemperature;
     }
 
-    public int getChemicalContent(String name, ItemStack stack) {
+    @Override
+    public float getChemicalContent(ResourceLocation name, ItemStack stack) {
         int amount = 0;
         for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack)) {
             amount += a.getChemicals().get(name);
@@ -81,12 +82,6 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
             DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(stack);
             for (DrinkAddition addition : additions) {
                 addition.onDrink(stack, world, user);
-            }
-            if (player != null) {
-                ConsumableChemicalRegistry.forEach(handler -> {
-                    float amount = getChemicalContent(handler.getName(), stack);
-                    if (amount > 0) handler.add(player, amount);
-                });
             }
         }
 
@@ -123,9 +118,6 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
             } else additionCounts.put(id, 1);
         }
         additionCounts.forEach((id, count) -> tooltip.add(Component.translatable(DrinkAdditionManager.get(id).getTranslationKey(), count).withStyle(ChatFormatting.GRAY)));
-
-        if (context.isAdvanced() || context.isCreative()) ConsumableChemicalRegistry.forEach(handler ->
-                handler.appendTooltip(tooltip, getChemicalContent(handler.getName(), stack), stack));
     }
 
     public enum Temperature {

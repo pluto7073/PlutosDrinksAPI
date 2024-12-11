@@ -2,9 +2,9 @@ package ml.pluto7073.pdapi;
 
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializers;
+import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.client.gui.PDScreens;
-import ml.pluto7073.pdapi.command.PDCommands;
 import ml.pluto7073.pdapi.entity.effect.PDMobEffects;
 import ml.pluto7073.pdapi.gamerule.PDGameRules;
 import ml.pluto7073.pdapi.item.PDItems;
@@ -42,11 +42,11 @@ public class PDAPI implements ModInitializer {
         OnDrinkSerializers.init();
         SpecialtyDrinkSerializer.init();
         PDRecipeTypes.init();
+        CaffeineHandler.init();
         PDBlocks.init();
         PDItems.init();
         PDMobEffects.init();
         PDGameRules.init();
-        PDCommands.init();
 
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new DrinkAdditionManager());
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new SpecialtyDrinkManager());

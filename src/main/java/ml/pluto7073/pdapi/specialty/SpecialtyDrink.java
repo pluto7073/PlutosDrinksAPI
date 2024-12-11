@@ -4,13 +4,13 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
-import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.networking.NetworkingUtils;
@@ -27,7 +27,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -42,10 +41,10 @@ public class SpecialtyDrink {
     private final ResourceLocation[] steps;
     private final OnDrinkAction[] actions;
     private final int color;
-    private final HashMap<String, Integer> chemicals;
+    private final HashMap<ResourceLocation, Float> chemicals;
     private final String name;
 
-    public SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrinkAction[] actions, int color, HashMap<String, Integer> chemicals, @Nullable String name) {
+    public SpecialtyDrink(ResourceLocation id, Item base, ResourceLocation[] steps, OnDrinkAction[] actions, int color, HashMap<ResourceLocation, Float> chemicals, @Nullable String name) {
         this.id = id;
         this.base = base;
         this.steps = steps;
@@ -83,7 +82,7 @@ public class SpecialtyDrink {
         return color;
     }
 
-    public HashMap<String, Integer> chemicals() {
+    public HashMap<ResourceLocation, Float> chemicals() {
         return chemicals;
     }
 
@@ -147,7 +146,7 @@ public class SpecialtyDrink {
         buf.writeResourceLocation(id);
         buf.writeResourceLocation(BuiltInRegistries.ITEM.getKey(base));
         NetworkingUtils.arrayToNetwork(buf, steps, FriendlyByteBuf::writeResourceLocation);
-        buf.writeMap(chemicals, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeInt);
+        buf.writeMap(chemicals, FriendlyByteBuf::writeResourceLocation, FriendlyByteBuf::writeFloat);
         buf.writeInt(color);
         NetworkingUtils.writeDrinkActionsList(buf, actions);
         buf.writeUtf(name);
@@ -165,10 +164,10 @@ public class SpecialtyDrink {
             }
             if (DrinkUtil.condense(additions).size() > 15) throw new IllegalStateException("Specialty Drink \"" + id.toString() + "\" cannot have more than 15 steps");
 
-            HashMap<String, Integer> chemicals = new HashMap<>();
-            ConsumableChemicalRegistry.forEach(handler -> {
-                if (data.has(handler.getName())) {
-                    chemicals.put(handler.getName(), GsonHelper.getAsInt(data, handler.getName()));
+            HashMap<ResourceLocation, Float> chemicals = new HashMap<>();
+            Chemicals.REGISTRY.forEach(handler -> {
+                if (data.has(handler.getId().toString())) {
+                    chemicals.put(handler.getId(), GsonHelper.getAsFloat(data, handler.getId().toString()));
                 }
             });
 
@@ -200,7 +199,7 @@ public class SpecialtyDrink {
             ResourceLocation id = buf.readResourceLocation();
             ResourceLocation base = buf.readResourceLocation();
             ResourceLocation[] steps = NetworkingUtils.listFromNetwork(buf, FriendlyByteBuf::readResourceLocation).toArray(new ResourceLocation[0]);
-            HashMap<String, Integer> chemicals = Maps.newHashMap(buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readInt));
+            HashMap<ResourceLocation, Float> chemicals = Maps.newHashMap(buf.readMap(FriendlyByteBuf::readResourceLocation, FriendlyByteBuf::readFloat));
             int color = buf.readInt();
             List<OnDrinkAction> list = NetworkingUtils.readDrinkActionsList(buf);
             String name = buf.readUtf();

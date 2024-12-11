@@ -1,0 +1,14 @@
+{
+  "required": false,
+  "package": "ml.pluto7073.chemicals.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "FoodPropertiesMixin",
+    "ItemStackMixin",
+    "PlayerMixin",
+    "ServerPlayerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

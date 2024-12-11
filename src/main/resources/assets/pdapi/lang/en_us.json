@@ -31,5 +31,6 @@
   "option.pdapi.caffeineVisibleToNonOps": "Caffeine Visible to Non-Ops",
   "option.pdapi.caffeineVisibleToNonOps.tooltip": "Whether or not Non-Operators can use /drink caffeine get to see their own exact caffeine levels (NOT other players')",
   "option.pdapi.caffeineDamageMultiplier": "Caffeine Damage Multiplier",
-  "option.pdapi.lethalCaffeineDose": "Lethal Dose of Caffeine"
+  "option.pdapi.lethalCaffeineDose": "Lethal Dose of Caffeine",
+  "chemical_handler.pdapi.caffeine": "Caffeine"
 }

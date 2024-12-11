@@ -1,6 +1,6 @@
 package ml.pluto7073.pdapi.mixin;
 
-import ml.pluto7073.pdapi.entity.PDTrackedData;
+import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,15 +18,10 @@ public class LivingEntityRendererMixin<
     @Inject(at = @At("RETURN"), method = "isShaking", cancellable = true)
     public void pdapi$caffeineShakes(T entity, CallbackInfoReturnable<Boolean> cir) {
         if (!(entity instanceof Player playerEntity)) return;
-        float caffeine = playerEntity.getEntityData().get(PDTrackedData.PLAYER_CAFFEINE_AMOUNT);
-        float originalCaffeine = playerEntity.getEntityData().get(PDTrackedData.PLAYER_ORIGINAL_CAFFEINE_AMOUNT);
-        boolean shake = false;
-        if (caffeine >= 500.0f) {
-            shake = true;
-        } else if (caffeine >= 50.0F && originalCaffeine >= 500.0F) {
-            shake = true;
+        float caffeine = CaffeineHandler.INSTANCE.get(playerEntity);
+        if (caffeine >= 300.0f) {
+            cir.setReturnValue(true);
         }
-        cir.setReturnValue(cir.getReturnValue() || shake);
     }
 
 }

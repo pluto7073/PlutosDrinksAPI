@@ -3,11 +3,11 @@ package ml.pluto7073.pdapi.addition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
-import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncAdditionRegistryPacket;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -133,10 +133,10 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
 
     public static DrinkAddition loadFromJson(ResourceLocation id, JsonObject object) {
         DrinkAddition.Builder builder = new DrinkAddition.Builder();
-        ConsumableChemicalRegistry.forEach(handler -> {
-            String name = handler.getName();
-            if (object.has(name)) {
-                builder.chemical(name, GsonHelper.getAsInt(object, name));
+        Chemicals.REGISTRY.forEach(handler -> {
+            ResourceLocation name = handler.getId();
+            if (object.has(name.toString())) {
+                builder.chemical(name, GsonHelper.getAsInt(object, name.toString()));
             }
         });
         if (object.has("changesColor")) {

@@ -1,12 +1,10 @@
 package ml.pluto7073.pdapi.util;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
-import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
+import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
@@ -31,11 +29,11 @@ import net.minecraft.world.level.Level;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public final class DrinkUtil {
 
     private static final HashMap<String, Converter<Tag>> OLD_CONVERSION_REGISTRY = new HashMap<>();
-    private static final double CAFFEINE_HALF_LIFE_TICKS = 2500.0;
 
     public static ResourceLocation getAsId(ResourceLocation file, String dir) {
         return file.withPath(s -> s.replace(dir + '/', "").replace(".json", ""));
@@ -56,8 +54,28 @@ public final class DrinkUtil {
         };
     }
 
-    public static boolean dev() {
-        return FabricLoader.getInstance().isDevelopmentEnvironment();
+    public static int averageColors(Collection<Integer> colors) {
+        if (colors.isEmpty()) return 0xFFFFFF;
+        int r = 0;
+        int g = 0;
+        int b = 0;
+        for (int color : colors) {
+            r += (color >> 16 & 255);
+            g += (color >> 8 & 255);
+            b += (color & 255);
+        }
+        r /= colors.size();
+        g /= colors.size();
+        b /= colors.size();
+        return r << 16 | g << 8 | b;
+    }
+
+    public static int getColorForDrinkWithDefault(ItemStack drink, int normal) {
+        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink);
+        List<Integer> colors = Arrays.stream(additions).filter(DrinkAddition::changesColor)
+                .map(DrinkAddition::getColor).collect(Collectors.toCollection(ArrayList::new));
+        colors.add(0, normal);
+        return averageColors(colors);
     }
 
     public static void convertStackFromPlutosCoffee(ItemStack stack) {
@@ -156,13 +174,8 @@ public final class DrinkUtil {
         return compound.get("string");
     }
 
-    public static float calculateCaffeineDecay(int ticks, float originalCaffeine) {
-        double exp = Math.pow(0.5, ticks / CAFFEINE_HALF_LIFE_TICKS);
-        return (float) (exp * originalCaffeine);
-    }
-
     public static float getPlayerCaffeine(Player player) {
-        return ConsumableChemicalRegistry.CAFFEINE.get(player);
+        return CaffeineHandler.INSTANCE.get(player);
     }
 
     public static SpecialtyDrink getSpecialDrink(ItemStack stack) {
