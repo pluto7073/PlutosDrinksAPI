@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.item;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -17,6 +18,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 
+@MethodsReturnNonnullByDefault
 public class MilkBottleItem extends Item {
 
     private static final FoodProperties MilkFood = (new FoodProperties.Builder()).alwaysEat().nutrition(1).saturationMod(5).build();
