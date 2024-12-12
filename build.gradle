@@ -1,7 +1,6 @@
 plugins {
 	id 'fabric-loom' version '1.6.+'
 	id 'maven-publish'
-	id 'com.gradleup.shadow' version '9.0.0-beta4'
 	id 'java'
 }
 
@@ -79,7 +78,7 @@ dependencies {
 	// modCompileOnly "maven.modrinth:dehydration:${project.dehydration_version}"
 	modImplementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}"
 
-	modApi("ml.pluto7073:chemicals:$project.minecraft_version+$project.chemicals_version")
+	modApi(include("ml.pluto7073:chemicals:$project.minecraft_version+$project.chemicals_version"))
 }
 
 processResources {
@@ -92,15 +91,6 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
-}
-
-shadowJar {
-	configurations = [project.configurations.modApi]
-	dependencies {
-		exclude {
-			it.moduleName != "chemicals"
-		}
-	}
 }
 
 java {

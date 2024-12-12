@@ -39,8 +39,7 @@
 		}
 	},
 	"mixins": [
-		"pdapi.mixins.json",
-		"pdapi_chemicals.mixins.json"
+		"pdapi.mixins.json"
 	],
 	"depends": {
 		"fabric": ">=0.15.7",
