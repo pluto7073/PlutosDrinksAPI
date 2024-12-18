@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.specialty;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncSpecialtyDrinkRegistryPacket;
@@ -9,7 +11,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -19,9 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadListener {
 
@@ -57,16 +55,10 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
 
                     if (!b) continue;
                 }
-                ResourceLocation type;
 
-                if (object.has("type")) {
-                    type = new ResourceLocation(GsonHelper.getAsString(object, "type"));
-                } else type = PDAPI.asId("specialty_drink");
-
-                SpecialtyDrinkSerializer serializer = PDRegistries.SPECIALTY_DRINK_SERIALIZER.getOptional(type)
-                        .orElseThrow(() -> new IllegalArgumentException("No such Specialty Drink serializer: " + type));
-
-                SpecialtyDrink drink = serializer.fromJson(id, object);
+                SpecialtyDrink drink = SpecialtyDrink.CODEC.parse(JsonOps.INSTANCE, object).getOrThrow(false, s -> {
+                    throw new JsonParseException(s);
+                });
 
                 DRINKS.put(id, drink);
             } catch (IOException e) {

@@ -51,7 +51,8 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     public float getChemicalContent(ResourceLocation name, ItemStack stack) {
         int amount = 0;
         for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack)) {
-            amount += a.getChemicals().get(name);
+            if (a.getChemicals().containsKey(name))
+                amount += a.getChemicals().get(name);
         }
         return amount;
     }

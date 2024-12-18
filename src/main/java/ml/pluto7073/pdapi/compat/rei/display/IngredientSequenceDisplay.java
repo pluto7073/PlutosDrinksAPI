@@ -23,7 +23,7 @@ public class IngredientSequenceDisplay extends BasicDisplay {
 
     public IngredientSequenceDisplay(SpecialtyDrink drink) {
         super(Util.make(() -> {
-            ItemStack base = drink.baseAsStack();
+            ItemStack base = drink.base().buildItemStack();
             if (InProgressItemRegistry.isInProgressItem(base.getItem())) {
                 base = new ItemStack(InProgressItemRegistry.getBase(base.getItem()));
             }

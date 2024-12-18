@@ -1,0 +1,34 @@
+{
+  "base": {
+    "type": "pdapi:item",
+    "item": "pdapi_test:test_item"
+  },
+  "additions": [
+    "pdapi:milk",
+    "pdapi:sugar",
+    "pdapi:chorus_fruit"
+  ],
+  "onDrinkActions": [
+    {
+      "type": "pdapi:chorus_teleport",
+      "maxRadius": 10
+    },
+    {
+      "type": "pdapi:apply_status_effect",
+      "effect": "minecraft:invisibility",
+      "duration": 600,
+      "amplifier": 0
+    },
+    {
+      "type": "pdapi:apply_status_effect",
+      "effect": "minecraft:levitation",
+      "duration": 1200,
+      "amplifier": 1
+    }
+  ],
+  "chemicals": {
+    "pdapi:caffeine": 100
+  },
+  "color": 12396008,
+  "name": "Testing Specialty Drink??"
+}

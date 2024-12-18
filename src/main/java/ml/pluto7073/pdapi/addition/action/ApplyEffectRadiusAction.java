@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.addition.action;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
@@ -56,29 +58,17 @@ public class ApplyEffectRadiusAction implements OnDrinkAction {
 
     public static class Serializer implements OnDrinkSerializer<ApplyEffectRadiusAction> {
 
-        @Override
-        public ApplyEffectRadiusAction fromJson(JsonObject json) {
-            ResourceLocation effectId = new ResourceLocation(GsonHelper.getAsString(json, "effect"));
-            MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(effectId);
-            if (effect == null) {
-                throw new IllegalArgumentException("Effect ID must point to a Mob Effect that actually exists");
-            }
-            int duration = GsonHelper.getAsInt(json, "duration");
-            int amplifier = GsonHelper.getAsInt(json, "amplifier");
-            int radius = GsonHelper.getAsInt(json, "radius");
-            boolean includeDrinker = GsonHelper.getAsBoolean(json, "includeDrinker");
-            return new ApplyEffectRadiusAction(radius, includeDrinker, effect, duration, amplifier);
-        }
+        public static final Codec<ApplyEffectRadiusAction> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(Codec.INT.fieldOf("radius").forGetter(a -> a.radius),
+                                Codec.BOOL.fieldOf("includeDrinker").forGetter(a -> a.includeDrinker),
+                                BuiltInRegistries.MOB_EFFECT.byNameCodec().fieldOf("effect").forGetter(a -> a.effect),
+                                Codec.INT.fieldOf("duration").forGetter(a -> a.duration),
+                                Codec.INT.fieldOf("amplifier").forGetter(a -> a.amplifier))
+                        .apply(instance, ApplyEffectRadiusAction::new));
 
         @Override
-        public void toJson(JsonObject json, ApplyEffectRadiusAction action) {
-            json.addProperty("radius", action.radius);
-            json.addProperty("includeDrinker", action.includeDrinker);
-            ResourceLocation id = BuiltInRegistries.MOB_EFFECT.getResourceKey(action.effect)
-                    .orElseThrow(IllegalStateException::new).location();
-            json.addProperty("effect", id.toString());
-            json.addProperty("duration", action.duration);
-            json.addProperty("amplifier", action.amplifier);
+        public Codec<ApplyEffectRadiusAction> codec() {
+            return CODEC;
         }
 
         @Override

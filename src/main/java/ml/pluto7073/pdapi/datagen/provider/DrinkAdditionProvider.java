@@ -1,7 +1,9 @@
 package ml.pluto7073.pdapi.datagen.provider;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -41,7 +43,7 @@ public abstract class DrinkAdditionProvider implements DataProvider {
                 throw new IllegalStateException("Duplicate Addition " + id);
             }
 
-            JsonObject json = addition.toJson();
+            JsonElement json = DrinkAddition.CODEC.encodeStart(JsonOps.INSTANCE, addition).getOrThrow(false, s -> {});
 
             list.add(DataProvider.saveStable(output, json, additionPathProvider.json(id)));
         });
