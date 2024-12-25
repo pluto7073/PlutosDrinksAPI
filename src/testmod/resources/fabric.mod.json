@@ -18,6 +18,9 @@
     ],
     "client": [
       "ml.pluto7073.pdapi_test.PDAPITestModClient"
+    ],
+    "fabric-datagen": [
+      "ml.pluto7073.pdapi_test.data.TestDatagen"
     ]
   }
 }

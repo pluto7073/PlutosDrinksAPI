@@ -43,6 +43,19 @@ loom {
 			runDir 'run/server'
 		}
 
+		datagen {
+			client()
+
+			name "Minecraft Test Datagen"
+
+			source sourceSets.testmod
+
+			vmArg "-Dfabric-api.datagen"
+			vmArg "-Dfabric-api.datagen.output-dir=${file("src/testmod/generated/resources")}"
+			vmArg "-Dfabric-api.datagen.modid=pdapi_test"
+			vmArg "-Dporting_lib.datagen.existing_resources=${file("src/testmod/resources")}"
+		}
+
 		testmodClient {
 			client()
 			name "Testmod Client"
