@@ -2,12 +2,15 @@ package ml.pluto7073.pdapi.datagen.provider;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkBase;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.resource.conditions.v1.ConditionJsonProvider;
+import net.fabricmc.fabric.impl.datagen.FabricDataGenHelper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
@@ -31,6 +34,7 @@ public abstract class SpecialtyDrinkProvider implements DataProvider {
 
     public abstract void buildDrinks(BiConsumer<ResourceLocation, SpecialtyDrink> output);
 
+    @SuppressWarnings("UnstableApiUsage")
     @Override
     public CompletableFuture<?> run(CachedOutput output) {
         Set<ResourceLocation> generated = Sets.newHashSet();
@@ -41,6 +45,8 @@ public abstract class SpecialtyDrinkProvider implements DataProvider {
                 throw new IllegalStateException("Duplicate Drink " + id);
 
             JsonElement json = SpecialtyDrink.CODEC.encodeStart(JsonOps.INSTANCE, drink).getOrThrow(false, s -> {});
+            ConditionJsonProvider[] conditions = FabricDataGenHelper.consumeConditions(drink);
+            ConditionJsonProvider.write((JsonObject) json, conditions);
 
             list.add(DataProvider.saveStable(output, json, drinkPathProvider.json(id)));
         });
@@ -59,6 +65,14 @@ public abstract class SpecialtyDrinkProvider implements DataProvider {
 
     protected static DrinkBuilder staticBaseBuilder(Item base) {
         return new DrinkBuilder(new SpecialtyDrink.ItemBase(base));
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    protected BiConsumer<ResourceLocation, SpecialtyDrink> withConditions(BiConsumer<ResourceLocation, SpecialtyDrink> output, ConditionJsonProvider... conditions) {
+        return (id, drink) -> {
+            FabricDataGenHelper.addConditions(drink, conditions);
+            output.accept(id, drink);
+        };
     }
 
     public static final class DrinkBuilder {

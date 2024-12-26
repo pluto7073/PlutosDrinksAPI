@@ -15,6 +15,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class DrinkAddition {
 
@@ -168,6 +169,10 @@ public class DrinkAddition {
 
         public DrinkAddition build() {
             return new DrinkAddition(ImmutableList.copyOf(actions), changesColor, color, chemicals, maxAmount, name, weight);
+        }
+
+        public void save(ResourceLocation id, BiConsumer<ResourceLocation, DrinkAddition> output) {
+            output.accept(id, build());
         }
 
     }
