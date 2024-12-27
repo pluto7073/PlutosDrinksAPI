@@ -100,7 +100,7 @@ public class DrinkAddition {
     }
 
     public String getTranslationKey() {
-        if (name != null) return name;
+        if (name != null && !name.isEmpty()) return name;
         try {
             ResourceLocation id = DrinkAdditionManager.getId(this);
             return id.toLanguageKey("drink_addition");
@@ -129,7 +129,7 @@ public class DrinkAddition {
             Chemicals.REGISTRY.forEach(handler -> chemical(handler.getId(), 0));
             maxAmount = 0;
             weight = 0;
-            name = null;
+            name = "";
         }
 
         public Builder addAction(OnDrinkAction action) {
