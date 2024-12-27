@@ -54,7 +54,7 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
 
     public static ResourceLocation getId(DrinkAddition addition) {
         for (Map.Entry<ResourceLocation, DrinkAddition> entry : REGISTRY.entrySet()) {
-            if (addition.equals(entry.getValue())) {
+            if (Objects.equals(entry.getValue(), addition)) {
                 return entry.getKey();
             }
         }
