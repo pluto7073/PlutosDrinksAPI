@@ -57,6 +57,10 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         return amount;
     }
 
+    protected Item baseItem(ItemStack stack) {
+        return baseItem;
+    }
+
     @Override
     public int getUseDuration(ItemStack stack) {
         return MAX_USE_TIME;
@@ -95,11 +99,11 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
 
         if (player == null || !player.getAbilities().instabuild) {
             if (stack.isEmpty()) {
-                return new ItemStack(baseItem);
+                return new ItemStack(baseItem(stack));
             }
 
             if (player != null) {
-                player.getInventory().add(new ItemStack(baseItem));
+                player.getInventory().add(new ItemStack(baseItem(stack)));
             }
         }
         user.gameEvent(GameEvent.DRINK);

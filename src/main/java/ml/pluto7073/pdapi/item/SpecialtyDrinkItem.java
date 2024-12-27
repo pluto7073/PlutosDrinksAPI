@@ -5,6 +5,7 @@ import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -16,6 +17,14 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
 
     protected SpecialtyDrinkItem(Properties settings) {
         super(Items.GLASS_BOTTLE, Temperature.NORMAL, settings);
+    }
+
+    @Override
+    protected Item baseItem(ItemStack stack) {
+        SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack);
+        AbstractCustomizableDrinkItem base =
+                (AbstractCustomizableDrinkItem) drink.getAsOriginalItemWithAdditions(stack).getItem();
+        return base.baseItem;
     }
 
     @Override

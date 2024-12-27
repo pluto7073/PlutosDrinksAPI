@@ -126,7 +126,6 @@ public class DrinkAddition {
             changesColor = false;
             color = 0;
             chemicals = new HashMap<>();
-            Chemicals.REGISTRY.forEach(handler -> chemical(handler.getId(), 0));
             maxAmount = 0;
             weight = 0;
             name = "";
