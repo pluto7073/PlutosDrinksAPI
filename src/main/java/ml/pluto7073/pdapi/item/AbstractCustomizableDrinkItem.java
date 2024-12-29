@@ -115,7 +115,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         DrinkAddition[] addIns = DrinkUtil.getAdditionsFromStack(stack);
         HashMap<ResourceLocation, Integer> additionCounts = new HashMap<>();
         for (DrinkAddition addIn : addIns) {
-            if (addIn == DrinkAdditionManager.EMPTY) continue;
+            if (addIn == DrinkAdditionManager.EMPTY || addIn == null) continue;
             ResourceLocation id = DrinkAdditionManager.getId(addIn);
             if (additionCounts.containsKey(id)) {
                 int count = additionCounts.get(id);
