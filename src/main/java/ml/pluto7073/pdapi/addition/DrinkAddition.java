@@ -23,7 +23,8 @@ public class DrinkAddition {
             instance.group(Codec.list(OnDrinkAction.CODEC).fieldOf("onDrinkActions").orElse(List.of()).forGetter(DrinkAddition::actions),
                     Codec.BOOL.fieldOf("changesColor").orElse(false).forGetter(DrinkAddition::changesColor),
                     Codec.INT.fieldOf("color").orElse(0).forGetter(DrinkAddition::getColor),
-                    Codec.simpleMap(ResourceLocation.CODEC, Codec.INT, Chemicals.REGISTRY).fieldOf("chemicals").orElse(Map.of()).forGetter(DrinkAddition::getChemicals),
+                    Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.REGISTRY).fieldOf("chemicals").orElse(Map.of())
+                            .forGetter(DrinkAddition::getChemicals),
                     Codec.INT.fieldOf("maxAmount").orElse(0).forGetter(DrinkAddition::getMaxAmount),
                     Codec.STRING.fieldOf("name").orElse("").forGetter(addition -> addition.name),
                     Codec.INT.fieldOf("weight").orElse(0).forGetter(DrinkAddition::getCurrentWeight))
@@ -32,12 +33,12 @@ public class DrinkAddition {
     private final List<OnDrinkAction> actions;
     private final boolean changesColor;
     private final int color;
-    private final Map<ResourceLocation, Integer> chemicals;
+    private final Map<ResourceLocation, Float> chemicals;
     private final int maxAmount;
     private final int currentWeight;
     private final String name;
 
-    protected DrinkAddition(List<OnDrinkAction> actions, boolean changesColor, int color, Map<ResourceLocation, Integer> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
+    protected DrinkAddition(List<OnDrinkAction> actions, boolean changesColor, int color, Map<ResourceLocation, Float> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
         this.actions = actions;
         this.changesColor = changesColor;
         this.color = color;
@@ -65,7 +66,7 @@ public class DrinkAddition {
         return color;
     }
 
-    public Map<ResourceLocation, Integer> getChemicals() {
+    public Map<ResourceLocation, Float> getChemicals() {
         return chemicals;
     }
 
@@ -81,7 +82,7 @@ public class DrinkAddition {
         NetworkingUtils.writeDrinkActionsList(buf, actions.toArray(OnDrinkAction[]::new));
         buf.writeBoolean(changesColor);
         buf.writeInt(color);
-        buf.writeMap(chemicals, FriendlyByteBuf::writeResourceLocation, FriendlyByteBuf::writeInt);
+        buf.writeMap(chemicals, FriendlyByteBuf::writeResourceLocation, FriendlyByteBuf::writeFloat);
         buf.writeInt(maxAmount);
         buf.writeInt(currentWeight);
         buf.writeUtf(Objects.requireNonNullElse(name, ""));
@@ -91,7 +92,7 @@ public class DrinkAddition {
         List<OnDrinkAction> actions = NetworkingUtils.readDrinkActionsList(buf);
         boolean changesColor = buf.readBoolean();
         int color = buf.readInt();
-        Map<ResourceLocation, Integer> chemicals = buf.readMap(FriendlyByteBuf::readResourceLocation, FriendlyByteBuf::readInt);
+        Map<ResourceLocation, Float> chemicals = buf.readMap(FriendlyByteBuf::readResourceLocation, FriendlyByteBuf::readFloat);
         int maxAmount = buf.readInt();
         int currentWeight = buf.readInt();
         String name = buf.readUtf();
@@ -116,7 +117,7 @@ public class DrinkAddition {
         private final List<OnDrinkAction> actions;
         private boolean changesColor;
         private int color;
-        private final HashMap<ResourceLocation, Integer> chemicals;
+        private final HashMap<ResourceLocation, Float> chemicals;
         private int maxAmount;
         private int weight;
         private String name;
@@ -146,7 +147,7 @@ public class DrinkAddition {
             return this;
         }
 
-        public Builder chemical(ResourceLocation name, int amount) {
+        public Builder chemical(ResourceLocation name, float amount) {
             chemicals.put(name, amount);
             return this;
         }
