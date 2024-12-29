@@ -1,5 +1,7 @@
 package ml.pluto7073.pdapi.specialty;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -42,10 +44,10 @@ public class SpecialtyDrink {
     public static final Codec<SpecialtyDrink> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(SpecialtyDrinkBase.CODEC.fieldOf("base").forGetter(SpecialtyDrink::base),
                     Codec.list(ResourceLocation.CODEC).fieldOf("additions").forGetter(SpecialtyDrink::steps),
-                    Codec.list(OnDrinkAction.CODEC).fieldOf("onDrinkActions").forGetter(SpecialtyDrink::actions),
+                    Codec.list(OnDrinkAction.CODEC).fieldOf("onDrinkActions").forGetter(drink -> List.of(drink.actions)),
                     Codec.INT.fieldOf("color").forGetter(SpecialtyDrink::color),
                     Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.REGISTRY)
-                            .fieldOf("chemicals").orElse(Map.of()).forGetter(SpecialtyDrink::chemicals),
+                            .fieldOf("chemicals").orElse(Map.of()).forGetter(drink -> drink.chemicals),
                     Codec.STRING.fieldOf("name").orElse("").forGetter(drink -> drink.name))
             .apply(instance, SpecialtyDrink::new));
 
@@ -82,7 +84,12 @@ public class SpecialtyDrink {
     }
 
     public List<OnDrinkAction> actions() {
-        return List.of(actions);
+        ArrayList<OnDrinkAction> stepActions = new ArrayList<>();
+        for (ResourceLocation step : steps) {
+            stepActions.addAll(DrinkAdditionManager.get(step).actions());
+        }
+        stepActions.addAll(List.of(actions));
+        return ImmutableList.copyOf(stepActions);
     }
 
     public int color() {
@@ -90,7 +97,11 @@ public class SpecialtyDrink {
     }
 
     public Map<ResourceLocation, Float> chemicals() {
-        return chemicals;
+        Map<ResourceLocation, Float> base = chemicals;
+        for (ResourceLocation step : steps) {
+            base = DrinkUtil.or(base, DrinkAdditionManager.get(step).getChemicals(), Float::sum);
+        }
+        return base;
     }
 
     public String name() {

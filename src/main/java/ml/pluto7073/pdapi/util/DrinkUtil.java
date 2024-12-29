@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.util;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
@@ -28,6 +29,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -101,6 +103,23 @@ public final class DrinkUtil {
             list.add(t);
         }
         return list;
+    }
+
+    public static <K, V> Map<K, V> or(Map<K, V> first, Map<K, V> second, BiFunction<V, V, V> combiner) {
+        HashMap<K, V> result = new HashMap<>();
+        first.forEach((k, v) -> {
+            if (second.containsKey(k)) {
+                result.put(k, combiner.apply(v, second.get(k)));
+            } else {
+                result.put(k, v);
+            }
+        });
+        second.forEach((k, v) -> {
+            if (!result.containsKey(k)) {
+                result.put(k, v);
+            }
+        });
+        return ImmutableMap.copyOf(result);
     }
 
     public static <T> boolean sameItems(T[] array1, T[] array2) {
