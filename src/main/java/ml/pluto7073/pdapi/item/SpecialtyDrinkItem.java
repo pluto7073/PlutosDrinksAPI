@@ -24,7 +24,7 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
         SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack);
         AbstractCustomizableDrinkItem base =
                 (AbstractCustomizableDrinkItem) drink.getAsOriginalItemWithAdditions(stack).getItem();
-        return base.baseItem;
+        return base.baseItem(stack);
     }
 
     @Override
