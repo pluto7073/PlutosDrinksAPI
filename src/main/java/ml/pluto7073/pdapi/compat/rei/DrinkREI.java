@@ -66,7 +66,7 @@ public class DrinkREI implements REIClientPlugin {
                 }
                 if (DrinkUtil.sameItems(Arrays.stream(i.getItems()).map(ItemStack::getItem).toArray(Item[]::new),
                         list.get(list.size() - 1).stream().map(ItemStack::getItem).toArray(Item[]::new))) {
-                    list.get(list.size() - 1).forEach(stack -> stack.grow(1));
+                    list.get(list.size() - 1).replaceAll(stack -> stack.copyWithCount(stack.getCount() + 1));
                 } else {
                     list.add(List.of(Arrays.stream(i.getItems()).map(ItemStack::copy).toArray(ItemStack[]::new)));
                 }
