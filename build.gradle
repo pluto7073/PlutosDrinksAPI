@@ -83,6 +83,8 @@ dependencies {
 
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
 	modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
+	modLocalRuntime "maven.modrinth:kiwi:$kiwi_version"
+
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
