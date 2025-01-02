@@ -1,3 +1,6 @@
 {
-  "parent": "minecraft:item/potion"
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "block/water_still"
+  }
 }
