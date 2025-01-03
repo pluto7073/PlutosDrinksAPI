@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.compat.rei;
 
+import com.google.common.collect.Lists;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
@@ -61,14 +62,14 @@ public class DrinkREI implements REIClientPlugin {
             ArrayList<List<ItemStack>> list = new ArrayList<>();
             for (Ingredient i : baseList) {
                 if (list.isEmpty()) {
-                    list.add(List.of(i.getItems()));
+                    list.add(Lists.newArrayList(i.getItems()));
                     continue;
                 }
                 if (DrinkUtil.sameItems(Arrays.stream(i.getItems()).map(ItemStack::getItem).toArray(Item[]::new),
                         list.get(list.size() - 1).stream().map(ItemStack::getItem).toArray(Item[]::new))) {
                     list.get(list.size() - 1).replaceAll(stack -> stack.copyWithCount(stack.getCount() + 1));
                 } else {
-                    list.add(List.of(Arrays.stream(i.getItems()).map(ItemStack::copy).toArray(ItemStack[]::new)));
+                    list.add(Lists.newArrayList(Arrays.stream(i.getItems()).map(ItemStack::copy).toArray(ItemStack[]::new)));
                 }
             }
             return list.stream().map(EntryIngredients::ofItemStacks).toList();

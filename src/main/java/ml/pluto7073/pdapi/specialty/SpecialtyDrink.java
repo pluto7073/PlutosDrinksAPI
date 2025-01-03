@@ -1,20 +1,14 @@
 package ml.pluto7073.pdapi.specialty;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.pdapi.util.DrinkUtil;
-import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
-import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.networking.NetworkingUtils;
@@ -26,7 +20,6 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -45,9 +38,9 @@ public class SpecialtyDrink {
             instance.group(SpecialtyDrinkBase.CODEC.fieldOf("base").forGetter(SpecialtyDrink::base),
                     Codec.list(ResourceLocation.CODEC).fieldOf("additions").forGetter(SpecialtyDrink::steps),
                     Codec.list(OnDrinkAction.CODEC).fieldOf("onDrinkActions").forGetter(drink -> List.of(drink.actions)),
-                    Codec.INT.fieldOf("color").forGetter(SpecialtyDrink::color),
+                    Codec.INT.fieldOf("color").orElse(-1).forGetter(SpecialtyDrink::color),
                     Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.REGISTRY)
-                            .fieldOf("chemicals").orElse(Map.of()).forGetter(drink -> drink.chemicals),
+                            .fieldOf("chemicals").orElse(Map.of()).forGetter(SpecialtyDrink::chemicals),
                     Codec.STRING.fieldOf("name").orElse("").forGetter(drink -> drink.name))
             .apply(instance, SpecialtyDrink::new));
 
@@ -97,11 +90,7 @@ public class SpecialtyDrink {
     }
 
     public Map<ResourceLocation, Float> chemicals() {
-        Map<ResourceLocation, Float> base = chemicals;
-        for (ResourceLocation step : steps) {
-            base = DrinkUtil.or(base, DrinkAdditionManager.get(step).getChemicals(), Float::sum);
-        }
-        return base;
+        return chemicals;
     }
 
     public String name() {
@@ -112,17 +101,19 @@ public class SpecialtyDrink {
         return DrinkUtil.setSpecialDrink(new ItemStack(PDItems.SPECIALTY_DRINK, 1), this);
     }
 
-    public ItemStack getAsOriginalItemWithAdditions(ItemStack source) {
+    public ItemStack getBaseItem(ItemStack source) {
         ItemStack stack = base.buildItemStack();
         CompoundTag ogData = source.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
-        CompoundTag drinkData = ogData.copy();
+        CompoundTag newData = source.getOrCreateTag().copy();
+        newData.remove("Drink");
+        CompoundTag drinkData = newData.getCompound(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
         ListTag list = new ListTag();
         for (ResourceLocation step : steps) {
             list.add(StringTag.valueOf(step.toString()));
         }
         list.addAll(ogData.getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING));
         drinkData.put(DrinkAdditionManager.ADDITIONS_NBT_KEY, list);
-        stack.getOrCreateTag().put(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY, drinkData);
+        stack.setTag(newData);
         return stack;
     }
 

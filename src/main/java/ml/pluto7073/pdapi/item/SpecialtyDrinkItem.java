@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.item;
 
+import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -9,8 +10,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-
-import java.util.Arrays;
 
 @MethodsReturnNonnullByDefault
 public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
@@ -23,7 +22,7 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     protected Item baseItem(ItemStack stack) {
         SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack);
         AbstractCustomizableDrinkItem base =
-                (AbstractCustomizableDrinkItem) drink.getAsOriginalItemWithAdditions(stack).getItem();
+                (AbstractCustomizableDrinkItem) drink.getBaseItem(stack).getItem();
         return base.baseItem(stack);
     }
 
@@ -31,11 +30,18 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     public float getChemicalContent(ResourceLocation name, ItemStack stack) {
         float amount;
         try {
-            amount = DrinkUtil.getSpecialDrink(stack).chemicals().get(name);
+            SpecialtyDrink specialty = DrinkUtil.getSpecialDrink(stack);
+            amount = specialty.chemicals().getOrDefault(name, 0f);
+            ItemStack baseItem = specialty.getBaseItem(stack);
+            if (baseItem.getItem() instanceof AbstractCustomizableDrinkItem drink) {
+                return amount + drink.getChemicalContent(name, baseItem);
+            } else {
+                return super.getChemicalContent(name, stack) + amount;
+            }
         } catch (Exception e) {
-            amount = 0;
+            PDAPI.LOGGER.warn("Error getting amount of {} in {}", name, stack, e);
+            return 0;
         }
-        return super.getChemicalContent(name, stack) + amount;
     }
 
     @Override
