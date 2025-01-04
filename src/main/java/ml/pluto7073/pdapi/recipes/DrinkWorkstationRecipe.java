@@ -6,8 +6,6 @@ import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
-import ml.pluto7073.pdapi.specialty.InProgressItemRegistry;
-import ml.pluto7073.pdapi.tag.PDTags;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -27,6 +25,8 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -53,19 +53,23 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
 
     @Override
     public ItemStack assemble(Container inventory, RegistryAccess registryManager) {
-        return craft(inventory);
+        return craft(inventory, null);
     }
 
-    public ItemStack craft(Container inventory) {
+    public ItemStack craft(Container inventory, Level level) {
         ItemStack stack = inventory.getItem(0).copy();
         ListTag resAdds = stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY)
                 .getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
         resAdds.add(DrinkUtil.stringAsNbt(result));
         stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY).put(DrinkAdditionManager.ADDITIONS_NBT_KEY, resAdds);
-        if (stack.is(PDTags.HAS_IN_PROGRESS_ITEM)) {
+        if (level == null) return stack;
+
+        List<InProgressItemRecipe> inProgressRecipes = level.getRecipeManager()
+                .getRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE, inventory, level);
+        if (!inProgressRecipes.isEmpty()) {
             CompoundTag tag = stack.getOrCreateTag();
-            stack = new ItemStack(InProgressItemRegistry.getInProgress(stack.getItem()));
-            stack.setTag(tag);
+            stack = inProgressRecipes.get(0).assemble(inventory, level.registryAccess());
+            stack.getOrCreateTag().merge(tag);
         }
         return stack;
     }
@@ -127,7 +131,7 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
         return NonNullList.of(Ingredient.EMPTY, base, addition);
     }
 
-    private static ItemStack buildResult(Ingredient base, Function<Container, ItemStack> builder) {
+    private static ItemStack buildResult(Ingredient base, BiFunction<Container, Level, ItemStack> builder) {
         ItemStack res;
         if (Arrays.stream(base.getItems()).anyMatch(stack -> stack.is(PDItems.SPECIALTY_DRINK)) || base.getItems().length < 1) {
             res = new ItemStack(PDItems.SPECIALTY_DRINK);
@@ -135,7 +139,7 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
             res = base.getItems()[0].copy();
         }
 
-        return builder.apply(new SimpleContainer(res));
+        return builder.apply(new SimpleContainer(res), null);
     }
 
     @MethodsReturnNonnullByDefault

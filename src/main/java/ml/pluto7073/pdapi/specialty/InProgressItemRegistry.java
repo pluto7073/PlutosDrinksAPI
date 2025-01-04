@@ -4,6 +4,7 @@ import net.minecraft.world.item.Item;
 
 import java.util.HashMap;
 
+@Deprecated(forRemoval = true)
 public class InProgressItemRegistry {
 
     private static final HashMap<Item, Item> REGISTRY = new HashMap<>();

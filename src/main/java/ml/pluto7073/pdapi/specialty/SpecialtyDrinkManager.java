@@ -17,6 +17,7 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +27,11 @@ import java.util.*;
 public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadListener {
 
     private static final HashMap<ResourceLocation, SpecialtyDrink> DRINKS = new HashMap<>();
+
+    public static final SpecialtyDrink EMPTY = new SpecialtyDrink(
+            new SpecialtyDrink.ItemBase(Items.AIR),
+            List.of(), List.of(), 0xfc0ffc, Map.of(), "Drink"
+    );
 
     public static final ResourceLocation PHASE = PDAPI.asId("phase/specialty_drinks");
 

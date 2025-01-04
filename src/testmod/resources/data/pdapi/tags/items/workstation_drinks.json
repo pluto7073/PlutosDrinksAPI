@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "pdapi_test:test_item"
+    "pdapi_test:test_item",
+    "minecraft:glass_bottle"
   ]
 }

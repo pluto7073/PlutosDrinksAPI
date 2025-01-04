@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -24,10 +25,10 @@ public abstract class ItemRendererMixin {
 
     @WrapMethod(method = "render")
     private void pdapi$ReplaceModelAndStack(ItemStack stack, ItemDisplayContext modelTransformationMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model, Operation<Void> original) {
-        if (!stack.is(PDItems.SPECIALTY_DRINK)) {
+        SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack);
+        if (!stack.is(PDItems.SPECIALTY_DRINK) || drink == SpecialtyDrinkManager.EMPTY) {
             original.call(stack, modelTransformationMode, leftHanded, matrices, vertexConsumers, light, overlay, model);
         } else {
-            SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack);
             ItemStack newStack = drink.getBaseItem(stack);
             BakedModel baseDrinkModel = getModel(newStack, null, null, 0);
             original.call(drink.color() == -1 ? newStack : stack, modelTransformationMode, leftHanded, matrices, vertexConsumers, light, overlay, baseDrinkModel);

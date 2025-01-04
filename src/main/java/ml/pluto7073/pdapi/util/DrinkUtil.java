@@ -9,6 +9,7 @@ import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
+import ml.pluto7073.pdapi.recipes.InProgressItemRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
@@ -16,6 +17,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -24,14 +26,18 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class DrinkUtil {
 
@@ -201,7 +207,7 @@ public final class DrinkUtil {
         CompoundTag nbt = stack.getOrCreateTag();
         String id = nbt.getString("Drink");
         SpecialtyDrink drink = SpecialtyDrinkManager.get(new ResourceLocation(id));
-        if (drink == null) throw new IllegalArgumentException("Drink " + id + " does not exist");
+        if (drink == null) return SpecialtyDrinkManager.EMPTY;
         return drink;
     }
 
@@ -220,6 +226,23 @@ public final class DrinkUtil {
         } catch (IllegalArgumentException e) {
             return 0xf918c5;
         }
+    }
+
+    public static boolean isInProgressItem(Item item, RecipeManager recipes) {
+        List<InProgressItemRecipe> items = recipes.getAllRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE);
+        for (InProgressItemRecipe recipe : items) {
+            if (recipe.getResultItem(null).is(item)) return true;
+        }
+        return false;
+    }
+
+    public static Item[] getPossibleBases(Item item, RecipeManager manager) {
+        return manager.getAllRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE)
+                .stream()
+                .filter(recipe -> recipe.getResultItem(null).is(item))
+                .map(InProgressItemRecipe::base)
+                .flatMap(ingredient -> Stream.of(ingredient.getItems()))
+                .map(ItemStack::getItem).toArray(Item[]::new);
     }
 
     @Environment(EnvType.CLIENT)

@@ -9,6 +9,7 @@ import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -23,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.List;
 import java.util.Optional;
 
+@MethodsReturnNonnullByDefault
 public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     private final Level world;
@@ -90,7 +92,7 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
             resultSlots.setItem(0, ItemStack.EMPTY);
         } else {
             currentRecipe = list.get(0);
-            ItemStack stack = currentRecipe.craft(inputSlots);
+            ItemStack stack = currentRecipe.craft(inputSlots, world);
             resultSlots.setRecipeUsed(currentRecipe);
             resultSlots.setItem(0, stack);
 
@@ -117,14 +119,15 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
     @Override
     protected ItemCombinerMenuSlotDefinition createInputSlotDefinitions() {
         return ItemCombinerMenuSlotDefinition.create().withSlot(0, 27, 47, stack -> {
-            return this.recipes.stream().anyMatch(recipe -> {
-                return recipe.testBase(stack);
-            });
-        }).withSlot(1, 76, 47, stack -> {
-            return this.recipes.stream().anyMatch(recipe -> {
-                return recipe.testAddition(stack);
-            });
-        }).withResultSlot(2, 134, 47).build();
+                    boolean fromAdditions = this.recipes.stream().anyMatch(recipe -> recipe.testBase(stack));
+                    boolean fromInProgress = this.world.getRecipeManager()
+                            .getAllRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE)
+                            .stream().anyMatch(recipe -> recipe.base().test(stack));
+                    return fromAdditions || fromInProgress;
+                })
+                .withSlot(1, 76, 47, stack -> this.recipes.stream().anyMatch(recipe ->
+                        recipe.testAddition(stack)))
+                .withResultSlot(2, 134, 47).build();
     }
 
     private static Optional<Integer> getQuickMoveSlot(DrinkWorkstationRecipe recipe, ItemStack stack) {

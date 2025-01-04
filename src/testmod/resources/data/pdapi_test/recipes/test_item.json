@@ -1,0 +1,9 @@
+{
+  "type": "pdapi:in_progress_item",
+  "base": {
+    "item": "minecraft:glass_bottle"
+  },
+  "result": {
+    "item": "pdapi_test:test_item"
+  }
+}
