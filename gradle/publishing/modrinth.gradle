@@ -1,0 +1,14 @@
+
+modrinth {
+    token = System.getenv("MODRINTH_TOKEN")
+    projectId = "pdapi"
+    uploadFile = file("build/libs/${remapJar.archiveBaseName.get()}-${version}.jar")
+    additionalFiles = [ file("build/libs/${remapJar.archiveBaseName.get()}-${version}-sources.jar"), file("build/libs/${archives_base_name}-${version}-javadoc.jar") ]
+    gameVersions = project.minecraft_dependency.split(',').toList()
+    dependencies {
+        embedded.version(chemicals_version_id)
+        required.project("fabric-api")
+    }
+    loaders = [ "fabric" ]
+    changelog = changelog_text
+}

@@ -1,0 +1,26 @@
+
+
+publishing {
+    repositories {
+        maven {
+            url = System.getenv("PUBLISH_LOCATION")
+        }
+    }
+
+    publications {
+
+        mavenJava(MavenPublication) {
+            artifactId = 'pdapi'
+
+            from(components.java)
+            pom.withXml {
+                Node pom = asNode()
+                pom.dependencies.'*'.findAll() {
+                    it.artifactId.text() != 'chemicals'
+                }.each() {
+                    it.parent().remove(it)
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,22 @@
+import java.nio.file.Files
+
+ext {
+    changelog_text = getChangelog(file("CHANGELOG.md"))
+}
+
+tasks.register("publishMod") {
+    group = "publishing"
+    dependsOn(tasks.modrinth)
+    dependsOn(tasks.curseforge)
+    dependsOn(tasks.githubRelease)
+}
+
+static String getChangelog(File logFile) {
+    String base = Files.readString(logFile.toPath())
+    return base.split("---")[0].trim()
+}
+
+apply from: 'gradle/publishing/github.gradle'
+apply from: 'gradle/publishing/modrinth.gradle'
+apply from: 'gradle/publishing/curseforge.gradle'
+apply from: 'gradle/publishing/maven.gradle'

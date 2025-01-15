@@ -1,0 +1,9 @@
+
+tasks.githubRelease.dependsOn(tasks.remapJar)
+
+githubRelease {
+    token = System.getenv("GH_TOKEN") ?: ""
+    targetCommitish = "LTS"
+    body = changelog_text
+    releaseAssets = [file("build/libs/${archives_base_name}-${version}.jar") , file("build/libs/${archives_base_name}-${version}-sources.jar"), file("build/libs/${archives_base_name}-${version}-javadoc.jar")]
+}
