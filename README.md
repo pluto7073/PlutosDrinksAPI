@@ -33,7 +33,7 @@ dependencies {
 
 `gradle.properties`
 ```properties
-pdapi_version=0.3.1
+pdapi_version=<most-recent-mod-version>
 ```
 
 ## Forge Version?
