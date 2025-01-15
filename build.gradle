@@ -111,6 +111,18 @@ processResources {
 	}
 }
 
+tasks.register("buildOrPublish") {
+	String user = System.getenv("MAVEN_USER")
+	if (user != null && !user.isEmpty()) {
+		dependsOn(tasks.publish)
+		println("prepared for publish")
+	} else {
+		dependsOn(tasks.build)
+		println("prepared for build")
+	}
+}
+
+
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
 }
