@@ -6,6 +6,8 @@ ext {
 
 tasks.register("publishMod") {
     group = "publishing"
+    dependsOn(remapJar)
+    dependsOn(remapSourcesJar)
     dependsOn(tasks.modrinth)
     dependsOn(tasks.curseforge)
     dependsOn(tasks.githubRelease)
