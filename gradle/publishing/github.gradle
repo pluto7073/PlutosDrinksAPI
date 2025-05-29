@@ -1,6 +1,7 @@
 
 tasks.githubRelease.dependsOn(tasks.remapJar)
 tasks.githubRelease.dependsOn(tasks.remapSourcesJar)
+tasks.githubRelease.dependsOn(tasks.javadocJar)
 
 githubRelease {
     token = System.getenv("GH_TOKEN") ?: ""
