@@ -21,6 +21,7 @@ public class DrinkAddition {
 
     public static final Codec<DrinkAddition> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(Codec.list(OnDrinkAction.CODEC).fieldOf("onDrinkActions").orElse(List.of()).forGetter(DrinkAddition::actions),
+                    Codec.DOUBLE.fieldOf("volume").orElse(0.0).forGetter(DrinkAddition::volume),
                     Codec.BOOL.fieldOf("changesColor").orElse(false).forGetter(DrinkAddition::changesColor),
                     Codec.INT.fieldOf("color").orElse(0).forGetter(DrinkAddition::getColor),
                     Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.REGISTRY).fieldOf("chemicals").orElse(Map.of())
@@ -31,6 +32,7 @@ public class DrinkAddition {
             .apply(instance, DrinkAddition::new));
 
     private final List<OnDrinkAction> actions;
+    private final double volume;
     private final boolean changesColor;
     private final int color;
     private final Map<ResourceLocation, Float> chemicals;
@@ -38,8 +40,9 @@ public class DrinkAddition {
     private final int currentWeight;
     private final String name;
 
-    protected DrinkAddition(List<OnDrinkAction> actions, boolean changesColor, int color, Map<ResourceLocation, Float> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
+    protected DrinkAddition(List<OnDrinkAction> actions, double volume, boolean changesColor, int color, Map<ResourceLocation, Float> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
         this.actions = actions;
+        this.volume = volume;
         this.changesColor = changesColor;
         this.color = color;
         this.chemicals = chemicals;
@@ -56,6 +59,10 @@ public class DrinkAddition {
 
     public List<OnDrinkAction> actions() {
         return actions;
+    }
+
+    public double volume() {
+        return volume;
     }
 
     public boolean changesColor() {
@@ -80,6 +87,7 @@ public class DrinkAddition {
 
     public void toNetwork(FriendlyByteBuf buf) {
         NetworkingUtils.writeDrinkActionsList(buf, actions.toArray(OnDrinkAction[]::new));
+        buf.writeDouble(volume);
         buf.writeBoolean(changesColor);
         buf.writeInt(color);
         buf.writeMap(chemicals, FriendlyByteBuf::writeResourceLocation, FriendlyByteBuf::writeFloat);
@@ -90,6 +98,7 @@ public class DrinkAddition {
 
     public static DrinkAddition fromNetwork(FriendlyByteBuf buf) {
         List<OnDrinkAction> actions = NetworkingUtils.readDrinkActionsList(buf);
+        double volume = buf.readDouble();
         boolean changesColor = buf.readBoolean();
         int color = buf.readInt();
         Map<ResourceLocation, Float> chemicals = buf.readMap(FriendlyByteBuf::readResourceLocation, FriendlyByteBuf::readFloat);
@@ -97,7 +106,7 @@ public class DrinkAddition {
         int currentWeight = buf.readInt();
         String name = buf.readUtf();
         if (name.isEmpty()) name = null;
-        return new DrinkAddition(actions, changesColor, color, chemicals, maxAmount, name, currentWeight);
+        return new DrinkAddition(actions, volume, changesColor, color, chemicals, maxAmount, name, currentWeight);
     }
 
     public String getTranslationKey() {
@@ -115,6 +124,7 @@ public class DrinkAddition {
     public static class Builder {
 
         private final List<OnDrinkAction> actions;
+        private double volume;
         private boolean changesColor;
         private int color;
         private final HashMap<ResourceLocation, Float> chemicals;
@@ -124,6 +134,7 @@ public class DrinkAddition {
 
         public Builder() {
             actions = new ArrayList<>();
+            volume = 0.0;
             changesColor = false;
             color = 0;
             chemicals = new HashMap<>();
@@ -134,6 +145,11 @@ public class DrinkAddition {
 
         public Builder addAction(OnDrinkAction action) {
             actions.add(action);
+            return this;
+        }
+
+        public Builder volume(double volume) {
+            this.volume = volume;
             return this;
         }
 
@@ -168,7 +184,7 @@ public class DrinkAddition {
         }
 
         public DrinkAddition build() {
-            return new DrinkAddition(ImmutableList.copyOf(actions), changesColor, color, chemicals, maxAmount, name, weight);
+            return new DrinkAddition(ImmutableList.copyOf(actions), volume, changesColor, color, chemicals, maxAmount, name, weight);
         }
 
         public void save(ResourceLocation id, BiConsumer<ResourceLocation, DrinkAddition> output) {

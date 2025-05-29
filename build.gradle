@@ -99,8 +99,8 @@ dependencies {
 	// Dev Env
 	modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
 	modLocalRuntime "maven.modrinth:kiwi:$kiwi_version"
-	modLocalRuntime "maven.modrinth:plutos-coffee-mod:$minecraft_version+$plutoscoffee_version"
-	modLocalRuntime "maven.modrinth:bartending:$minecraft_version+$bartending_version"
+	// modLocalRuntime "maven.modrinth:plutos-coffee-mod:$minecraft_version+$plutoscoffee_version"
+	// modLocalRuntime "maven.modrinth:bartending:$minecraft_version+$bartending_version"
 }
 
 processResources {

@@ -30,7 +30,7 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
 
     public static final SpecialtyDrink EMPTY = new SpecialtyDrink(
             new SpecialtyDrink.ItemBase(Items.AIR),
-            List.of(), List.of(), 0xfc0ffc, Map.of(), "Drink"
+            List.of(), List.of(), 0, 0xfc0ffc, Map.of(), "Drink"
     );
 
     public static final ResourceLocation PHASE = PDAPI.asId("phase/specialty_drinks");

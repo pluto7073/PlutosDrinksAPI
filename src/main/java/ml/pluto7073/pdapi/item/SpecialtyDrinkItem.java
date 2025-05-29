@@ -15,7 +15,7 @@ import net.minecraft.world.level.Level;
 public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
 
     protected SpecialtyDrinkItem(Properties settings) {
-        super(Items.GLASS_BOTTLE, Temperature.NORMAL, settings);
+        super(Items.GLASS_BOTTLE, 0, settings);
     }
 
     @Override
@@ -24,6 +24,25 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
         AbstractCustomizableDrinkItem base =
                 (AbstractCustomizableDrinkItem) drink.getBaseItem(stack).getItem();
         return base.baseItem(stack);
+    }
+
+    @Override
+    public double getTotalVolume(ItemStack stack) {
+        try {
+            SpecialtyDrink specialty = DrinkUtil.getSpecialDrink(stack);
+            if (specialty.volume() != 0) {
+                return specialty.volume();
+            }
+            ItemStack baseItem = specialty.getBaseItem(stack);
+            if (baseItem.getItem() instanceof AbstractCustomizableDrinkItem drink) {
+                return drink.getTotalVolume(baseItem);
+            } else {
+                return super.getTotalVolume(stack);
+            }
+        } catch (Exception e) {
+            PDAPI.LOGGER.warn("Error getting total volume of {}", stack, e);
+            return 0;
+        }
     }
 
     @Override

@@ -38,6 +38,7 @@ public class SpecialtyDrink {
             instance.group(SpecialtyDrinkBase.CODEC.fieldOf("base").forGetter(SpecialtyDrink::base),
                     Codec.list(ResourceLocation.CODEC).fieldOf("additions").forGetter(SpecialtyDrink::steps),
                     Codec.list(OnDrinkAction.CODEC).fieldOf("onDrinkActions").forGetter(drink -> List.of(drink.actions)),
+                    Codec.DOUBLE.fieldOf("volume").orElse(0.0).forGetter(SpecialtyDrink::volume),
                     Codec.INT.fieldOf("color").orElse(-1).forGetter(SpecialtyDrink::color),
                     Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.REGISTRY)
                             .fieldOf("chemicals").orElse(Map.of()).forGetter(SpecialtyDrink::chemicals),
@@ -47,14 +48,16 @@ public class SpecialtyDrink {
     private final SpecialtyDrinkBase base;
     private final ResourceLocation[] steps;
     private final OnDrinkAction[] actions;
+    private final double volume;
     private final int color;
     private final Map<ResourceLocation, Float> chemicals;
     private final String name;
 
-    public SpecialtyDrink(SpecialtyDrinkBase base, List<ResourceLocation> steps, List<OnDrinkAction> actions, int color, Map<ResourceLocation, Float> chemicals, @Nullable String name) {
+    public SpecialtyDrink(SpecialtyDrinkBase base, List<ResourceLocation> steps, List<OnDrinkAction> actions, double volume, int color, Map<ResourceLocation, Float> chemicals, @Nullable String name) {
         this.base = base;
         this.steps = steps.toArray(ResourceLocation[]::new);
         this.actions = actions.toArray(OnDrinkAction[]::new);
+        this.volume = volume;
         this.color = color;
         this.chemicals = chemicals;
         this.name = name == null ? "" : name;
@@ -83,6 +86,10 @@ public class SpecialtyDrink {
         }
         stepActions.addAll(List.of(actions));
         return ImmutableList.copyOf(stepActions);
+    }
+
+    public double volume() {
+        return volume;
     }
 
     public int color() {
@@ -144,6 +151,7 @@ public class SpecialtyDrink {
         base.serializer().toNetwork(buf, base);
         NetworkingUtils.arrayToNetwork(buf, steps, FriendlyByteBuf::writeResourceLocation);
         buf.writeMap(chemicals, FriendlyByteBuf::writeResourceLocation, FriendlyByteBuf::writeFloat);
+        buf.writeDouble(volume);
         buf.writeInt(color);
         NetworkingUtils.writeDrinkActionsList(buf, actions);
         buf.writeUtf(name);
@@ -154,10 +162,11 @@ public class SpecialtyDrink {
         SpecialtyDrinkBase base = PDRegistries.SPECIALTY_DRINK_BASE.getOptional(baseSerializer).orElseThrow().fromNetwork(buf);
         List<ResourceLocation> steps = NetworkingUtils.listFromNetwork(buf, FriendlyByteBuf::readResourceLocation);
         HashMap<ResourceLocation, Float> chemicals = Maps.newHashMap(buf.readMap(FriendlyByteBuf::readResourceLocation, FriendlyByteBuf::readFloat));
+        double volume = buf.readDouble();
         int color = buf.readInt();
         List<OnDrinkAction> list = NetworkingUtils.readDrinkActionsList(buf);
         String name = buf.readUtf();
-        return new SpecialtyDrink(base, steps, list, color, chemicals, name);
+        return new SpecialtyDrink(base, steps, list, volume, color, chemicals, name);
     }
 
     public static class ItemBase implements SpecialtyDrinkBase {

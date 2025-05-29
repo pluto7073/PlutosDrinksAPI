@@ -81,6 +81,7 @@ public abstract class SpecialtyDrinkProvider implements DataProvider {
         private final List<ResourceLocation> additions = new ArrayList<>();
         private final List<OnDrinkAction> actions = new ArrayList<>();
         private int color = -1;
+        private double volume = 0;
         private final Map<ResourceLocation, Float> chemicals = new HashMap<>();
         private String name = "";
 
@@ -113,6 +114,11 @@ public abstract class SpecialtyDrinkProvider implements DataProvider {
             return this;
         }
 
+        public DrinkBuilder volume(double volume) {
+            this.volume = volume;
+            return this;
+        }
+
         public void save(ResourceLocation id, BiConsumer<ResourceLocation, SpecialtyDrink> output) {
             if (color == -1) {
                 PDAPI.LOGGER.warn("Drink {} is lacking a color", id);
@@ -120,7 +126,7 @@ public abstract class SpecialtyDrinkProvider implements DataProvider {
             if (additions.isEmpty()) {
                 throw new IllegalStateException("Drink " + id + " is not craftable");
             }
-            output.accept(id, new SpecialtyDrink(base, additions, actions, color, chemicals, name));
+            output.accept(id, new SpecialtyDrink(base, additions, actions, volume, color, chemicals, name));
         }
 
     }

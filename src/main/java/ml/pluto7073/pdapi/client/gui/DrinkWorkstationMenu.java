@@ -81,6 +81,8 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     @Override
     public void createResult() {
+        if (inputSlots.getItem(0).isDamaged()) return;
+
         Container testInput = DrinkUtil.copyContainerContents(inputSlots);
 
         if (inputSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {

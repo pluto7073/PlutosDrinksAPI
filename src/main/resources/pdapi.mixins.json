@@ -6,6 +6,7 @@
     "CowEntityMixin",
     "DefaultedMappedRegistryMixin",
     "EntityMixin",
+    "ItemStackMixin",
     "LivingEntityMixin",
     "PassiveEntityMixin"
   ],

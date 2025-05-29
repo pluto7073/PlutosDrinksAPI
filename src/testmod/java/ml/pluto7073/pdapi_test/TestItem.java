@@ -9,7 +9,7 @@ import net.minecraft.world.item.Items;
 public class TestItem extends AbstractCustomizableDrinkItem {
 
     public TestItem(Properties settings) {
-        super(Items.GLASS_BOTTLE, Temperature.NORMAL, settings);
+        super(Items.GLASS_BOTTLE, 12, settings);
     }
 
     @Override
