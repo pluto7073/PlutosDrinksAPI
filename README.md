@@ -23,7 +23,7 @@ If you wish to use this API in your own Mods, add the following to your `build.g
 `build.gradle`
 ```groovy
 repositories {
-  maven { url = "https://pluto-mod-maven.web.app/maven" } // PDAPI
+  maven { url = "https://maven.plutonia.xyz/maven" } // PDAPI
 }
 
 dependencies {
