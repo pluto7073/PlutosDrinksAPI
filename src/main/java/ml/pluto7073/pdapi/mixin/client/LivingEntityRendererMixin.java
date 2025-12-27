@@ -1,6 +1,7 @@
-package ml.pluto7073.pdapi.mixin;
+package ml.pluto7073.pdapi.mixin.client;
 
 import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
+import ml.pluto7073.pdapi.config.PDClientConfig;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,9 +18,10 @@ public class LivingEntityRendererMixin<
 
     @Inject(at = @At("RETURN"), method = "isShaking", cancellable = true)
     public void pdapi$caffeineShakes(T entity, CallbackInfoReturnable<Boolean> cir) {
-        if (!(entity instanceof Player playerEntity)) return;
+        if (!(entity instanceof Player playerEntity)
+            || !PDClientConfig.INSTANCE.doCaffeineShake) return;
         float caffeine = CaffeineHandler.INSTANCE.get(playerEntity);
-        if (caffeine >= 300.0f) {
+        if (caffeine >= PDClientConfig.INSTANCE.caffeineShakeThreshold) {
             cir.setReturnValue(true);
         }
     }

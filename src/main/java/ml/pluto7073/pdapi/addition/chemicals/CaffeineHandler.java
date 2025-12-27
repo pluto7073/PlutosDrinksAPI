@@ -4,8 +4,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.chemicals.handlers.HalfLifeChemicalHandler;
 import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.config.PDCommonConfig;
 import ml.pluto7073.pdapi.entity.effect.PDMobEffects;
-import ml.pluto7073.pdapi.gamerule.PDGameRules;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -63,8 +63,8 @@ public class CaffeineHandler extends HalfLifeChemicalHandler {
         if (amount >= 700) {
             list.add(new MobEffectInstance(MobEffects.JUMP, 600, 1));
         }
-        int lethalCaffeineDose = level.getGameRules().getInt(PDGameRules.LETHAL_CAFFEINE_DOSE);
-        boolean overdose = level.getGameRules().getBoolean(PDGameRules.DO_CAFFEINE_OVERDOSE);
+        int lethalCaffeineDose = PDCommonConfig.INSTANCE.lethalCaffeineDose;
+        boolean overdose = PDCommonConfig.INSTANCE.doCaffeineOverdose;
         if (overdose && amount >= lethalCaffeineDose) {
             list.add(new MobEffectInstance(PDMobEffects.CAFFEINE_OVERDOSE, 20 * 60));
         }

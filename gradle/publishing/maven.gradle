@@ -16,7 +16,7 @@ publishing {
             pom.withXml {
                 Node pom = asNode()
                 pom.dependencies.'*'.findAll() {
-                    it.artifactId.text() != 'chemicals'
+                    it.artifactId.text() != 'chemicals' || it.artifactId.text() != 'plutonium'
                 }.each() {
                     it.parent().remove(it)
                 }

@@ -24,6 +24,9 @@
 		],
 		"rei_client": [
 			"ml.pluto7073.pdapi.compat.rei.DrinkREI"
+		],
+		"modmenu": [
+			"ml.pluto7073.pdapi.compat.modmenu.PDModMenu"
 		]
 	},
 	"custom": {
@@ -34,7 +37,12 @@
 				"id": "plutosdrinks",
 				"name": "Pluto's Drinks Series",
 				"description": "Every mod in the Pluto's Drinks collection",
-				"icon": "assets/pdapi/icon.png"
+				"icon": "assets/pdapi/icon.png",
+				"entrypoints": {
+					"modmenu": [
+						"ml.pluto7073.pdapi.compat.modmenu.PDModMenu"
+					]
+				}
 			}
 		}
 	},
