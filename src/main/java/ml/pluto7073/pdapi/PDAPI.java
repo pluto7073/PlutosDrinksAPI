@@ -37,8 +37,8 @@ public class PDAPI implements ModInitializer {
     public static final String ID = "pdapi";
     public static final Logger LOGGER = LogManager.getLogger("PDAPI");
     public static final ResourceKey<CreativeModeTab> SPECIALTY_DRINKS_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB, asId("specialty_drinks"));
-    public static final ServerConfigType CONFIG_TYPE =
-            Registry.register(PlutoniumConfig.SERVER_CONFIG_TYPES, asId("common"), new ServerConfigType(PDCommonConfig.INSTANCE, PDCommonConfig::new));
+    public static final ServerConfigType<PDCommonConfig> CONFIG_TYPE =
+            Registry.register(PlutoniumConfig.SERVER_CONFIG_TYPES, asId("common"), new ServerConfigType<>(PDCommonConfig.INSTANCE, PDCommonConfig::new));
 
 
     @Override
