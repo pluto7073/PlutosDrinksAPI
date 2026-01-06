@@ -14,6 +14,7 @@ import net.minecraft.world.item.Items;
 public final class PDItems {
 
     public static final Item MILK_BOTTLE = new MilkBottleItem();
+    public static final Item ICON = new Item(new Item.Properties().stacksTo(1));
     public static final Item SPECIALTY_DRINK = new SpecialtyDrinkItem(new Item.Properties().stacksTo(1));
 
     public static final Item DRINK_WORKSTATION = new BlockItem(PDBlocks.DRINK_WORKSTATION, new Item.Properties());
@@ -22,6 +23,7 @@ public final class PDItems {
         Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("milk_bottle"), MILK_BOTTLE);
         Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("drink_workstation"), DRINK_WORKSTATION);
         Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("specialty_drink"), SPECIALTY_DRINK);
+        Registry.register(BuiltInRegistries.ITEM, PDAPI.asId("icon"), ICON);
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(entries -> entries.addAfter(Items.SMITHING_TABLE, DRINK_WORKSTATION));
 

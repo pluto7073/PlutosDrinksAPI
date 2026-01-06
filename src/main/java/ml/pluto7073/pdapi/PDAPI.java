@@ -69,7 +69,7 @@ public class PDAPI implements ModInitializer {
 
         PDScreens.init();
 
-        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, SPECIALTY_DRINKS_TAB, FabricItemGroup.builder().icon(() -> new ItemStack(PDItems.MILK_BOTTLE))
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, SPECIALTY_DRINKS_TAB, FabricItemGroup.builder().icon(() -> new ItemStack(PDItems.ICON))
                 .title(Component.translatable("creative_tab.pdapi.specialty_drinks")).build());
         ItemGroupEvents.modifyEntriesEvent(SPECIALTY_DRINKS_TAB).register(stacks -> {
             for (SpecialtyDrink d : SpecialtyDrinkManager.values()
