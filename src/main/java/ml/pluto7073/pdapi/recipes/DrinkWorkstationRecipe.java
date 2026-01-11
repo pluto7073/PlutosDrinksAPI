@@ -6,13 +6,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
+import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
-import ml.pluto7073.pdapi.specialty.InProgressItemRegistry;
-import ml.pluto7073.pdapi.tag.PDTags;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
@@ -26,12 +26,18 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 @MethodsReturnNonnullByDefault
@@ -54,10 +60,10 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
 
     @Override
     public ItemStack assemble(Container inventory, HolderLookup.Provider registryManager) {
-        return craft(inventory);
+        return craft(inventory, null);
     }
 
-    public ItemStack craft(Container inventory) {
+    public ItemStack craft(Container inventory, Level level) {
         ItemStack stack = inventory.getItem(0).copy();
         if (stack.is(PDTags.HAS_IN_PROGRESS_ITEM)) {
             stack = new ItemStack(InProgressItemRegistry.getInProgress(stack.getItem()));
@@ -110,6 +116,22 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
 
     public boolean isIncomplete() {
         return Stream.of(this.base, this.addition).anyMatch((ingredient) -> ingredient.getItems().length == 0);
+    }
+
+    @Override
+    public NonNullList<Ingredient> getIngredients() {
+        return NonNullList.of(Ingredient.EMPTY, base, addition);
+    }
+
+    private static ItemStack buildResult(Ingredient base, BiFunction<Container, Level, ItemStack> builder) {
+        ItemStack res;
+        if (Arrays.stream(base.getItems()).anyMatch(stack -> stack.is(PDItems.SPECIALTY_DRINK)) || base.getItems().length < 1) {
+            res = new ItemStack(PDItems.SPECIALTY_DRINK);
+        } else {
+            res = base.getItems()[0].copy();
+        }
+
+        return builder.apply(new SimpleContainer(res), null);
     }
 
     @MethodsReturnNonnullByDefault

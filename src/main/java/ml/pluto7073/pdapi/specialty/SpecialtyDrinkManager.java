@@ -5,6 +5,7 @@ import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
+import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncSpecialtyDrinkRegistryPacket;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -18,18 +19,22 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadListener {
 
     private static final HashMap<ResourceLocation, SpecialtyDrink> DRINKS = new HashMap<>();
+
+    public static final SpecialtyDrink EMPTY = new SpecialtyDrink(
+            new SpecialtyDrink.ItemBase(Items.AIR),
+            List.of(), List.of(), 0, 0xfc0ffc, Map.of(), "Drink"
+    );
 
     public static final ResourceLocation PHASE = PDAPI.asId("phase/specialty_drinks");
 
@@ -60,8 +65,19 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
                     if (!b) continue;
                 }
 
-                DRINKS.put(id, SpecialtyDrink.CODEC.parse(JsonOps.INSTANCE, object).getOrThrow());
-            } catch (Exception e) {
+                SpecialtyDrink drink = SpecialtyDrink.CODEC.parse(JsonOps.INSTANCE, object).getOrThrow(false, s -> {
+                    throw new JsonParseException(s);
+                });
+
+                Item base = drink.base().buildItemStack().getItem();
+
+                if (!(base instanceof AbstractCustomizableDrinkItem)) {
+                    throw new IllegalStateException("Drink base for " + id + " must be an " +
+                            "instance of AbstractCustomizableDrinkItem but " + base + "is not");
+                }
+
+                DRINKS.put(id, drink);
+            } catch (IOException e) {
                 PDAPI.LOGGER.error("Couldn't load Specialty Drink {}", id, e);
             }
         }

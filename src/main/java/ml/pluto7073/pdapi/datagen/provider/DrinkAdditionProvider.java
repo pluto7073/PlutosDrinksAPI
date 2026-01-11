@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.impl.datagen.FabricDataGenHelper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.CachedOutput;
@@ -42,7 +43,10 @@ public abstract class DrinkAdditionProvider implements DataProvider {
         Set<ResourceLocation> generatedAdditions = Sets.newHashSet();
         List<CompletableFuture<?>> list = new ArrayList<>();
 
-        buildAdditions((id, addition) -> {
+        buildAdditions(builder -> {
+            DrinkAddition addition = builder.build();
+
+            ResourceLocation id = builder.id;
             if (!generatedAdditions.add(id)) {
                 throw new IllegalStateException("Duplicate Addition " + id);
             }
@@ -59,6 +63,14 @@ public abstract class DrinkAdditionProvider implements DataProvider {
 
     protected static DrinkAddition.Builder builder() {
         return new DrinkAddition.Builder();
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    protected BiConsumer<ResourceLocation, DrinkAddition> withConditions(BiConsumer<ResourceLocation, DrinkAddition> output, ConditionJsonProvider... conditions) {
+        return (id, drink) -> {
+            FabricDataGenHelper.addConditions(drink, conditions);
+            output.accept(id, drink);
+        };
     }
 
 }

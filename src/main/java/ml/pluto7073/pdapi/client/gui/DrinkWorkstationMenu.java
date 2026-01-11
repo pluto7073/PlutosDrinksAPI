@@ -1,5 +1,7 @@
 package ml.pluto7073.pdapi.client.gui;
 
+import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
+import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.block.PDBlocks;
@@ -8,6 +10,7 @@ import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -79,10 +82,12 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     @Override
     public void createResult() {
+        if (inputSlots.getItem(0).isDamaged()) return;
+
         Container testInput = DrinkUtil.copyContainerContents(inputSlots);
 
         if (inputSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0)).getAsOriginalItemWithAdditions(inputSlots.getItem(0)));
+            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0)).getBaseItem(inputSlots.getItem(0)));
         }
 
         List<RecipeHolder<DrinkWorkstationRecipe>> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, testInput, world);
@@ -97,13 +102,19 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
             // Specialty Drink testing
             Container testResults = DrinkUtil.copyContainerContents(resultSlots);
             if (resultSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0)).getAsOriginalItemWithAdditions(resultSlots.getItem(0)));
+                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0)).getBaseItem(resultSlots.getItem(0)));
             }
             List<SpecialtyDrink> matchingDrinks = SpecialtyDrinkManager.values().stream()
                     .filter(drink -> drink.matches(testResults)).toList();
             if (matchingDrinks.isEmpty()) return;
             SpecialtyDrink drink = matchingDrinks.get(0);
             stack = drink.getAsItem();
+            CompoundTag data = resultSlots.getItem(0).getOrCreateTag().copy();
+            data.remove("Drink");
+            data.getCompound(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY)
+                            .remove(DrinkAdditionManager.ADDITIONS_NBT_KEY);
+            data.merge(stack.getOrCreateTag());
+            stack.setTag(data);
             resultSlots.setItem(0, stack);
         }
     }
@@ -111,14 +122,15 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
     @Override
     protected ItemCombinerMenuSlotDefinition createInputSlotDefinitions() {
         return ItemCombinerMenuSlotDefinition.create().withSlot(0, 27, 47, stack -> {
-            return this.recipes.stream().anyMatch(recipe -> {
-                return recipe.value().testBase(stack);
-            });
-        }).withSlot(1, 76, 47, stack -> {
-            return this.recipes.stream().anyMatch(recipe -> {
-                return recipe.value().testAddition(stack);
-            });
-        }).withResultSlot(2, 134, 47).build();
+                    boolean fromAdditions = this.recipes.stream().anyMatch(recipe -> recipe.testBase(stack));
+                    boolean fromInProgress = this.world.getRecipeManager()
+                            .getAllRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE)
+                            .stream().anyMatch(recipe -> recipe.base().test(stack));
+                    return fromAdditions || fromInProgress;
+                })
+                .withSlot(1, 76, 47, stack -> this.recipes.stream().anyMatch(recipe ->
+                        recipe.testAddition(stack)))
+                .withResultSlot(2, 134, 47).build();
     }
 
     private static Optional<Integer> getQuickMoveSlot(DrinkWorkstationRecipe recipe, ItemStack stack) {

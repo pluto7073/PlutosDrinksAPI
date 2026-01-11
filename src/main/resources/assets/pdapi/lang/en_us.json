@@ -1,8 +1,8 @@
 {
   "tooltip.pdapi.caffeine_content": "Contains %1$smg of Caffeine",
   "container.drink_workstation": "Drink Workstation",
-  "block.plutoscoffee.coffee_workstation": "Drink Workstation",
-  "item.plutoscoffee.milk_bottle": "Milk Bottle",
+  "block.pdapi.drink_workstation": "Drink Workstation",
+  "item.pdapi.milk_bottle": "Milk Bottle",
   "item.pdapi.specialty_drink": "Uncraftable Drink",
   "creative_tab.pdapi.specialty_drinks": "Specialty Drinks",
   "drink.minecraft.empty": "Uncraftable Drink",
@@ -27,6 +27,13 @@
   "title.pdapi.config": "PDAPI Config",
   "title.pdapi.ingredient_sequence": "Ingredient Sequence",
   "title.pdapi.drink_addition": "Drink Addition",
+  "option.pdapi.common.doCaffeineOverdose": "Do Caffeine Overdose",
+  "option.pdapi.common.doCaffeineOverdose.desc": "Whether or not the caffeine overdose effect should be applied",
+  "option.pdapi.common.caffeineDamageMultiplier": "Caffeine Damage Multiplier",
+  "option.pdapi.common.lethalCaffeineDose": "Lethal Caffeine Dose",
+  "option.pdapi.client.doCaffeineShake": "Do Caffeine Shake",
+  "option.pdapi.client.caffeineShakeThreshold": "Caffeine Shake Threshold",
+  "option.pdapi.client.caffeineShakeThreshold.desc": "The amount of internal caffeine at which a player should start shaking",
   "option.pdapi.doCaffeineOverdose": "Do Caffeine Overdose",
   "option.pdapi.doCaffeineOverdose.tooltip": "Whether or not the caffeine overdose effect should be applied",
   "option.pdapi.caffeineVisibleToNonOps": "Caffeine Visible to Non-Ops",
@@ -35,5 +42,6 @@
   "option.pdapi.lethalCaffeineDose": "Lethal Dose of Caffeine",
   "tag.item.pdapi.workstation_drinks": "Workstation Drinks",
   "tag.item.pdapi.has_in_progress_item": "Has In Progress Item",
-  "tag.item.c.milk/milk_bottle": "Milk Bottle"
+  "tag.item.c.milk/milk_bottle": "Milk Bottle",
+  "chemical_handler.pdapi.caffeine": "Caffeine"
 }

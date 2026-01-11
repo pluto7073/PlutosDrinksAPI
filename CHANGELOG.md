@@ -1,0 +1,22 @@
+
+
+## Additions
+- The sipping feature from bartending has been added to PDAPI, now all drinks inheriting `AbstractCustomizableDrinkItem` are drank in sips
+  - Total ounces are determined via base drink and additions added
+
+## Changes
+- Drink Additions now have a `volume` component that is used to determine sip size. Default is 0
+  - Built in addition volumes:
+    - Chorus Fruit - 0.25oz
+    - Glow Berries - 0.25oz
+    - Honey - 0.25oz
+    - Ice - 4oz
+    - Milk - 1oz
+    - Sugar - 0.25oz
+    - Pumpkin Slice (farmersdelight) - 0.25oz
+- Specialty drinks have an optional volume component, if not specified then volume will be determined from base and additions
+- Items cannot be added to drinks that have already been partially consumed
+- Server config is no longer controlled by gamerules, and now uses a server config.
+  - Modmenu can be used to edit the config in game, or you can edit the `pdapi_server.json` in the config folder
+  - Cloth Config is required to edit the config using ModMenu
+- There's also a new client config, where you can edit Shaking settings (`pdapi_client.json`)

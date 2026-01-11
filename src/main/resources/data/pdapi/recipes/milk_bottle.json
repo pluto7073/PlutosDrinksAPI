@@ -14,7 +14,7 @@
     }
   },
   "result": {
-    "id": "plutoscoffee:milk_bottle",
+    "id": "pdapi:milk_bottle",
     "Count": 4
   },
   "fabric:load_conditions": [

@@ -1,0 +1,12 @@
+{
+  "volume": 4,
+  "chemicals": {
+    "pdapi:caffeine": 100
+  },
+  "onDrinkActions": [
+    {
+      "type": "pdapi:chorus_teleport",
+      "radius": 20
+    }
+  ]
+}

@@ -3,6 +3,8 @@ package ml.pluto7073.pdapi.addition;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.JsonOps;
+import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncAdditionRegistryPacket;
 import ml.pluto7073.pdapi.util.DrinkUtil;
@@ -58,11 +60,11 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
 
     public static ResourceLocation getId(DrinkAddition addition) {
         for (Map.Entry<ResourceLocation, DrinkAddition> entry : REGISTRY.entrySet()) {
-            if (addition.equals(entry.getValue())) {
+            if (Objects.equals(entry.getValue(), addition)) {
                 return entry.getKey();
             }
         }
-        return new ResourceLocation("empty");
+        throw new IllegalArgumentException("Unregistered drink addition: " + addition.toString());
     }
 
     public static DrinkAddition get(ResourceLocation id) {

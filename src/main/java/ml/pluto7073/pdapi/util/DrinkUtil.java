@@ -1,17 +1,18 @@
 package ml.pluto7073.pdapi.util;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
+import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
 import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
+import ml.pluto7073.pdapi.recipes.InProgressItemRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
@@ -19,6 +20,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -27,18 +29,23 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class DrinkUtil {
 
     private static final HashMap<String, Converter<Tag>> OLD_CONVERSION_REGISTRY = new HashMap<>();
-    private static final double CAFFEINE_HALF_LIFE_TICKS = 2500.0;
 
     public static ResourceLocation getAsId(ResourceLocation file, String dir) {
         return file.withPath(s -> s.replace(dir + '/', "").replace(".json", ""));
@@ -59,8 +66,28 @@ public final class DrinkUtil {
         };
     }
 
-    public static boolean dev() {
-        return FabricLoader.getInstance().isDevelopmentEnvironment();
+    public static int averageColors(Collection<Integer> colors) {
+        if (colors.isEmpty()) return 0xFFFFFF;
+        int r = 0;
+        int g = 0;
+        int b = 0;
+        for (int color : colors) {
+            r += (color >> 16 & 255);
+            g += (color >> 8 & 255);
+            b += (color & 255);
+        }
+        r /= colors.size();
+        g /= colors.size();
+        b /= colors.size();
+        return r << 16 | g << 8 | b;
+    }
+
+    public static int getColorForDrinkWithDefault(ItemStack drink, int normal) {
+        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink);
+        List<Integer> colors = Arrays.stream(additions).filter(DrinkAddition::changesColor)
+                .map(DrinkAddition::getColor).collect(Collectors.toCollection(ArrayList::new));
+        colors.add(0, normal);
+        return averageColors(colors);
     }
 
     public static <T> List<T> condense(List<T> base) {
@@ -75,6 +102,23 @@ public final class DrinkUtil {
             list.add(t);
         }
         return list;
+    }
+
+    public static <K, V> Map<K, V> or(Map<K, V> first, Map<K, V> second, BiFunction<V, V, V> combiner) {
+        HashMap<K, V> result = new HashMap<>();
+        first.forEach((k, v) -> {
+            if (second.containsKey(k)) {
+                result.put(k, combiner.apply(v, second.get(k)));
+            } else {
+                result.put(k, v);
+            }
+        });
+        second.forEach((k, v) -> {
+            if (!result.containsKey(k)) {
+                result.put(k, v);
+            }
+        });
+        return ImmutableMap.copyOf(result);
     }
 
     public static <T> boolean sameItems(T[] array1, T[] array2) {
@@ -141,13 +185,8 @@ public final class DrinkUtil {
         return compound.get("string");
     }
 
-    public static float calculateCaffeineDecay(int ticks, float originalCaffeine) {
-        double exp = Math.pow(0.5, ticks / CAFFEINE_HALF_LIFE_TICKS);
-        return (float) (exp * originalCaffeine);
-    }
-
     public static float getPlayerCaffeine(Player player) {
-        return ConsumableChemicalRegistry.CAFFEINE.get(player);
+        return CaffeineHandler.INSTANCE.get(player);
     }
 
     public static SpecialtyDrink getSpecialDrink(ItemStack stack) {
@@ -167,6 +206,23 @@ public final class DrinkUtil {
         } catch (IllegalArgumentException e) {
             return 0xfff918c5;
         }
+    }
+
+    public static boolean isInProgressItem(Item item, RecipeManager recipes) {
+        List<InProgressItemRecipe> items = recipes.getAllRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE);
+        for (InProgressItemRecipe recipe : items) {
+            if (recipe.getResultItem(null).is(item)) return true;
+        }
+        return false;
+    }
+
+    public static Item[] getPossibleBases(Item item, RecipeManager manager) {
+        return manager.getAllRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE)
+                .stream()
+                .filter(recipe -> recipe.getResultItem(null).is(item))
+                .map(InProgressItemRecipe::base)
+                .flatMap(ingredient -> Stream.of(ingredient.getItems()))
+                .map(ItemStack::getItem).toArray(Item[]::new);
     }
 
     @Environment(EnvType.CLIENT)

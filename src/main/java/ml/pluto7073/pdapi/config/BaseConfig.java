@@ -1,11 +1,21 @@
 package ml.pluto7073.pdapi.config;
 
+import ml.pluto7073.plutonium.config.ClientConfig;
+import ml.pluto7073.plutonium.config.ServerConfig;
+import ml.pluto7073.plutonium.config.ServerConfigType;
 import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.util.Properties;
 
+/**
+ * Use {@link ServerConfig}
+ * and {@link ClientConfig}
+ * and optionally add to {@link PDCommonConfig} using
+ * {@link PDCommonConfig#addManagedConfig}
+ */
+@Deprecated(forRemoval = true)
 public abstract class BaseConfig {
 
     protected Properties properties;

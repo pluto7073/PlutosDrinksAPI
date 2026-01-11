@@ -1,4 +1,5 @@
 {
+  "volume": 4,
   "maxAmount": 1,
   "onDrinkActions": [
     {

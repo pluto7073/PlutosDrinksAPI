@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.specialty;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -12,13 +13,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.pdapi.util.DrinkUtil;
-import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
-import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
-import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.networking.NetworkingUtils;
@@ -34,13 +35,11 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -65,18 +64,19 @@ public class SpecialtyDrink {
     private final Item base;
     private final ResourceLocation[] steps;
     private final OnDrinkAction[] actions;
+    private final double volume;
     private final int color;
-    private final Map<String, Integer> chemicals;
+    private final Map<ResourceLocation, Float> chemicals;
     private final String name;
 
-    public SpecialtyDrink(Item base, List<ResourceLocation> steps, List<OnDrinkAction> actions, int color, Map<String, Integer> chemicals, @Nullable String name) {
+    public SpecialtyDrink(SpecialtyDrinkBase base, List<ResourceLocation> steps, List<OnDrinkAction> actions, double volume, int color, Map<ResourceLocation, Float> chemicals, @Nullable String name) {
         this.base = base;
         this.steps = steps.toArray(ResourceLocation[]::new);
         this.actions = actions.toArray(OnDrinkAction[]::new);
+        this.volume = volume;
         this.color = color;
-        this.chemicals = new HashMap<>(chemicals);
-        ConsumableChemicalRegistry.fillChemicalMap(this.chemicals);
-        this.name = name;
+        this.chemicals = chemicals;
+        this.name = name == null ? "" : name;
     }
 
     public String languageKey() {
@@ -87,7 +87,7 @@ public class SpecialtyDrink {
         return SpecialtyDrinkManager.getId(this);
     }
 
-    public Item base() {
+    public SpecialtyDrinkBase base() {
         return base;
     }
 
@@ -96,14 +96,23 @@ public class SpecialtyDrink {
     }
 
     public List<OnDrinkAction> actions() {
-        return List.of(actions);
+        ArrayList<OnDrinkAction> stepActions = new ArrayList<>();
+        for (ResourceLocation step : steps) {
+            stepActions.addAll(DrinkAdditionManager.get(step).actions());
+        }
+        stepActions.addAll(List.of(actions));
+        return ImmutableList.copyOf(stepActions);
+    }
+
+    public double volume() {
+        return volume;
     }
 
     public int color() {
         return color;
     }
 
-    public Map<String, Integer> chemicals() {
+    public Map<ResourceLocation, Float> chemicals() {
         return chemicals;
     }
 
@@ -111,29 +120,31 @@ public class SpecialtyDrink {
         return name == null || name.isEmpty() ? languageKey() : name;
     }
 
-    public ResourceLocation type() {
-        return PDAPI.asId("specialty_drink");
-    }
-
-    public SpecialtyDrinkSerializer serializer() {
-        return SpecialtyDrinkSerializer.DEFAULT_SERIALIZER;
-    }
-
     public ItemStack getAsItem() {
         return DrinkUtil.setSpecialDrink(new ItemStack(PDItems.SPECIALTY_DRINK, 1), this);
     }
 
-    public ItemStack getAsOriginalItemWithAdditions(ItemStack source) {
-        ItemStack stack = new ItemStack(base);
-        stack.set(PDComponents.ADDITIONS, DrinkAdditions.or(DrinkAdditions.of(steps()), source.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY)));
+    public ItemStack getBaseItem(ItemStack source) {
+        ItemStack stack = base.buildItemStack();
+        CompoundTag ogData = source.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
+        CompoundTag newData = source.getOrCreateTag().copy();
+        newData.remove("Drink");
+        CompoundTag drinkData = newData.getCompound(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
+        ListTag list = new ListTag();
+        for (ResourceLocation step : steps) {
+            list.add(StringTag.valueOf(step.toString()));
+        }
+        list.addAll(ogData.getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING));
+        drinkData.put(DrinkAdditionManager.ADDITIONS_NBT_KEY, list);
+        stack.setTag(newData);
         return stack;
     }
 
     public boolean matches(Container container) {
         ItemStack currentResult = container.getItem(0);
-        if (!currentResult.is(base)) return false;
-        List<ResourceLocation> additions = currentResult.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY)
-                .additions().stream().map(DrinkAdditionManager::getId).toList();
+        if (!base.matches(currentResult)) return false;
+        ListTag additions = currentResult.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY)
+                .getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, StringTag.TAG_STRING);
         if (steps.length != additions.size()) return false;
         for (int i = 0; i < additions.size(); i++) {
             ResourceLocation actual = additions.get(i);

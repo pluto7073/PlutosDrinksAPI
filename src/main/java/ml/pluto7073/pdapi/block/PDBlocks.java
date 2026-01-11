@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.block;
 
+import ml.pluto7073.pdapi.PDAPI;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -14,7 +15,7 @@ public class PDBlocks {
     public static final Block DRINK_WORKSTATION = new DrinkWorkstationBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).instrument(NoteBlockInstrument.BASS).strength(2.5F).sound(SoundType.WOOD).ignitedByLava());
 
     public static void init() {
-        Registry.register(BuiltInRegistries.BLOCK, "plutoscoffee:coffee_workstation", DRINK_WORKSTATION); // Using the OG PlutosCoffee ids until I find a way to safely rename them
+        Registry.register(BuiltInRegistries.BLOCK, PDAPI.asId("drink_workstation"), DRINK_WORKSTATION);
     }
 
 }

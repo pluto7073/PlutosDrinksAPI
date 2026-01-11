@@ -2,10 +2,11 @@ package ml.pluto7073.pdapi.item;
 
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
+import ml.pluto7073.chemicals.item.ChemicalContaining;
+import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
-import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -30,31 +31,47 @@ import java.util.HashMap;
 import java.util.List;
 
 @MethodsReturnNonnullByDefault
-public abstract class AbstractCustomizableDrinkItem extends Item {
+public abstract class AbstractCustomizableDrinkItem extends Item implements ChemicalContaining {
 
     public static final String DRINK_DATA_NBT_KEY = "DrinkData";
 
-    private static final int MAX_USE_TIME = 32;
+    private static final int MAX_USE_TIME = 16;
 
-    protected final Temperature baseTemperature;
     protected final Item baseItem;
+    protected final double baseVolume;
 
-    protected AbstractCustomizableDrinkItem(Item baseItem, Temperature baseTemperature, Properties settings) {
+    protected AbstractCustomizableDrinkItem(Item baseItem, double baseVolume, Properties settings) {
         super(settings);
-        this.baseTemperature = baseTemperature;
+        this.baseVolume = baseVolume;
         this.baseItem = baseItem;
     }
 
-    public Temperature getDrinkTemperature(ItemStack stack) {
-        return baseTemperature;
+    public double getTotalVolume(ItemStack stack) {
+        double vol = baseVolume;
+        for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack)) {
+            vol += a.volume();
+        }
+        return vol;
     }
 
-    public int getChemicalContent(String name, ItemStack stack) {
+    @Override
+    public float getChemicalContent(ResourceLocation name, ItemStack stack) {
         int amount = 0;
         for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack)) {
-            amount += a.chemicals().get(name);
+            if (a.getChemicals().containsKey(name))
+                amount += a.getChemicals().get(name);
         }
         return amount;
+    }
+
+    @Override
+    public float getConsumedChemicalContent(ResourceLocation id, ItemStack stack) {
+        float amount = getChemicalContent(id, stack);
+        return (float) ((getSipAmount(stack) / 2f) / getTotalVolume(stack)) * amount;
+    }
+
+    protected Item baseItem(ItemStack stack) {
+        return baseItem;
     }
 
     @Override
@@ -72,9 +89,20 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
         return ItemUtils.startUsingInstantly(world, user, hand);
     }
 
+    protected int getSipAmount(ItemStack stack) {
+        return getTotalVolume(stack) >= 10 ? 2 : 1;
+    }
+
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         Player player = user instanceof Player ? (Player) user : null;
+
+        if (player != null) {
+            stack.hurtAndBreak(getSipAmount(stack), player, p -> {});
+        }
+
+        if (!stack.isEmpty()) return stack;
+
         if (player instanceof ServerPlayer) {
             CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer)player, stack);
         }
@@ -83,12 +111,6 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
             DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(stack);
             for (DrinkAddition addition : additions) {
                 addition.onDrink(stack, world, user);
-            }
-            if (player != null) {
-                ConsumableChemicalRegistry.forEach(handler -> {
-                    float amount = getChemicalContent(handler.getName(), stack);
-                    if (amount > 0) handler.add(player, amount);
-                });
             }
         }
 
@@ -101,11 +123,11 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
 
         if (player == null || !player.getAbilities().instabuild) {
             if (stack.isEmpty()) {
-                return new ItemStack(baseItem);
+                return new ItemStack(baseItem(stack));
             }
 
             if (player != null) {
-                player.getInventory().add(new ItemStack(baseItem));
+                player.getInventory().add(new ItemStack(baseItem(stack)));
             }
         }
         user.gameEvent(GameEvent.DRINK);
@@ -113,17 +135,27 @@ public abstract class AbstractCustomizableDrinkItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag config) {
-        super.appendHoverText(stack, context, tooltip, config);
-
-        if (config.isAdvanced() || config.isCreative()) ConsumableChemicalRegistry.forEach(handler ->
-                handler.appendTooltip(tooltip, getChemicalContent(handler.getName(), stack), stack));
-
-        stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).addToTooltip(context, tooltip::add, config);
+    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
+        DrinkAddition[] addIns = DrinkUtil.getAdditionsFromStack(stack);
+        HashMap<ResourceLocation, Integer> additionCounts = new HashMap<>();
+        for (DrinkAddition addIn : addIns) {
+            if (addIn == DrinkAdditionManager.EMPTY || addIn == null) continue;
+            ResourceLocation id = DrinkAdditionManager.getId(addIn);
+            if (additionCounts.containsKey(id)) {
+                int count = additionCounts.get(id);
+                additionCounts.put(id, ++count);
+            } else additionCounts.put(id, 1);
+        }
+        additionCounts.forEach((id, count) -> tooltip.add(Component.translatable(DrinkAdditionManager.get(id).getTranslationKey(), count).withStyle(ChatFormatting.GRAY)));
     }
 
-    public enum Temperature {
-        BURNT, HOT, NORMAL, COLD, FROZEN
+    @Override
+    public int getBarWidth(ItemStack stack) {
+        return Math.round(13.0f - (float) stack.getDamageValue() * 13.0f / (float) stack.getMaxDamage());
     }
 
+    @Override
+    public int getBarColor(ItemStack stack) {
+        return 0x25bbf7;
+    }
 }

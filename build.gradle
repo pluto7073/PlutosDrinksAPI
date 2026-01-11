@@ -1,6 +1,9 @@
 plugins {
-	id 'fabric-loom' version '1.7-SNAPSHOT'
+	id 'fabric-loom' version '1.10.+'
 	id 'maven-publish'
+	id "com.modrinth.minotaur" version "2.+"
+	id "com.github.breadmoirai.github-release" version "2.+"
+	id "com.matthewprenger.cursegradle" version "1.+"
 }
 
 version = "" + project.minecraft_version + "+" + project.mod_version
@@ -21,6 +24,15 @@ repositories {
 	maven { url "https://maven.nucleoid.xyz/" }
 }
 
+sourceSets {
+	testmod {
+		compileClasspath += main.compileClasspath
+		compileClasspath += main.output
+		runtimeClasspath += main.runtimeClasspath
+		runtimeClasspath += main.output
+	}
+}
+
 loom {
 
     accessWidenerPath = file("src/main/resources/pdapi.accesswidener")
@@ -33,6 +45,33 @@ loom {
 
 		server {
 			runDir 'run/server'
+		}
+
+		datagen {
+			client()
+
+			name "Minecraft Test Datagen"
+
+			source sourceSets.testmod
+
+			vmArg "-Dfabric-api.datagen"
+			vmArg "-Dfabric-api.datagen.output-dir=${file("src/testmod/generated/resources")}"
+			vmArg "-Dfabric-api.datagen.modid=pdapi_test"
+			vmArg "-Dporting_lib.datagen.existing_resources=${file("src/testmod/resources")}"
+		}
+
+		testmodClient {
+			client()
+			name "Testmod Client"
+			source sourceSets.testmod
+			runDir "run/test"
+		}
+
+		testmodServer {
+			server()
+			name "Testmod Server"
+			source sourceSets.testmod
+			runDir "run/test_server"
 		}
 	}
 
@@ -47,7 +86,7 @@ dependencies {
 	})
 
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
-	modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
+
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
@@ -57,6 +96,15 @@ dependencies {
 	modImplementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}"
 
 	modApi "dev.architectury:architectury-fabric:$architectury_version"
+
+	modApi(include("ml.pluto7073:chemicals:$project.minecraft_version+$project.chemicals_version"))
+	modApi(include("ml.pluto7073:plutonium:$plutonium_version"))
+
+	// Dev Env
+	modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
+	modLocalRuntime "maven.modrinth:kiwi:$kiwi_version"
+	// modLocalRuntime "maven.modrinth:plutos-coffee-mod:$minecraft_version+$plutoscoffee_version"
+	// modLocalRuntime "maven.modrinth:bartending:$minecraft_version+$bartending_version"
 }
 
 processResources {
@@ -66,6 +114,18 @@ processResources {
 		expand "version": mod_version
 	}
 }
+
+tasks.register("buildOrPublish") {
+	String user = System.getenv("MAVEN_USER")
+	if (user != null && !user.isEmpty()) {
+		dependsOn(tasks.publish)
+		println("prepared for publish")
+	} else {
+		dependsOn(tasks.build)
+		println("prepared for build")
+	}
+}
+
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
@@ -85,27 +145,4 @@ jar {
 	}
 }
 
-publishing {
-	repositories {
-		maven {
-			url = System.getenv("PUBLISH_LOCATION")
-		}
-	}
-
-	publications {
-
-		mavenJava(MavenPublication) {
-			artifactId = 'pdapi'
-
-			from(components.java)
-			pom.withXml {
-				Node pom = asNode()
-				pom.dependencies.'*'.findAll() {
-					it.artifactId.text() != 'cloth-config-fabric'
-				}.each() {
-					it.parent().remove(it)
-				}
-			}
-		}
-	}
-}
+apply from: 'gradle/publishing/publishing.gradle'

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "pdapi_test",
+  "version": "1.0.0",
+  "name": "PDAPI Test",
+  "description": "",
+  "authors": [
+    "Pluto7073"
+  ],
+  "contact": {
+  },
+  "license": "MIT",
+  "icon": "assets/pdapi_test/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "ml.pluto7073.pdapi_test.PDAPITestMod"
+    ],
+    "client": [
+      "ml.pluto7073.pdapi_test.PDAPITestModClient"
+    ],
+    "fabric-datagen": [
+      "ml.pluto7073.pdapi_test.data.TestDatagen"
+    ]
+  }
+}

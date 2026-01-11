@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class DrinkAddition {
 
@@ -40,19 +41,20 @@ public class DrinkAddition {
             ResourceLocation.CODEC.xmap(DrinkAdditionManager::get, DrinkAdditionManager::getId);
 
     private final OnDrinkAction[] actions;
+    private final double volume;
     private final boolean changesColor;
     private final int color;
-    private final Map<String, Integer> chemicals;
+    private final Map<ResourceLocation, Float> chemicals;
     private final int maxAmount;
     private final int currentWeight;
     private final String name;
 
-    protected DrinkAddition(List<OnDrinkAction> actions, boolean changesColor, int color, Map<String, Integer> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
-        this.actions = actions.toArray(OnDrinkAction[]::new);
+    protected DrinkAddition(List<OnDrinkAction> actions, double volume, boolean changesColor, int color, Map<ResourceLocation, Float> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
+        this.actions = actions;
+        this.volume = volume;
         this.changesColor = changesColor;
         this.color = color;
-        this.chemicals = new HashMap<>(chemicals);
-        ConsumableChemicalRegistry.fillChemicalMap(this.chemicals);
+        this.chemicals = chemicals;
         this.maxAmount = maxAmount;
         this.currentWeight = currentWeight;
         this.name = name;
@@ -62,6 +64,14 @@ public class DrinkAddition {
         for (OnDrinkAction action : actions) {
             action.onDrink(stack, level, user);
         }
+    }
+
+    public List<OnDrinkAction> actions() {
+        return actions;
+    }
+
+    public double volume() {
+        return volume;
     }
 
     public boolean changesColor() {
@@ -92,7 +102,7 @@ public class DrinkAddition {
         OnDrinkAction.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, actions());
         buf.writeBoolean(changesColor);
         buf.writeInt(color);
-        buf.writeMap(chemicals, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeInt);
+        buf.writeMap(chemicals, FriendlyByteBuf::writeResourceLocation, FriendlyByteBuf::writeFloat);
         buf.writeInt(maxAmount);
         buf.writeInt(currentWeight);
         buf.writeUtf(Objects.requireNonNullElse(name, ""));
@@ -102,7 +112,7 @@ public class DrinkAddition {
         List<OnDrinkAction> actions = OnDrinkAction.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf);
         boolean changesColor = buf.readBoolean();
         int color = buf.readInt();
-        Map<String, Integer> chemicals = buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readInt);
+        Map<ResourceLocation, Float> chemicals = buf.readMap(FriendlyByteBuf::readResourceLocation, FriendlyByteBuf::readFloat);
         int maxAmount = buf.readInt();
         int currentWeight = buf.readInt();
         String name = buf.readUtf();
@@ -125,26 +135,32 @@ public class DrinkAddition {
     public static class Builder {
 
         private final List<OnDrinkAction> actions;
+        private double volume;
         private boolean changesColor;
         private int color;
-        private final HashMap<String, Integer> chemicals;
+        private final HashMap<ResourceLocation, Float> chemicals;
         private int maxAmount;
         private int weight;
         private String name;
 
         public Builder() {
             actions = new ArrayList<>();
+            volume = 0.0;
             changesColor = false;
             color = 0;
             chemicals = new HashMap<>();
-            ConsumableChemicalRegistry.forEach(handler -> chemical(handler.getName(), 0));
             maxAmount = 0;
             weight = 0;
-            name = null;
+            name = "";
         }
 
         public Builder addAction(OnDrinkAction action) {
             actions.add(action);
+            return this;
+        }
+
+        public Builder volume(double volume) {
+            this.volume = volume;
             return this;
         }
 
@@ -158,7 +174,7 @@ public class DrinkAddition {
             return this;
         }
 
-        public Builder chemical(String name, int amount) {
+        public Builder chemical(ResourceLocation name, float amount) {
             chemicals.put(name, amount);
             return this;
         }
@@ -179,7 +195,11 @@ public class DrinkAddition {
         }
 
         public DrinkAddition build() {
-            return new DrinkAddition(actions, changesColor, color, chemicals, maxAmount, name, weight);
+            return new DrinkAddition(ImmutableList.copyOf(actions), volume, changesColor, color, chemicals, maxAmount, name, weight);
+        }
+
+        public void save(ResourceLocation id, BiConsumer<ResourceLocation, DrinkAddition> output) {
+            output.accept(id, build());
         }
 
     }

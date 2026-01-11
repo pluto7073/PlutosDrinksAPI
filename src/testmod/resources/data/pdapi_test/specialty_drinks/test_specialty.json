@@ -1,0 +1,16 @@
+{
+  "base": {
+    "type": "pdapi:item",
+    "item": "pdapi_test:test_item"
+  },
+  "additions": [
+    "pdapi:milk",
+    "pdapi:sugar",
+    "pdapi_test:random_addition"
+  ],
+  "onDrinkActions": [],
+  "chemicals": {},
+  "color": 12396008,
+  "name": "Testing Specialty Drink??",
+  "volume": 13.25
+}

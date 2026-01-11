@@ -1,0 +1,25 @@
+
+
+curseforge {
+    apiKey = System.getenv("CURSE_TOKEN") ?: "unset"
+    project {
+        id = "1114525"
+        changelog = changelog_text
+        releaseType = 'release'
+        for (final def version in project.minecraft_dependency.split(',')) {
+            addGameVersion(version)
+        }
+        addGameVersion("Fabric")
+        relations {
+            embeddedLibrary("chemicals")
+            requiredDependency("fabric-api")
+        }
+        mainArtifact(file("build/libs/${remapJar.archiveBaseName.get()}-${version}.jar")) {
+            displayName = version
+        }
+        afterEvaluate {
+            uploadTask.dependsOn(tasks.remapJar)
+        }
+    }
+    curseGradleOptions.forgeGradleIntegration = false
+}

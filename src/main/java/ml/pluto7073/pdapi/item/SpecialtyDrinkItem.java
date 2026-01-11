@@ -1,31 +1,66 @@
 package ml.pluto7073.pdapi.item;
 
+import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-
-import java.util.Arrays;
 
 @MethodsReturnNonnullByDefault
 public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
 
     protected SpecialtyDrinkItem(Properties settings) {
-        super(Items.GLASS_BOTTLE, Temperature.NORMAL, settings);
+        super(Items.GLASS_BOTTLE, 0, settings);
     }
 
     @Override
-    public int getChemicalContent(String name, ItemStack stack) {
-        int amount;
+    protected Item baseItem(ItemStack stack) {
+        SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack);
+        AbstractCustomizableDrinkItem base =
+                (AbstractCustomizableDrinkItem) drink.getBaseItem(stack).getItem();
+        return base.baseItem(stack);
+    }
+
+    @Override
+    public double getTotalVolume(ItemStack stack) {
         try {
-            amount = DrinkUtil.getSpecialDrink(stack).chemicals().get(name);
+            SpecialtyDrink specialty = DrinkUtil.getSpecialDrink(stack);
+            if (specialty.volume() != 0) {
+                return specialty.volume();
+            }
+            ItemStack baseItem = specialty.getBaseItem(stack);
+            if (baseItem.getItem() instanceof AbstractCustomizableDrinkItem drink) {
+                return drink.getTotalVolume(baseItem);
+            } else {
+                return super.getTotalVolume(stack);
+            }
         } catch (Exception e) {
-            amount = 0;
+            PDAPI.LOGGER.warn("Error getting total volume of {}", stack, e);
+            return 0;
         }
-        return super.getChemicalContent(name, stack) + amount;
+    }
+
+    @Override
+    public float getChemicalContent(ResourceLocation name, ItemStack stack) {
+        float amount;
+        try {
+            SpecialtyDrink specialty = DrinkUtil.getSpecialDrink(stack);
+            amount = specialty.chemicals().getOrDefault(name, 0f);
+            ItemStack baseItem = specialty.getBaseItem(stack);
+            if (baseItem.getItem() instanceof AbstractCustomizableDrinkItem drink) {
+                return amount + drink.getChemicalContent(name, baseItem);
+            } else {
+                return super.getChemicalContent(name, stack) + amount;
+            }
+        } catch (Exception e) {
+            PDAPI.LOGGER.warn("Error getting amount of {} in {}", name, stack, e);
+            return 0;
+        }
     }
 
     @Override

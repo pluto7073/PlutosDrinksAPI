@@ -2,20 +2,23 @@ package ml.pluto7073.pdapi;
 
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializers;
+import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.client.gui.PDScreens;
 import ml.pluto7073.pdapi.command.PDCommands;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.entity.PDTrackedData;
+import ml.pluto7073.pdapi.config.PDCommonConfig;
 import ml.pluto7073.pdapi.entity.effect.PDMobEffects;
-import ml.pluto7073.pdapi.gamerule.PDGameRules;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.networking.PDClientboundPackets;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkBaseSerializer;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkSerializer;
 import ml.pluto7073.pdapi.util.DrinkUtil;
+import ml.pluto7073.plutonium.PlutoniumConfig;
+import ml.pluto7073.plutonium.config.ServerConfigType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
@@ -25,7 +28,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -40,19 +42,21 @@ public class PDAPI implements ModInitializer {
     public static final String ID = "pdapi";
     public static final Logger LOGGER = LogManager.getLogger("PDAPI");
     public static final ResourceKey<CreativeModeTab> SPECIALTY_DRINKS_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB, asId("specialty_drinks"));
+    public static final ServerConfigType<PDCommonConfig> CONFIG_TYPE =
+            Registry.register(PlutoniumConfig.SERVER_CONFIG_TYPES, asId("common"), new ServerConfigType<>(PDCommonConfig.INSTANCE, PDCommonConfig::new));
+
 
     @Override
     public void onInitialize() {
         OnDrinkSerializers.init();
-        SpecialtyDrinkSerializer.init();
+        SpecialtyDrinkBaseSerializer.init();
         PDTrackedData.init();
         PDRecipeTypes.init();
+        CaffeineHandler.init();
         PDBlocks.init();
         PDComponents.init();
         PDItems.init();
         PDMobEffects.init();
-        PDGameRules.init();
-        PDCommands.init();
 
         PDClientboundPackets.registerPackets();
 

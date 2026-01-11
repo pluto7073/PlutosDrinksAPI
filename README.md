@@ -6,6 +6,12 @@ While this is an API mod, it does add some Runtime features into the game, inclu
 - `/drink` command for setting/retrieving amount of caffeine (and other chemicals) in players
 - Several built-in drink additions (list can be found on the [wiki](https://github.com/pluto7073/PlutosDrinksAPI/wiki)) and the ability to create custom drink additions using datapacks
 
+## Consumable Chemicals
+PDAPI introduces Caffeine to the game, and allows for other mods to introduce their own chemicals using the same system.
+This functionality has been separated into its own mod, [Consumable Chemicals](https://github.com/pluto7073/ConsumableChemicals).
+If a mod requires Consumable Chemicals, having PDAPI installed also satisfies that requirement, as PDAPI is now bundled with
+the Consumable Chemicals code, and CC is not required to be installed for PDAPI to work properly
+
 ## Heads Up
 While you are free to use this in your own projects, this API is still in Beta and I am still developing the Pluto's Drinks Series, meaning I will often rewrite and fiddle around with various parts of the code thus causing several breaking changes in minor versions of the mod.
 
@@ -17,8 +23,7 @@ If you wish to use this API in your own Mods, add the following to your `build.g
 `build.gradle`
 ```groovy
 repositories {
-  maven { url = "https://maven.shedaniel.me/" } // Cloth Config
-  maven { url = "https://pluto-mod-maven.web.app/maven" } // PDAPI
+  maven { url = "https://maven.plutonia.xyz/maven" } // PDAPI
 }
 
 dependencies {
@@ -28,7 +33,7 @@ dependencies {
 
 `gradle.properties`
 ```properties
-pdapi_version=0.2.20
+pdapi_version=<most-recent-mod-version>
 ```
 
 ## Forge Version?

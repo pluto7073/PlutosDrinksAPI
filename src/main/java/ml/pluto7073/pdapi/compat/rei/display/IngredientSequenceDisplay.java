@@ -4,11 +4,13 @@ import com.google.common.collect.Lists;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
+import me.shedaniel.rei.api.common.registry.RecipeManagerContext;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import ml.pluto7073.pdapi.compat.rei.DrinkREI;
-import ml.pluto7073.pdapi.specialty.InProgressItemRegistry;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.minecraft.Util;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -23,11 +25,20 @@ public class IngredientSequenceDisplay extends BasicDisplay {
 
     public IngredientSequenceDisplay(SpecialtyDrink drink) {
         super(Util.make(() -> {
-            ItemStack base = new ItemStack(drink.base());
-            if (InProgressItemRegistry.isInProgressItem(base.getItem())) {
-                base = new ItemStack(InProgressItemRegistry.getBase(base.getItem()));
+            ItemStack base = drink.base().buildItemStack();
+            Ingredient baseIngredient = Ingredient.of(base);
+            if (DrinkUtil.isInProgressItem(base.getItem(), RecipeManagerContext.getInstance().getRecipeManager())) {
+                if (base.getOrCreateTag().contains("FromItem")) {
+                    baseIngredient = Ingredient.of(BuiltInRegistries.ITEM.get(new ResourceLocation(base.getOrCreateTag().getString("FromItem"))));
+                } else {
+                    Item[] bases = DrinkUtil.getPossibleBases(base.getItem(),
+                            RecipeManagerContext.getInstance().getRecipeManager());
+                    if (bases.length > 0) {
+                        baseIngredient = Ingredient.of(bases);
+                    }
+                }
             }
-            List<EntryIngredient> list = new ArrayList<>(List.of(EntryIngredients.of(base)));
+            List<EntryIngredient> list = new ArrayList<>(List.of(EntryIngredients.ofIngredient(baseIngredient)));
             list.addAll(DrinkREI.Util.condenseIngredients(drink.stepsToIngredientList()));
             return list;
         }), Collections.singletonList(EntryIngredients.of(drink.getAsItem())), Optional.of(drink.id()));
