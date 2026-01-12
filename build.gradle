@@ -79,8 +79,8 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings(loom.layered {
 		it.mappings "org.quiltmc:quilt-mappings:${minecraft_version}+build.${quilt_mappings}:intermediary-v2"
-		//it.parchment "org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip"
 		it.officialMojangMappings { nameSyntheticMembers = false }
+		it.parchment "org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip"
 	})
 
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
