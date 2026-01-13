@@ -43,19 +43,24 @@ public class CaffeineHandler extends HalfLifeChemicalHandler {
         if (amount >= 150) {
             list.add(new MobEffectInstance(MobEffects.DIG_SPEED, 600));
         }
-        if (amount >= 300) {
-            list.add(new MobEffectInstance(MobEffects.HUNGER, 600));
-        }
-        if (amount >= 400 && FabricLoader.getInstance().isModLoaded("dehydration")) {
-            //noinspection DataFlowIssue
-            list.add(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.get(new ResourceLocation("dehydration:thirst_effect")),
-                    600, 0));
-        }
         if (amount >= 450) {
             list.add(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 600, 1));
         }
         if (amount >= 500) {
             list.add(new MobEffectInstance(MobEffects.JUMP, 600));
+        }
+        if (amount >= 550) {
+            list.add(new MobEffectInstance(MobEffects.HUNGER, 600));
+        }
+        if (amount >= 600) {
+            if (FabricLoader.getInstance().isModLoaded("dehydration")) {
+                //noinspection DataFlowIssue
+                list.add(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.get(new ResourceLocation("dehydration:thirst_effect")),
+                        600, 0));
+            } else if (FabricLoader.getInstance().isModLoaded("toughasnails"))
+                //noinspection DataFlowIssue
+                list.add(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.get(new ResourceLocation("toughasnails:thirst")),
+                        600, 0));
         }
         if (amount >= 600) {
             list.add(new MobEffectInstance(MobEffects.DIG_SPEED, 600, 1));
