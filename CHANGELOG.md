@@ -1,4 +1,5 @@
 ## Changes
+- Sip amounts are no longer determined by item durability, rather by a custom tag called `Sipped`.
 - The "Specialty Drinks" creative tab icon has been changed to the PDAPI Icon (a custom item only obtainable through commands)
 - The current level must be used to obtain the Specialty Drink and Drink Addition managers
   - use `Level.getSpecialtyDrinkManager()` and `Level.getDrinkAdditionManager`

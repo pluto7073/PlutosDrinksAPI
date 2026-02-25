@@ -64,11 +64,9 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     }
 
     @Override
-    public float getConsumedChemicalContent(ResourceLocation id, ItemStack stack) {
-        float amount = getChemicalContent(id, stack);
-        return (float) ((getSipAmount(stack) / 2f) / getTotalVolume(stack)) * amount;
     public float getConsumedChemicalContent(ResourceLocation id, ItemStack stack, Level level) {
         float amount = getChemicalContent(id, stack, level);
+        return (float) (getSipAmount(stack, level) / getTotalVolume(stack, level)) * amount;
     }
 
     protected Item baseItem(ItemStack stack, Level level) {
@@ -102,7 +100,14 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         Player player = user instanceof Player ? (Player) user : null;
 
         if (player != null) {
-            stack.hurtAndBreak(getSipAmount(stack), player, p -> {});
+            double sipped = stack.getOrCreateTag().getDouble("Sipped");
+            sipped += getSipAmount(stack, world);
+            if (sipped >= getTotalVolume(stack, world)) {
+                stack.shrink(1);
+                stack.getOrCreateTag().remove("Sipped");
+            } else  {
+                stack.getOrCreateTag().putDouble("Sipped", sipped);
+            }
         }
 
         if (!stack.isEmpty()) return stack;
@@ -140,7 +145,6 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
-        DrinkAddition[] addIns = DrinkUtil.getAdditionsFromStack(stack);
         if (world == null) return;
         DrinkAddition[] addIns = DrinkUtil.getAdditionsFromStack(stack, world);
         HashMap<ResourceLocation, Integer> additionCounts = new HashMap<>();
@@ -157,11 +161,17 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
 
     @Override
     public int getBarWidth(ItemStack stack) {
-        return Math.round(13.0f - (float) stack.getDamageValue() * 13.0f / (float) stack.getMaxDamage());
+        // ItemStack.getBarWith() is only called from the client so using Minecraft.level is safe
+        return Math.round(13.0f - (float) stack.getOrCreateTag().getInt("Sipped") * 13.0f / (float) getTotalVolume(stack, Minecraft.getInstance().level));
     }
 
     @Override
     public int getBarColor(ItemStack stack) {
         return 0x25bbf7;
+    }
+
+    @Override
+    public boolean isBarVisible(ItemStack stack) {
+        return stack.getOrCreateTag().getInt("Sipped") > 0;
     }
 }
