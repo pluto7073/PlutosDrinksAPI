@@ -1,3 +1,7 @@
+## Changes
+- The "Specialty Drinks" creative tab icon has been changed to the PDAPI Icon (a custom item only obtainable through commands)
+
+---
 
 ## Changes
 - Server config is no longer controlled by gamerules, and now uses a server config.
