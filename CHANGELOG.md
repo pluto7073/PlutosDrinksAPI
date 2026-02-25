@@ -1,5 +1,8 @@
 ## Changes
 - The "Specialty Drinks" creative tab icon has been changed to the PDAPI Icon (a custom item only obtainable through commands)
+- The current level must be used to obtain the Specialty Drink and Drink Addition managers
+  - use `Level.getSpecialtyDrinkManager()` and `Level.getDrinkAdditionManager`
+- Adds support for (and embeds) Chemicals 2.0.x, using `ConsumedInstances` and `AbsorptionType`s
 
 ---
 

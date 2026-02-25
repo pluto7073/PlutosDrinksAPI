@@ -86,7 +86,7 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
         Container testInput = DrinkUtil.copyContainerContents(inputSlots);
 
         if (inputSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0)).getBaseItem(inputSlots.getItem(0)));
+            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0), world).getBaseItem(inputSlots.getItem(0)));
         }
 
         List<DrinkWorkstationRecipe> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, testInput, world);
@@ -101,13 +101,13 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
             // Specialty Drink testing
             Container testResults = DrinkUtil.copyContainerContents(resultSlots);
             if (resultSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0)).getBaseItem(resultSlots.getItem(0)));
+                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0), world).getBaseItem(resultSlots.getItem(0)));
             }
-            List<SpecialtyDrink> matchingDrinks = SpecialtyDrinkManager.values().stream()
+            List<SpecialtyDrink> matchingDrinks = world.getSpecialtyDrinkManager().values().stream()
                     .filter(drink -> drink.matches(testResults)).toList();
             if (matchingDrinks.isEmpty()) return;
             SpecialtyDrink drink = matchingDrinks.get(0);
-            stack = drink.getAsItem();
+            stack = drink.getAsItem(world);
             CompoundTag data = resultSlots.getItem(0).getOrCreateTag().copy();
             data.remove("Drink");
             data.getCompound(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY)

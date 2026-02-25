@@ -7,6 +7,7 @@ import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.networking.PDClientboundPackets;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 
 public class PDAPIClient implements ClientModInitializer {
@@ -17,7 +18,7 @@ public class PDAPIClient implements ClientModInitializer {
 
         MenuScreens.register(PDScreens.WORKSTATION_MENU_TYPE, DrinkWorkstationScreen::new);
 
-        ColorProviderRegistry.ITEM.register((stack, index) -> index > 0 ? -1 : DrinkUtil.getDrinkColor(stack), PDItems.SPECIALTY_DRINK);
+        ColorProviderRegistry.ITEM.register((stack, index) -> index > 0 ? -1 : DrinkUtil.getDrinkColor(stack, Minecraft.getInstance().level), PDItems.SPECIALTY_DRINK);
     }
 
 }

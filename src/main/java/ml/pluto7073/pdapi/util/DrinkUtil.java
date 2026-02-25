@@ -41,8 +41,6 @@ import java.util.stream.Stream;
 
 public final class DrinkUtil {
 
-    private static final HashMap<String, Converter<Tag>> OLD_CONVERSION_REGISTRY = new HashMap<>();
-
     public static ResourceLocation getAsId(ResourceLocation file, String dir) {
         return file.withPath(s -> s.replace(dir + '/', "").replace(".json", ""));
     }
@@ -78,23 +76,12 @@ public final class DrinkUtil {
         return r << 16 | g << 8 | b;
     }
 
-    public static int getColorForDrinkWithDefault(ItemStack drink, int normal) {
-        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink);
+    public static int getColorForDrinkWithDefault(ItemStack drink, int normal, Level level) {
+        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink, level);
         List<Integer> colors = Arrays.stream(additions).filter(DrinkAddition::changesColor)
                 .map(DrinkAddition::getColor).collect(Collectors.toCollection(ArrayList::new));
         colors.add(0, normal);
         return averageColors(colors);
-    }
-
-    public static void convertStackFromPlutosCoffee(ItemStack stack) {
-        CompoundTag nbt = stack.getOrCreateTag();
-        if (!nbt.contains("Coffee")) return;
-        Stack<String> currentPath = new Stack<>();
-        currentPath.push("Coffee");
-        CompoundTag oldCoffeeData = nbt.getCompound("Coffee");
-        handleCompound(currentPath, oldCoffeeData);
-        nbt.put(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY, oldCoffeeData);
-        nbt.remove("Coffee");
     }
 
     public static <T> List<T> condense(List<T> base) {
@@ -141,24 +128,6 @@ public final class DrinkUtil {
         return list2.isEmpty();
     }
 
-    private static void handleCompound(Stack<String> currentPath, CompoundTag compound) {
-        for (String key : compound.getAllKeys()) {
-            Tag element = compound.get(key);
-            if (element == null) continue;
-            currentPath.push(key);
-            String current = convertPathStackToString(currentPath);
-            if (OLD_CONVERSION_REGISTRY.containsKey(current)) {
-                element = OLD_CONVERSION_REGISTRY.get(current).convert(element);
-                compound.put(key, element);
-                continue;
-            }
-            if (element.getId() == CompoundTag.TAG_COMPOUND) {
-                handleCompound(currentPath, (CompoundTag) element);
-            }
-            currentPath.pop();
-        }
-    }
-
     public static Container copyContainerContents(Container source) {
         Container container = new SimpleContainer(source.getContainerSize());
         for (int i = 0; i < source.getContainerSize(); i++) {
@@ -167,21 +136,16 @@ public final class DrinkUtil {
         return container;
     }
 
-    public static DrinkAddition[] getAdditionsFromStack(ItemStack stack) {
-        convertStackFromPlutosCoffee(stack);
+    public static DrinkAddition[] getAdditionsFromStack(ItemStack stack, Level level) {
         CompoundTag drinkData = stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
         ListTag additions = drinkData.getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
         ArrayList<DrinkAddition> additionsList = new ArrayList<>();
         for (int i = 0; i < additions.size(); i++) {
             String id = additions.getString(i);
             ResourceLocation identifier = new ResourceLocation(id);
-            additionsList.add(DrinkAdditionManager.get(identifier));
+            additionsList.add(level.getDrinkAdditionManager().get(identifier));
         }
         return additionsList.toArray(new DrinkAddition[0]);
-    }
-
-    public static void registerOldToNewConverter(String nbtPath, Converter<Tag> converter) {
-        OLD_CONVERSION_REGISTRY.put(nbtPath, converter);
     }
 
     private static String convertPathStackToString(Stack<String> stack) {
@@ -203,25 +167,25 @@ public final class DrinkUtil {
         return CaffeineHandler.INSTANCE.get(player);
     }
 
-    public static SpecialtyDrink getSpecialDrink(ItemStack stack) {
+    public static SpecialtyDrink getSpecialDrink(ItemStack stack, Level level) {
         CompoundTag nbt = stack.getOrCreateTag();
         String id = nbt.getString("Drink");
-        SpecialtyDrink drink = SpecialtyDrinkManager.get(new ResourceLocation(id));
+        SpecialtyDrink drink = level.getSpecialtyDrinkManager().get(new ResourceLocation(id));
         if (drink == null) return SpecialtyDrinkManager.EMPTY;
         return drink;
     }
 
-    public static ItemStack setSpecialDrink(ItemStack stack, SpecialtyDrink drink) {
+    public static ItemStack setSpecialDrink(ItemStack stack, SpecialtyDrink drink, Level level) {
         CompoundTag nbt = stack.getOrCreateTag();
-        nbt.put("Drink", StringTag.valueOf(drink.id().toString()));
+        nbt.put("Drink", StringTag.valueOf(drink.id(level).toString()));
         stack.setTag(nbt);
         return stack;
     }
 
-    public static int getDrinkColor(ItemStack stack) {
+    public static int getDrinkColor(ItemStack stack, Level level) {
         if (!stack.is(PDItems.SPECIALTY_DRINK)) return -1;
         try {
-            SpecialtyDrink drink = getSpecialDrink(stack);
+            SpecialtyDrink drink = getSpecialDrink(stack, level);
             return drink.color();
         } catch (IllegalArgumentException e) {
             return 0xf918c5;
@@ -275,10 +239,6 @@ public final class DrinkUtil {
         recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.getBase().getItems())));
         if (matchingStacks.isEmpty()) return Ingredient.EMPTY;
         return Ingredient.of(matchingStacks.stream());
-    }
-
-    public interface Converter<T extends Tag> {
-        T convert(T startingElement);
     }
 
 }

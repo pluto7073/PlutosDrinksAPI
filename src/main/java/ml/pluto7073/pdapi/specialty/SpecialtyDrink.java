@@ -24,6 +24,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class SpecialtyDrink {
                     Codec.list(OnDrinkAction.CODEC).fieldOf("onDrinkActions").forGetter(drink -> List.of(drink.actions)),
                     Codec.DOUBLE.fieldOf("volume").orElse(0.0).forGetter(SpecialtyDrink::volume),
                     Codec.INT.fieldOf("color").orElse(-1).forGetter(SpecialtyDrink::color),
-                    Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.REGISTRY)
+                    Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.CHEMICAL_HANDLER)
                             .fieldOf("chemicals").orElse(Map.of()).forGetter(SpecialtyDrink::chemicals),
                     Codec.STRING.fieldOf("name").orElse("").forGetter(drink -> drink.name))
             .apply(instance, SpecialtyDrink::new));
@@ -63,12 +64,12 @@ public class SpecialtyDrink {
         this.name = name == null ? "" : name;
     }
 
-    public String languageKey() {
-        return id().toLanguageKey("drink");
+    public String languageKey(Level level) {
+        return id(level).toLanguageKey("drink");
     }
 
-    public ResourceLocation id() {
-        return SpecialtyDrinkManager.getId(this);
+    public ResourceLocation id(Level level) {
+        return level.getSpecialtyDrinkManager().getId(this);
     }
 
     public SpecialtyDrinkBase base() {
@@ -79,10 +80,10 @@ public class SpecialtyDrink {
         return List.of(steps);
     }
 
-    public List<OnDrinkAction> actions() {
+    public List<OnDrinkAction> actions(Level level) {
         ArrayList<OnDrinkAction> stepActions = new ArrayList<>();
         for (ResourceLocation step : steps) {
-            stepActions.addAll(DrinkAdditionManager.get(step).actions());
+            stepActions.addAll(level.getDrinkAdditionManager().get(step).actions());
         }
         stepActions.addAll(List.of(actions));
         return ImmutableList.copyOf(stepActions);
@@ -100,12 +101,12 @@ public class SpecialtyDrink {
         return chemicals;
     }
 
-    public String name() {
-        return name == null || name.isEmpty() ? languageKey() : name;
+    public String name(Level level) {
+        return name == null || name.isEmpty() ? languageKey(level) : name;
     }
 
-    public ItemStack getAsItem() {
-        return DrinkUtil.setSpecialDrink(new ItemStack(PDItems.SPECIALTY_DRINK, 1), this);
+    public ItemStack getAsItem(Level level) {
+        return DrinkUtil.setSpecialDrink(new ItemStack(PDItems.SPECIALTY_DRINK, 1), this, level);
     }
 
     public ItemStack getBaseItem(ItemStack source) {

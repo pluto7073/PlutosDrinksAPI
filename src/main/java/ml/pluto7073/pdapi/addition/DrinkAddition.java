@@ -24,7 +24,7 @@ public class DrinkAddition {
                     Codec.DOUBLE.fieldOf("volume").orElse(0.0).forGetter(DrinkAddition::volume),
                     Codec.BOOL.fieldOf("changesColor").orElse(false).forGetter(DrinkAddition::changesColor),
                     Codec.INT.fieldOf("color").orElse(0).forGetter(DrinkAddition::getColor),
-                    Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.REGISTRY).fieldOf("chemicals").orElse(Map.of())
+                    Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.CHEMICAL_HANDLER).fieldOf("chemicals").orElse(Map.of())
                             .forGetter(DrinkAddition::getChemicals),
                     Codec.INT.fieldOf("maxAmount").orElse(0).forGetter(DrinkAddition::getMaxAmount),
                     Codec.STRING.fieldOf("name").orElse("").forGetter(addition -> addition.name),
@@ -109,10 +109,10 @@ public class DrinkAddition {
         return new DrinkAddition(actions, volume, changesColor, color, chemicals, maxAmount, name, currentWeight);
     }
 
-    public String getTranslationKey() {
+    public String getTranslationKey(Level level) {
         if (name != null && !name.isEmpty()) return name;
         try {
-            ResourceLocation id = DrinkAdditionManager.getId(this);
+            ResourceLocation id = level.getDrinkAdditionManager().getId(this);
             return id.toLanguageKey("drink_addition");
         } catch (IllegalArgumentException e) {
             PDAPI.LOGGER.error("Couldn't get translation key for a drink addition", e);

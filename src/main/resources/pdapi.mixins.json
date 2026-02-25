@@ -6,15 +6,17 @@
     "CowEntityMixin",
     "DefaultedMappedRegistryMixin",
     "EntityMixin",
-    "ItemStackMixin",
+    "LevelMixin",
     "LivingEntityMixin",
-    "PassiveEntityMixin"
+    "PassiveEntityMixin",
+    "ServerLevelMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
-    "client.LivingEntityRendererMixin",
-    "client.ItemRendererMixin"
+    "client.ClientLevelMixin",
+    "client.ItemRendererMixin",
+    "client.LivingEntityRendererMixin"
   ]
 }

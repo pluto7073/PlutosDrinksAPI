@@ -28,10 +28,10 @@ import java.util.List;
 
 public class CaffeineHandler extends HalfLifeChemicalHandler {
 
-    public static final CaffeineHandler INSTANCE = new CaffeineHandler(2500);
+    public static final CaffeineHandler INSTANCE = new CaffeineHandler(2500, 10000);
 
-    public CaffeineHandler(int halfLifeTicks) {
-        super(halfLifeTicks);
+    public CaffeineHandler(int halfLifeTicks, float maxRecommendedAmount) {
+        super(halfLifeTicks, maxRecommendedAmount);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class CaffeineHandler extends HalfLifeChemicalHandler {
     }
 
     public static void init() {
-        Registry.register(Chemicals.REGISTRY, PDAPI.asId("caffeine"), INSTANCE);
+        Registry.register(Chemicals.CHEMICAL_HANDLER, PDAPI.asId("caffeine"), INSTANCE);
     }
 
     @Override

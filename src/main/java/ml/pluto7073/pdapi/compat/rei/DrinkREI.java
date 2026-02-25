@@ -22,6 +22,7 @@ import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -46,8 +47,9 @@ public class DrinkREI implements REIClientPlugin {
     @Override
     public void registerDisplays(DisplayRegistry registry) {
         registry.registerRecipeFiller(DrinkWorkstationRecipe.class, PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, DrinkAdditionDisplay::new);
-        registry.registerFiller(SpecialtyDrink.class, IngredientSequenceDisplay::new);
-        SpecialtyDrinkManager.values().forEach(registry::add);
+        if (Minecraft.getInstance().level == null) return;
+        registry.registerFiller(SpecialtyDrink.class, drink -> new IngredientSequenceDisplay(drink, Minecraft.getInstance().level));
+        Minecraft.getInstance().level.getSpecialtyDrinkManager().values().forEach(registry::add);
     }
 
     @Override
