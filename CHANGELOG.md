@@ -1,3 +1,7 @@
+
+## Additions
+- Added an empty mug item for use in Pluto's Coffee and Tea Time
+
 ## Changes
 - Sip amounts are no longer determined by item durability, rather by a custom tag called `Sipped`.
 - The "Specialty Drinks" creative tab icon has been changed to the PDAPI Icon (a custom item only obtainable through commands)

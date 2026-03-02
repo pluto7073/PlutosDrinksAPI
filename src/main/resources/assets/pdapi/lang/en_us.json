@@ -3,6 +3,7 @@
   "container.drink_workstation": "Drink Workstation",
   "block.pdapi.drink_workstation": "Drink Workstation",
   "item.pdapi.milk_bottle": "Milk Bottle",
+  "item.pdapi.mug": "Empty Mug",
   "item.pdapi.specialty_drink": "Uncraftable Drink",
   "item.pdapi.icon": "PDAPI Icon",
   "creative_tab.pdapi.specialty_drinks": "Specialty Drinks",
