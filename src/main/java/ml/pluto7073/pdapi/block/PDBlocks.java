@@ -14,7 +14,7 @@ import net.minecraft.world.level.material.MapColor;
 public class PDBlocks {
 
     public static final Block DRINK_WORKSTATION = new DrinkWorkstationBlock(FabricBlockSettings.create().mapColor(MapColor.WOOD).instrument(NoteBlockInstrument.BASS).strength(2.5F).sounds(SoundType.WOOD).burnable());
-    public static final Block MUG = new MugBlock(BlockBehaviour.Properties.copy(Blocks.FLOWER_POT));
+    public static final Block MUG = new MugBlock(() -> null, BlockBehaviour.Properties.copy(Blocks.FLOWER_POT));
 
     public static void init() {
         Registry.register(BuiltInRegistries.BLOCK, PDAPI.asId("drink_workstation"), DRINK_WORKSTATION);

@@ -138,6 +138,10 @@ public final class DrinkUtil {
 
     public static DrinkAddition[] getAdditionsFromStack(ItemStack stack, Level level) {
         CompoundTag drinkData = stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
+        return getAdditionsFromTag(drinkData, level);
+    }
+
+    public static DrinkAddition[] getAdditionsFromTag(CompoundTag drinkData, Level level) {
         ListTag additions = drinkData.getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
         ArrayList<DrinkAddition> additionsList = new ArrayList<>();
         for (int i = 0; i < additions.size(); i++) {

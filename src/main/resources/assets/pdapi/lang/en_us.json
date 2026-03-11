@@ -2,6 +2,7 @@
   "tooltip.pdapi.caffeine_content": "Contains %1$smg of Caffeine",
   "container.drink_workstation": "Drink Workstation",
   "block.pdapi.drink_workstation": "Drink Workstation",
+  "block.pdapi.mug": "Empty Mug",
   "item.pdapi.milk_bottle": "Milk Bottle",
   "item.pdapi.mug": "Empty Mug",
   "item.pdapi.specialty_drink": "Uncraftable Drink",
