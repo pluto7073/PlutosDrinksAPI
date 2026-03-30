@@ -70,7 +70,7 @@ public class MugBlock extends BaseEntityBlock {
             if (level.getBlockEntity(pos) instanceof MugBlockEntity entity && level instanceof ServerLevel) {
                 ItemStack stack = entity.saveToItem();
                 Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack);
-            } else if (level instanceof ServerLevel) {
+            } else if (!(newState.getBlock() instanceof MugBlock) && level instanceof ServerLevel) {
                 ItemStack stack = new ItemStack(PDItems.MUG);
                 Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack);
             }
