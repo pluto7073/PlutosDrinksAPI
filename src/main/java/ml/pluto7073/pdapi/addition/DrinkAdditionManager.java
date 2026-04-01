@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.addition.action.NoSipAction;
 import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncAdditionRegistryPacket;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -37,6 +38,10 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
             if (get(id).getCurrentWeight() >= addition.getCurrentWeight()) return get(id);
         }
         registry.put(id, addition);
+        if (addition.actions().stream().anyMatch(action -> action instanceof NoSipAction)) {
+            IllegalArgumentException exception = new IllegalArgumentException("'pdapi:no_sip' action is only effective in Specialty Drinks");
+            PDAPI.LOGGER.warn("Encountered a warning loading drink addition {}, addition remains loaded", id, exception);
+        }
         return addition;
     }
 

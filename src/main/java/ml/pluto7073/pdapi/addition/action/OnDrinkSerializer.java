@@ -34,4 +34,32 @@ public interface OnDrinkSerializer<T extends OnDrinkAction> {
     T fromNetwork(FriendlyByteBuf buf);
     void toNetwork(FriendlyByteBuf buf, T action);
 
+    /**
+     * Symbolizes a constant action that is always the same and doesn't take any parameters
+     */
+    class EmptySerializer<T extends OnDrinkAction> implements OnDrinkSerializer<T> {
+
+        private final T value;
+        private final Codec<T> codec;
+
+        public EmptySerializer(T value) {
+            this.value = value;
+            this.codec = Codec.unit(value);
+        }
+
+        @Override
+        public Codec<T> codec() {
+            return codec;
+        }
+
+        @Override
+        public T fromNetwork(FriendlyByteBuf buf) {
+            return value;
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, T action) {}
+    }
+
+
 }

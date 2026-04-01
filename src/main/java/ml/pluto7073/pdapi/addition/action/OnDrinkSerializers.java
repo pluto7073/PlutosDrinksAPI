@@ -18,6 +18,8 @@ public final class OnDrinkSerializers {
             register("clear_harmful_effects", new ClearHarmfulEffectsAction.Serializer());
     public static final OnDrinkSerializer<ChorusTeleportAction> CHORUS_TELEPORT =
             register("chorus_teleport", new ChorusTeleportAction.Serializer());
+    public static final OnDrinkSerializer<NoSipAction> NO_SIP =
+            register("no_sip", new OnDrinkSerializer.EmptySerializer<>(new NoSipAction()));
 
     private static <T extends OnDrinkAction> OnDrinkSerializer<T> register(String id, OnDrinkSerializer<T> serializer) {
         return Registry.register(PDRegistries.ON_DRINK_SERIALIZER, PDAPI.asId(id), serializer);
