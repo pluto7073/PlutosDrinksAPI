@@ -66,11 +66,11 @@ public class MugBlock extends BaseEntityBlock {
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
+        if (!state.is(newState.getBlock()) && !(newState.getBlock() instanceof MugBlock)) {
             if (level.getBlockEntity(pos) instanceof MugBlockEntity entity && level instanceof ServerLevel) {
                 ItemStack stack = entity.saveToItem();
                 Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack);
-            } else if (!(newState.getBlock() instanceof MugBlock) && level instanceof ServerLevel) {
+            } else if (level instanceof ServerLevel) {
                 ItemStack stack = new ItemStack(PDItems.MUG);
                 Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack);
             }
