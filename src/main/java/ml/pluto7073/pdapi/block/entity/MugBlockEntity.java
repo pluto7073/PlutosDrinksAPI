@@ -25,10 +25,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY;
+
 @MethodsReturnNonnullByDefault
 public abstract class MugBlockEntity extends BlockEntity {
 
     protected final List<DrinkAddition> additions;
+    protected double sips;
 
     public MugBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -57,6 +60,7 @@ public abstract class MugBlockEntity extends BlockEntity {
             list.add(StringTag.valueOf(id.toString()));
         }
         nbt.put("Additions", list);
+        nbt.putDouble("Sipped", sips);
     }
 
     @Override
@@ -69,15 +73,17 @@ public abstract class MugBlockEntity extends BlockEntity {
             ResourceLocation id = new ResourceLocation(list.getString(i));
             additions.add(level.getDrinkAdditionManager().get(id));
         }
+        sips = tag.getDouble("Sipped");
     }
 
     public void loadFromItem(ItemStack stack) {
         additions.clear();
         additions.addAll(List.of(DrinkUtil.getAdditionsFromStack(stack, level)));
+        sips = stack.getOrCreateTag().getDouble("Sipped");
     }
 
     /**
-     * <strong>Note:</strong> use {@link MugBlockEntity#saveAdditionalToItemTag(CompoundTag, CompoundTag)} to add data to the saved item
+     * <strong>Note:</strong> override {@link MugBlockEntity#saveAdditionalToItemTag(CompoundTag)} to add data to the saved item
      * @return A new instance of the corresponding itemStack
      */
     public final ItemStack saveToItem() {
@@ -86,24 +92,24 @@ public abstract class MugBlockEntity extends BlockEntity {
         ItemStack stack = item.getDefaultInstance();
         CompoundTag tag = stack.getOrCreateTag();
         CompoundTag drinkData = new CompoundTag();
-        saveAdditionalToItemTag(drinkData, tag);
-        tag.put(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY, drinkData);
+        tag.put(DRINK_DATA_NBT_KEY, drinkData);
+        saveAdditionalToItemTag(tag);
         return stack;
     }
 
     /**
      * Adds nbt data to the item version of this Mug Block<br><br>
      * <strong>Note:</strong> Always call <code>super.saveAdditionalToItemTag()</code> or else Drink Additions won't be saved
-     * @param drinkDataTag The Drink Tag, stored under "DrinkData"
-     * @param itemTag The base tag of the item for any extra info, does not yet include the DrinkData tag yet
+     * @param itemTag The base tag of the item for any extra info, including the DrinkData tag
      */
-    public void saveAdditionalToItemTag(CompoundTag drinkDataTag, @SuppressWarnings("unused") CompoundTag itemTag) {
+    public void saveAdditionalToItemTag(CompoundTag itemTag) {
         if (level == null) return;
         ListTag tag = new ListTag();
         for (DrinkAddition addition : additions) {
             tag.add(StringTag.valueOf(level.getDrinkAdditionManager().getId(addition).toString()));
         }
-        drinkDataTag.put(DrinkAdditionManager.ADDITIONS_NBT_KEY, tag);
+        itemTag.getCompound(DRINK_DATA_NBT_KEY).put(DrinkAdditionManager.ADDITIONS_NBT_KEY, tag);
+        itemTag.putDouble("Sipped", sips);
     }
 
 }

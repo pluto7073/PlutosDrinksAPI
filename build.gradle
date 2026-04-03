@@ -6,8 +6,17 @@ plugins {
 	id "com.matthewprenger.cursegradle" version "1.+"
 }
 
-version = "" + project.minecraft_version + "+" + project.mod_version
+String getDevVersion() {
+	File out = new File("build/libs")
+	out.mkdirs();
+	return "dev." + (List.of(out.listFiles()).stream().filter {!it.getName().endsWith("javadoc.jar") && !it.getName().endsWith("sources.jar") }.map { it.getName().replace(project.archives_base_name + "-", "") }
+			.filter {it.startsWith(project.minecraft_version + "+" + project.mod_version) }.toList().size() + 1)
+}
+
+version = "" + project.minecraft_version + "+" + project.mod_version + "+build." + (System.getenv().containsKey("GITHUB_RUN_NUMBER") ? System.getenv("GITHUB_RUN_NUMBER") : getDevVersion())
 group = project.maven_group
+
+System.out.println("Version: " + version)
 
 base {
 	archivesName = project.archives_base_name
@@ -112,7 +121,7 @@ processResources {
 }
 
 tasks.register("buildOrPublish") {
-	String user = System.getenv("MAVEN_USER")
+	String user = System.getenv("PUBLISH_LOCATION")
 	if (user != null && !user.isEmpty()) {
 		dependsOn(tasks.publish)
 		println("prepared for publish")
