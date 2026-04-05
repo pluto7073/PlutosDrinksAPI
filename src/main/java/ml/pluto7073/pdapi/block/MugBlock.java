@@ -79,6 +79,10 @@ public class MugBlock extends BaseEntityBlock {
         ItemStack result = recipes.get(0).craft(container, level);
         entity.loadFromItem(result);
         entity.setChanged();
+        player.getItemInHand(hand).shrink(1);
+        if (player.getItemInHand(hand).isEmpty()) {
+            player.setItemInHand(hand, ItemStack.EMPTY);
+        }
         return InteractionResult.CONSUME;
     }
 
