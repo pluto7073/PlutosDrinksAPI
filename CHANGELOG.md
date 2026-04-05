@@ -1,6 +1,7 @@
 
 ## Additions
 - Added an empty mug item for use in Pluto's Coffee and Tea Time
+- Drinks in mugs can be given additions by right clicking on the cup with the ingredient
 
 ## Changes
 - Sip amounts are no longer determined by item durability, rather by a custom tag called `Sipped`.

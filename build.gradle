@@ -6,14 +6,15 @@ plugins {
 	id "com.matthewprenger.cursegradle" version "1.+"
 }
 
-String getDevVersion() {
-	File out = new File("build/libs")
-	out.mkdirs();
-	return "dev." + (List.of(out.listFiles()).stream().filter {!it.getName().endsWith("javadoc.jar") && !it.getName().endsWith("sources.jar") }.map { it.getName().replace(project.archives_base_name + "-", "") }
-			.filter {it.startsWith(project.minecraft_version + "+" + project.mod_version) }.toList().size() + 1)
+static String getBuildNo() {
+	if (System.getenv().containsKey("GITHUB_RUN_NUMBER")) {
+		return "+build." + System.getenv("GITHUB_RUN_NUMBER")
+	} else {
+		return "+dev"
+	}
 }
 
-version = "" + project.minecraft_version + "+" + project.mod_version + "+build." + (System.getenv().containsKey("GITHUB_RUN_NUMBER") ? System.getenv("GITHUB_RUN_NUMBER") : getDevVersion())
+version = "" + project.minecraft_version + "+" + project.mod_version + getBuildNo()
 group = project.maven_group
 
 System.out.println("Version: " + version)
