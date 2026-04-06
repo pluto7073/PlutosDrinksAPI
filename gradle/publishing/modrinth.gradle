@@ -11,6 +11,6 @@ modrinth {
     }
     loaders = [ "fabric" ]
     changelog = changelog_text
-    versionName = mod_version + "+" + minecraft_version
-    versionNumber = mod_version + "+" + minecraft_version
+    versionName = version
+    versionNumber = version
 }
