@@ -1,4 +1,9 @@
 
+## Fixes
+- Drinks that have been drank from should not be editable with a workstation
+
+---
+
 ## Additions
 - Added an empty mug item for use in Pluto's Coffee and Tea Time
 - Drinks in mugs can be given additions by right clicking on the cup with the ingredient
