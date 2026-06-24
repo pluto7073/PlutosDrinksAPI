@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ClientLevel.class)
-@Environment(EnvType.CLIENT)
 public class ClientLevelMixin implements PDAPILevelExtensions {
 
     @Unique
