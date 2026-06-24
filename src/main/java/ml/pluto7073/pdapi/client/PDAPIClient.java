@@ -1,6 +1,7 @@
 package ml.pluto7073.pdapi.client;
 
 import ml.pluto7073.pdapi.block.PDBlocks;
+import ml.pluto7073.pdapi.item.PDCreativeTabs;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.client.gui.DrinkWorkstationScreen;
 import ml.pluto7073.pdapi.client.gui.PDScreens;
@@ -17,6 +18,7 @@ public class PDAPIClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        PDCreativeTabs.initEntries();
         PDClientboundPackets.register();
 
         MenuScreens.register(PDScreens.WORKSTATION_MENU_TYPE, DrinkWorkstationScreen::new);

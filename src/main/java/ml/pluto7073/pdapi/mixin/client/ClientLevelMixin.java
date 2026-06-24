@@ -3,11 +3,15 @@ package ml.pluto7073.pdapi.mixin.client;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.internal.PDAPILevelExtensions;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.api.EnvironmentInterface;
 import net.minecraft.client.multiplayer.ClientLevel;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ClientLevel.class)
+@Environment(EnvType.CLIENT)
 public class ClientLevelMixin implements PDAPILevelExtensions {
 
     @Unique

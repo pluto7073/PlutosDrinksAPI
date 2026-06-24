@@ -1,5 +1,10 @@
 
 ## Fixes
+- Fixed a bug causing dedicated servers to crash on startup
+
+---
+
+## Fixes
 - Drinks that have been drank from should not be editable with a workstation
 
 ---

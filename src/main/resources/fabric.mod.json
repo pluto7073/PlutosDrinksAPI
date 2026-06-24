@@ -13,7 +13,7 @@
 	},
 	"license": "MIT",
 	"icon": "assets/pdapi/icon.png",
-	"accessWidener": "pdapi.accesswidener",
+	"accessWidener": "pdapi.classtweaker",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
@@ -53,7 +53,7 @@
 		"pdapi.mixins.json"
 	],
 	"depends": {
-		"fabric": ">=0.15.7",
+		"fabric": ">=0.18.0",
 		"minecraft": "~1.20.1",
 		"java": ">=17",
 		"fabric-api": "*"

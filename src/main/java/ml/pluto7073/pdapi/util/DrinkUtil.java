@@ -15,9 +15,7 @@ import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -28,7 +26,6 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
@@ -36,6 +33,7 @@ import net.minecraft.world.level.Level;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,6 +56,14 @@ public final class DrinkUtil {
             }
             return Integer.compare(first.length(), second.length());
         };
+    }
+
+    public static <T> T supplyIf(Supplier<Boolean> condition, Supplier<T> ifTrue, Supplier<T> ifFalse) {
+        if (condition.get()) {
+            return ifTrue.get();
+        } else {
+            return ifFalse.get();
+        }
     }
 
     public static int averageColors(Collection<Integer> colors) {

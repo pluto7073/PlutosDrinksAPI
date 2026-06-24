@@ -1,4 +1,0 @@
-accessWidener v2 named
-
-transitive-accessible class net/minecraft/core/registries/BuiltInRegistries$RegistryBootstrap
-transitive-accessible method net/minecraft/core/registries/BuiltInRegistries registerSimple (Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/core/registries/BuiltInRegistries$RegistryBootstrap;)Lnet/minecraft/core/Registry;

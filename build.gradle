@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.10.+'
+	id 'fabric-loom' version '1.12.+'
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "2.+"
 	id "com.github.breadmoirai.github-release" version "2.+"
@@ -43,7 +43,7 @@ sourceSets {
 
 loom {
 
-    accessWidenerPath = file("src/main/resources/pdapi.accesswidener")
+    accessWidenerPath = file("src/main/resources/pdapi.classtweaker")
 
 	runs {
 		configureEach {
@@ -134,15 +134,15 @@ tasks.register("buildOrPublish") {
 
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 17
+	it.options.release = 21
 }
 
 java {
 	withSourcesJar()
 	withJavadocJar()
 
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {

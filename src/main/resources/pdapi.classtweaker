@@ -1,0 +1,5 @@
+classTweaker v1 named
+
+transitive-accessible class net/minecraft/core/registries/BuiltInRegistries$RegistryBootstrap
+transitive-accessible method net/minecraft/core/registries/BuiltInRegistries registerSimple (Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/core/registries/BuiltInRegistries$RegistryBootstrap;)Lnet/minecraft/core/Registry;
+transitive-inject-interface net/minecraft/world/level/Level ml/pluto7073/pdapi/internal/PDAPILevelExtensions

@@ -4,7 +4,6 @@ import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import org.jetbrains.annotations.ApiStatus;
 
-@ApiStatus.Internal
 public interface PDAPILevelExtensions {
 
     default DrinkAdditionManager getDrinkAdditionManager() {
