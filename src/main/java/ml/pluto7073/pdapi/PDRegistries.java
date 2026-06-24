@@ -2,7 +2,6 @@ package ml.pluto7073.pdapi;
 
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializers;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkBaseSerializer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;

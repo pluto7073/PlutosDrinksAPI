@@ -3,7 +3,7 @@
 	"id": "pdapi",
 	"version": "${version}",
 	"name": "Pluto's Drinks API",
-	"description": "A small little API for my Pluto's Drinks series",
+	"description": "A (not so) small little API for my Pluto's Drinks series",
 	"authors": [
 		"Pluto7073"
 	],
