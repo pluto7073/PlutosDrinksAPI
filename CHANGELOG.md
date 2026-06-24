@@ -1,4 +1,7 @@
 
+## Changes
+- Mod now requires Java 21 and Fabric Loader 0.18
+
 ## Fixes
 - Fixed a bug causing dedicated servers to crash on startup
 

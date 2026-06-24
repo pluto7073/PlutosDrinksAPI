@@ -10,10 +10,5 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "client": [
-    "client.ClientLevelMixin",
-    "client.ItemRendererMixin",
-    "client.LivingEntityRendererMixin"
-  ]
+  }
 }

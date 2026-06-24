@@ -44,18 +44,19 @@
 					]
 				}
 			}
-		},
-		"loom:injected_interfaces": {
-			"net/minecraft/class_1937": [ "ml/pluto7073/pdapi/internal/PDAPILevelExtensions" ]
 		}
 	},
 	"mixins": [
-		"pdapi.mixins.json"
+		"pdapi.mixins.json",
+		{
+			"config": "pdapi.client.mixins.json",
+			"environment": "client"
+		}
 	],
 	"depends": {
 		"fabric": ">=0.18.0",
 		"minecraft": "~1.20.1",
-		"java": ">=17",
+		"java": ">=21",
 		"fabric-api": "*"
 	},
 	"suggests": {

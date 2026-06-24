@@ -1,8 +1,6 @@
 package ml.pluto7073.pdapi_test;
 
-import ml.pluto7073.pdapi.PDAPI;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
