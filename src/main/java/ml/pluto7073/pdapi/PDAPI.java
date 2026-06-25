@@ -4,14 +4,14 @@ import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializers;
 import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
 import ml.pluto7073.pdapi.block.PDBlocks;
-import ml.pluto7073.pdapi.client.gui.PDScreens;
-import ml.pluto7073.pdapi.config.PDCommonConfig;
+import ml.pluto7073.pdapi.client.gui.PDMenuTypes;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
+import ml.pluto7073.pdapi.util.PDCommonConfig;
 import ml.pluto7073.pdapi.entity.effect.PDMobEffects;
 import ml.pluto7073.pdapi.item.PDCreativeTabs;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkBaseSerializer;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.plutonium.PlutoniumConfig;
 import ml.pluto7073.plutonium.config.ServerConfigType;
 import net.fabricmc.api.ModInitializer;
@@ -46,7 +46,7 @@ public class PDAPI implements ModInitializer {
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(SERVER_ADDITION_MANAGER);
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(SERVER_SPECIALITY_DRINK_MANAGER);
 
-        PDScreens.init();
+        PDMenuTypes.init();
 
         LOGGER.info("Pluto's Drinks API ready!");
     }

@@ -3,17 +3,19 @@ package ml.pluto7073.pdapi.item;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 @MethodsReturnNonnullByDefault
 public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
@@ -77,17 +79,12 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     }
 
     @Override
-    public String getDescriptionId(ItemStack stack) {
-        try {
-            if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT && Minecraft.getInstance().level != null) {
-                Level level = Minecraft.getInstance().level;
-                return DrinkUtil.getSpecialDrink(stack, level).name(level);
-            } else {
-                return new ResourceLocation(stack.getOrCreateTag().getString("Drink")).toLanguageKey("drink");
-            }
-        } catch (Exception e) {
-            return super.getDescriptionId(stack);
-        }
+    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
+        if (world == null) return;
+        tooltip.add(Component.translatable(DrinkUtil.getSpecialDrink(stack, world).name(world)).withStyle(ChatFormatting.AQUA));
+        tooltip.add(Component.empty());
+
+        super.appendHoverText(stack, world, tooltip, context);
     }
 
 }

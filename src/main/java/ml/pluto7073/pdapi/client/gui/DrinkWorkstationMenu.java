@@ -2,7 +2,6 @@ package ml.pluto7073.pdapi.client.gui;
 
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.PDItems;
@@ -36,7 +35,7 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
     }
 
     public DrinkWorkstationMenu(int syncId, Inventory playerInventory, ContainerLevelAccess context) {
-        super(PDScreens.WORKSTATION_MENU_TYPE, syncId, playerInventory, context);
+        super(PDMenuTypes.WORKSTATION_MENU_TYPE, syncId, playerInventory, context);
         this.world = playerInventory.player.level();
         this.recipes = this.world.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE);
     }

@@ -1,4 +1,4 @@
-package ml.pluto7073.pdapi.config;
+package ml.pluto7073.pdapi.client;
 
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.plutonium.annotations.BooleanOption;

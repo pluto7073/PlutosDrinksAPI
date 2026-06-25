@@ -1,26 +1,20 @@
 package ml.pluto7073.pdapi.addition.chemicals;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.chemicals.handlers.HalfLifeChemicalHandler;
 import ml.pluto7073.pdapi.PDAPI;
-import ml.pluto7073.pdapi.config.PDCommonConfig;
+import ml.pluto7073.pdapi.util.PDCommonConfig;
 import ml.pluto7073.pdapi.entity.effect.PDMobEffects;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -1,6 +1,6 @@
 package ml.pluto7073.pdapi.entity.effect;
 
-import ml.pluto7073.pdapi.config.PDCommonConfig;
+import ml.pluto7073.pdapi.util.PDCommonConfig;
 import ml.pluto7073.pdapi.entity.damage.PDDamageTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;

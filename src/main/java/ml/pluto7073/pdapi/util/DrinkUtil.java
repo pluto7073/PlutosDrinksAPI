@@ -86,7 +86,7 @@ public final class DrinkUtil {
         DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink, level);
         List<Integer> colors = Arrays.stream(additions).filter(DrinkAddition::changesColor)
                 .map(DrinkAddition::getColor).collect(Collectors.toCollection(ArrayList::new));
-        colors.add(0, normal);
+        colors.addFirst(normal);
         return averageColors(colors);
     }
 
@@ -98,7 +98,7 @@ public final class DrinkUtil {
                 list.add(t);
                 continue;
             }
-            if (t.equals(list.get(list.size() - 1))) continue;
+            if (t.equals(list.getLast())) continue;
             list.add(t);
         }
         return list;
@@ -160,7 +160,7 @@ public final class DrinkUtil {
 
     private static String convertPathStackToString(Stack<String> stack) {
         if (stack.isEmpty()) return "";
-        StringBuilder builder = new StringBuilder(stack.get(0));
+        StringBuilder builder = new StringBuilder(stack.getFirst());
         for (int i = 1; i < stack.size(); i++) {
             builder.append("/").append(stack.get(i));
         }

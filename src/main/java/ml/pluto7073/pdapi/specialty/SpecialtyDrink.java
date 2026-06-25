@@ -12,6 +12,8 @@ import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.networking.NetworkingUtils;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -139,6 +141,7 @@ public class SpecialtyDrink {
         return true;
     }
 
+    @Environment(EnvType.CLIENT)
     public List<Ingredient> stepsToIngredientList() {
         List<Ingredient> ingredients = new ArrayList<>();
         for (ResourceLocation addition : steps) {

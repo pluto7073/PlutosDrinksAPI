@@ -1,14 +1,11 @@
 package ml.pluto7073.pdapi.item;
 
 import ml.pluto7073.chemicals.item.ChemicalContaining;
-import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
-import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,7 +23,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -163,7 +159,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     @Override
     public int getBarWidth(ItemStack stack) {
         // ItemStack.getBarWith() is only called from the client so using Minecraft.level is safe
-        return Math.round(13.0f - (float) stack.getOrCreateTag().getInt("Sipped") * 13.0f / (float) getTotalVolume(stack, Minecraft.getInstance().level));
+        return Math.round(13.0f - (float) stack.getOrCreateTag().getInt("Sipped") * 13.0f / (float) getTotalVolume(stack, net.minecraft.client.Minecraft.getInstance().level));
     }
 
     @Override
