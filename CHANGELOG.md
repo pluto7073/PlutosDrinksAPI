@@ -2,6 +2,7 @@
 ## Changes
 - Mod now requires Java 21 and Fabric Loader 0.18
 - Milk no longer restores hunger
+- Specialty Drink items are now called Specialty Drinks, and the drink name is shown in the tooltip
 
 ## Fixes
 - Fixed a bug causing dedicated servers to crash on startup
