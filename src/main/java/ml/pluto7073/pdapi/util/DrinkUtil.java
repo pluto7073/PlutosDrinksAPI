@@ -15,7 +15,6 @@ import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -56,14 +55,6 @@ public final class DrinkUtil {
             }
             return Integer.compare(first.length(), second.length());
         };
-    }
-
-    public static <T> T supplyIf(Supplier<Boolean> condition, Supplier<T> ifTrue, Supplier<T> ifFalse) {
-        if (condition.get()) {
-            return ifTrue.get();
-        } else {
-            return ifFalse.get();
-        }
     }
 
     public static int averageColors(Collection<Integer> colors) {
@@ -187,7 +178,7 @@ public final class DrinkUtil {
 
     public static ItemStack setSpecialDrink(ItemStack stack, SpecialtyDrink drink, Level level) {
         CompoundTag nbt = stack.getOrCreateTag();
-        nbt.put("Drink", StringTag.valueOf(drink.id(level).toString()));
+        nbt.put("Drink", StringTag.valueOf(drink.id(level.getSpecialtyDrinkManager()).toString()));
         stack.setTag(nbt);
         return stack;
     }
@@ -217,38 +208,6 @@ public final class DrinkUtil {
                 .map(InProgressItemRecipe::base)
                 .flatMap(ingredient -> Stream.of(ingredient.getItems()))
                 .map(ItemStack::getItem).toArray(Item[]::new);
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static Ingredient additionToIngredient(ResourceLocation additionId) {
-        Level level = Minecraft.getInstance().level;
-        if (level == null) {
-            PDAPI.LOGGER.warn("Ingredient list for \"{}\" could not be determined cause you are not in a world", additionId);
-            return Ingredient.EMPTY;
-        }
-        List<DrinkWorkstationRecipe> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
-                .stream().filter(r -> r.getResultId().equals(additionId)).toList();
-        if (recipes.isEmpty()) return Ingredient.EMPTY;
-        List<ItemStack> matchingStacks = new ArrayList<>();
-        recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.getAddition().getItems())));
-        if (matchingStacks.isEmpty()) return Ingredient.EMPTY;
-        return Ingredient.of(matchingStacks.stream());
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static Ingredient getValidBasesForAddition(ResourceLocation additionId) {
-        Level level = Minecraft.getInstance().level;
-        if (level == null) {
-            PDAPI.LOGGER.warn("Valid bases for \"{}\" can only be retrieved when a level is loaded", additionId);
-            return Ingredient.EMPTY;
-        }
-        List<DrinkWorkstationRecipe> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
-                .stream().filter(r -> r.getResultId().equals(additionId)).toList();
-        if (recipes.isEmpty()) return Ingredient.EMPTY;
-        List<ItemStack> matchingStacks = new ArrayList<>();
-        recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.getBase().getItems())));
-        if (matchingStacks.isEmpty()) return Ingredient.EMPTY;
-        return Ingredient.of(matchingStacks.stream());
     }
 
 }

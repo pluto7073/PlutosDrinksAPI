@@ -11,7 +11,8 @@
   "client": [
     "client.ClientLevelMixin",
     "client.ItemRendererMixin",
-    "client.LivingEntityRendererMixin"
+    "client.LivingEntityRendererMixin",
+    "client.ItemClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1

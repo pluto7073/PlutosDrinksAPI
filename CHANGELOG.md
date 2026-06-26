@@ -1,6 +1,7 @@
 
 ## Changes
 - Mod now requires Java 21 and Fabric Loader 0.18
+- Milk no longer restores hunger
 
 ## Fixes
 - Fixed a bug causing dedicated servers to crash on startup

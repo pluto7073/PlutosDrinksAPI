@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.chemicals.Chemicals;
+import ml.pluto7073.pdapi.item.SpecialtyDrinkItem;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
@@ -66,12 +67,12 @@ public class SpecialtyDrink {
         this.name = name == null ? "" : name;
     }
 
-    public String languageKey(Level level) {
-        return id(level).toLanguageKey("drink");
+    public String languageKey(SpecialtyDrinkManager manager) {
+        return id(manager).toLanguageKey("drink");
     }
 
-    public ResourceLocation id(Level level) {
-        return level.getSpecialtyDrinkManager().getId(this);
+    public ResourceLocation id(SpecialtyDrinkManager manager) {
+        return manager.getId(this);
     }
 
     public SpecialtyDrinkBase base() {
@@ -104,7 +105,7 @@ public class SpecialtyDrink {
     }
 
     public String name(Level level) {
-        return name == null || name.isEmpty() ? languageKey(level) : name;
+        return name == null || name.isEmpty() ? languageKey(level.getSpecialtyDrinkManager()) : name;
     }
 
     public ItemStack getAsItem(Level level) {
@@ -139,15 +140,6 @@ public class SpecialtyDrink {
             if (!actual.equals(wanted)) return false;
         }
         return true;
-    }
-
-    @Environment(EnvType.CLIENT)
-    public List<Ingredient> stepsToIngredientList() {
-        List<Ingredient> ingredients = new ArrayList<>();
-        for (ResourceLocation addition : steps) {
-            ingredients.add(DrinkUtil.additionToIngredient(addition));
-        }
-        return ingredients;
     }
 
     public void toNetwork(FriendlyByteBuf buf) {

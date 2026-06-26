@@ -157,12 +157,6 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     }
 
     @Override
-    public int getBarWidth(ItemStack stack) {
-        // ItemStack.getBarWith() is only called from the client so using Minecraft.level is safe
-        return Math.round(13.0f - (float) stack.getOrCreateTag().getInt("Sipped") * 13.0f / (float) getTotalVolume(stack, net.minecraft.client.Minecraft.getInstance().level));
-    }
-
-    @Override
     public int getBarColor(ItemStack stack) {
         return 0x25bbf7;
     }

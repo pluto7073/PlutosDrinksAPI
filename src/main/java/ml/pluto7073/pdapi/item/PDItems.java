@@ -6,10 +6,11 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 public final class PDItems {
 
-    public static final Item MILK_BOTTLE = new MilkBottleItem();
+    public static final Item MILK_BOTTLE = new MilkBottleItem(new Item.Properties().stacksTo(16).craftRemainder(Items.GLASS_BOTTLE));
     public static final Item ICON = new Item(new Item.Properties().stacksTo(1));
     public static final Item SPECIALTY_DRINK = new SpecialtyDrinkItem(new Item.Properties().stacksTo(1));
     public static final Item MUG = new BlockItem(PDBlocks.MUG, new Item.Properties());
