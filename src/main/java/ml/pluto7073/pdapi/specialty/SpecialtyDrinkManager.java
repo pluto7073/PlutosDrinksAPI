@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.PDAPI;
-import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncSpecialtyDrinkRegistryPacket;
 import ml.pluto7073.pdapi.util.DrinkUtil;
@@ -29,8 +28,6 @@ import java.util.*;
 
 public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadListener {
 
-    private static final HashMap<ResourceLocation, SpecialtyDrink> DRINKS = new HashMap<>();
-
     public static final SpecialtyDrink EMPTY = new SpecialtyDrink(
             new SpecialtyDrink.ItemBase(Items.AIR),
             List.of(), List.of(), 0, 0xfc0ffc, Map.of(), "Drink"
@@ -38,10 +35,11 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
 
     public static final ResourceLocation PHASE = PDAPI.asId("phase/specialty_drinks");
 
+    private final HashMap<ResourceLocation, SpecialtyDrink> registry = new HashMap<>();
+
     public SpecialtyDrinkManager() {
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(PHASE, (player, joined) ->
-                ServerPlayNetworking.send(player, new ClientboundSyncSpecialtyDrinkRegistryPacket(DRINKS.entrySet().stream().map(entry ->
-                        new SpecialtyDrinkHolder(entry.getKey(), entry.getValue())).toList())));
+                ServerPlayNetworking.send(player, new ClientboundSyncSpecialtyDrinkRegistryPacket(registry)));
     }
 
     @Override
@@ -51,7 +49,7 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
 
     @Override
     public void onResourceManagerReload(ResourceManager manager) {
-        DRINKS.clear();
+        registry.clear();
 
         for (Map.Entry<ResourceLocation, Resource> entry :
                 manager.listResources("specialty_drinks", id -> id.getPath().endsWith(".json")).entrySet()) {
@@ -76,13 +74,13 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
                             "instance of AbstractCustomizableDrinkItem but " + base + "is not");
                 }
 
-                DRINKS.put(id, drink);
+                registry.put(id, drink);
             } catch (IOException e) {
                 PDAPI.LOGGER.error("Couldn't load Specialty Drink {}", id, e);
             }
         }
 
-        PDAPI.LOGGER.info("Loaded {} Specialty Drinks", DRINKS.size());
+        PDAPI.LOGGER.info("Loaded {} Specialty Drinks", registry.size());
     }
 
     @Override
@@ -90,27 +88,27 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
         return new ArrayList<>();
     }
 
-    public static void register(SpecialtyDrinkHolder holder) {
-        DRINKS.put(holder.id(), holder.value());
+    public void register(SpecialtyDrinkHolder holder) {
+        registry.put(holder.id(), holder.value());
     }
 
-    public static SpecialtyDrink get(ResourceLocation id) {
-        return DRINKS.getOrDefault(id, SpecialtyDrink.EMPTY);
+    public SpecialtyDrink get(ResourceLocation id) {
+        return registry.getOrDefault(id, SpecialtyDrink.EMPTY);
     }
 
-    public static ResourceLocation getId(SpecialtyDrink drink) {
-        for (ResourceLocation id : DRINKS.keySet()) {
-            if (drink.equals(DRINKS.get(id))) return id;
+    public ResourceLocation getId(SpecialtyDrink drink) {
+        for (ResourceLocation id : registry.keySet()) {
+            if (drink.equals(registry.get(id))) return id;
         }
         return new ResourceLocation("empty");
     }
 
-    public static Collection<SpecialtyDrink> values() {
-        return DRINKS.values();
+    public Collection<SpecialtyDrink> values() {
+        return registry.values();
     }
 
-    public static void reset() {
-        DRINKS.clear();
+    public void reset() {
+        registry.clear();
     }
 
 }

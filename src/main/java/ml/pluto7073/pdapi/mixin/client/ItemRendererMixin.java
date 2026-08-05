@@ -7,6 +7,9 @@ import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
@@ -25,7 +28,8 @@ public abstract class ItemRendererMixin {
 
     @WrapMethod(method = "render")
     private void pdapi$ReplaceModelAndStack(ItemStack stack, ItemDisplayContext modelTransformationMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model, Operation<Void> original) {
-        SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack);
+        if (Minecraft.getInstance().level == null) return;
+        SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, Minecraft.getInstance().level);
         if (!stack.is(PDItems.SPECIALTY_DRINK) || drink == SpecialtyDrinkManager.EMPTY) {
             original.call(stack, modelTransformationMode, leftHanded, matrices, vertexConsumers, light, overlay, model);
         } else {

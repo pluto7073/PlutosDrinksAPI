@@ -21,10 +21,8 @@ import net.minecraft.world.level.Level;
 @MethodsReturnNonnullByDefault
 public class MilkBottleItem extends Item {
 
-    private static final FoodProperties MilkFood = (new FoodProperties.Builder()).alwaysEdible().nutrition(1).saturationModifier(5).build();
-
-    public MilkBottleItem() {
-        super(new Item.Properties().stacksTo(16).food(MilkFood).craftRemainder(Items.GLASS_BOTTLE));
+    public MilkBottleItem(Properties properties) {
+        super(properties);
     }
 
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {

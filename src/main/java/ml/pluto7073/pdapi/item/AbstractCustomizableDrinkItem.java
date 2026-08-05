@@ -3,10 +3,8 @@ package ml.pluto7073.pdapi.item;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.chemicals.item.ChemicalContaining;
-import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
-import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -46,18 +44,18 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         this.baseItem = baseItem;
     }
 
-    public double getTotalVolume(ItemStack stack) {
+    public double getTotalVolume(ItemStack stack, Level level) {
         double vol = baseVolume;
-        for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack)) {
+        for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack, level)) {
             vol += a.volume();
         }
         return vol;
     }
 
     @Override
-    public float getChemicalContent(ResourceLocation name, ItemStack stack) {
+    public float getChemicalContent(ResourceLocation name, ItemStack stack, Level level) {
         int amount = 0;
-        for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack)) {
+        for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack, level)) {
             if (a.getChemicals().containsKey(name))
                 amount += a.getChemicals().get(name);
         }
@@ -65,12 +63,12 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     }
 
     @Override
-    public float getConsumedChemicalContent(ResourceLocation id, ItemStack stack) {
-        float amount = getChemicalContent(id, stack);
-        return (float) ((getSipAmount(stack) / 2f) / getTotalVolume(stack)) * amount;
+    public float getConsumedChemicalContent(ResourceLocation id, ItemStack stack, Level level) {
+        float amount = getChemicalContent(id, stack, level);
+        return (float) (getSipAmount(stack, level) / getTotalVolume(stack, level)) * amount;
     }
 
-    protected Item baseItem(ItemStack stack) {
+    protected Item baseItem(ItemStack stack, Level level) {
         return baseItem;
     }
 
@@ -89,8 +87,11 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         return ItemUtils.startUsingInstantly(world, user, hand);
     }
 
-    protected int getSipAmount(ItemStack stack) {
-        return getTotalVolume(stack) >= 10 ? 2 : 1;
+    /**
+     * @return the amount of liquid to be sipped.  1oz for >10oz drinks, 0.5oz for less than 10oz drinks
+     */
+    protected double getSipAmount(ItemStack stack, Level level) {
+        return getTotalVolume(stack, level) > 10 ? 1 : 0.5;
     }
 
     @Override
@@ -98,7 +99,14 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         Player player = user instanceof Player ? (Player) user : null;
 
         if (player != null) {
-            stack.hurtAndBreak(getSipAmount(stack), player, p -> {});
+            double sipped = stack.getOrCreateTag().getDouble("Sipped");
+            sipped += getSipAmount(stack, world);
+            if (sipped >= getTotalVolume(stack, world)) {
+                stack.shrink(1);
+                stack.getOrCreateTag().remove("Sipped");
+            } else  {
+                stack.getOrCreateTag().putDouble("Sipped", sipped);
+            }
         }
 
         if (!stack.isEmpty()) return stack;
@@ -108,7 +116,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         }
 
         if (!world.isClientSide) {
-            DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(stack);
+            DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(stack, world);
             for (DrinkAddition addition : additions) {
                 addition.onDrink(stack, world, user);
             }
@@ -123,11 +131,11 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
 
         if (player == null || !player.getAbilities().instabuild) {
             if (stack.isEmpty()) {
-                return new ItemStack(baseItem(stack));
+                return new ItemStack(baseItem(stack, world));
             }
 
             if (player != null) {
-                player.getInventory().add(new ItemStack(baseItem(stack)));
+                player.getInventory().add(new ItemStack(baseItem(stack, world)));
             }
         }
         user.gameEvent(GameEvent.DRINK);
@@ -136,26 +144,27 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
-        DrinkAddition[] addIns = DrinkUtil.getAdditionsFromStack(stack);
+        if (world == null) return;
+        DrinkAddition[] addIns = DrinkUtil.getAdditionsFromStack(stack, world);
         HashMap<ResourceLocation, Integer> additionCounts = new HashMap<>();
         for (DrinkAddition addIn : addIns) {
-            if (addIn == DrinkAdditionManager.EMPTY || addIn == null) continue;
-            ResourceLocation id = DrinkAdditionManager.getId(addIn);
+            if (addIn == null) continue;
+            ResourceLocation id = world.getDrinkAdditionManager().getId(addIn);
             if (additionCounts.containsKey(id)) {
                 int count = additionCounts.get(id);
                 additionCounts.put(id, ++count);
             } else additionCounts.put(id, 1);
         }
-        additionCounts.forEach((id, count) -> tooltip.add(Component.translatable(DrinkAdditionManager.get(id).getTranslationKey(), count).withStyle(ChatFormatting.GRAY)));
-    }
-
-    @Override
-    public int getBarWidth(ItemStack stack) {
-        return Math.round(13.0f - (float) stack.getDamageValue() * 13.0f / (float) stack.getMaxDamage());
+        additionCounts.forEach((id, count) -> tooltip.add(Component.translatable(world.getDrinkAdditionManager().get(id).getTranslationKey(world), count).withStyle(ChatFormatting.GRAY)));
     }
 
     @Override
     public int getBarColor(ItemStack stack) {
         return 0x25bbf7;
+    }
+
+    @Override
+    public boolean isBarVisible(ItemStack stack) {
+        return stack.getOrCreateTag().getInt("Sipped") > 0;
     }
 }

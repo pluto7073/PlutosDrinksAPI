@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 
 public class TestItem extends AbstractCustomizableDrinkItem {
 
@@ -13,12 +14,12 @@ public class TestItem extends AbstractCustomizableDrinkItem {
     }
 
     @Override
-    public float getChemicalContent(ResourceLocation name, ItemStack stack) {
+    public float getChemicalContent(ResourceLocation name, ItemStack stack, Level level) {
         CompoundTag tag = stack.getOrCreateTagElement("Chemicals");
         float amount = 0;
         if (tag.contains(name.toString())) {
             amount = tag.getFloat(name.toString());
         }
-        return super.getChemicalContent(name, stack) + amount;
+        return super.getChemicalContent(name, stack, level) + amount;
     }
 }

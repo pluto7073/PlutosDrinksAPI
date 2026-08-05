@@ -6,15 +6,19 @@ import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.registry.RecipeManagerContext;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
+import ml.pluto7073.pdapi.client.ClientDrinkUtil;
 import ml.pluto7073.pdapi.compat.rei.DrinkREI;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.util.DrinkUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +27,7 @@ import java.util.Optional;
 
 public class IngredientSequenceDisplay extends BasicDisplay {
 
-    public IngredientSequenceDisplay(SpecialtyDrink drink) {
+    public IngredientSequenceDisplay(SpecialtyDrink drink, Level level) {
         super(Util.make(() -> {
             ItemStack base = drink.base().buildItemStack();
             Ingredient baseIngredient = Ingredient.of(base);
@@ -39,9 +43,17 @@ public class IngredientSequenceDisplay extends BasicDisplay {
                 }
             }
             List<EntryIngredient> list = new ArrayList<>(List.of(EntryIngredients.ofIngredient(baseIngredient)));
-            list.addAll(DrinkREI.Util.condenseIngredients(drink.stepsToIngredientList()));
+            list.addAll(DrinkREI.Util.condenseIngredients(stepsToIngredientList(drink)));
             return list;
-        }), Collections.singletonList(EntryIngredients.of(drink.getAsItem())), Optional.of(drink.id()));
+        }), Collections.singletonList(EntryIngredients.of(drink.getAsItem(level))), Optional.of(drink.id(level.getSpecialtyDrinkManager())));
+    }
+
+    public static List<Ingredient> stepsToIngredientList(SpecialtyDrink drink) {
+        List<Ingredient> ingredients = new ArrayList<>();
+        for (ResourceLocation addition : drink.steps()) {
+            ingredients.add(ClientDrinkUtil.additionToIngredient(addition));
+        }
+        return ingredients;
     }
 
     public IngredientSequenceDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, Optional<ResourceLocation> id) {

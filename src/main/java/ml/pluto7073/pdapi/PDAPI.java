@@ -4,36 +4,23 @@ import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializers;
 import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
 import ml.pluto7073.pdapi.block.PDBlocks;
-import ml.pluto7073.pdapi.client.gui.PDScreens;
-import ml.pluto7073.pdapi.command.PDCommands;
+import ml.pluto7073.pdapi.client.gui.PDMenuTypes;
 import ml.pluto7073.pdapi.component.PDComponents;
-import ml.pluto7073.pdapi.entity.PDTrackedData;
-import ml.pluto7073.pdapi.config.PDCommonConfig;
-import ml.pluto7073.pdapi.entity.effect.PDMobEffects;
-import ml.pluto7073.pdapi.item.PDItems;
-import ml.pluto7073.pdapi.networking.PDClientboundPackets;
-import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkBaseSerializer;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
-import ml.pluto7073.pdapi.util.DrinkUtil;
+import ml.pluto7073.pdapi.util.PDCommonConfig;
+import ml.pluto7073.pdapi.entity.effect.PDMobEffects;
+import ml.pluto7073.pdapi.item.PDCreativeTabs;
+import ml.pluto7073.pdapi.item.PDItems;
+import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkBaseSerializer;
 import ml.pluto7073.plutonium.PlutoniumConfig;
 import ml.pluto7073.plutonium.config.ServerConfigType;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -41,9 +28,10 @@ public class PDAPI implements ModInitializer {
 
     public static final String ID = "pdapi";
     public static final Logger LOGGER = LogManager.getLogger("PDAPI");
-    public static final ResourceKey<CreativeModeTab> SPECIALTY_DRINKS_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB, asId("specialty_drinks"));
     public static final ServerConfigType<PDCommonConfig> CONFIG_TYPE =
             Registry.register(PlutoniumConfig.SERVER_CONFIG_TYPES, asId("common"), new ServerConfigType<>(PDCommonConfig.INSTANCE, PDCommonConfig::new));
+    public static final DrinkAdditionManager SERVER_ADDITION_MANAGER = new DrinkAdditionManager();
+    public static final SpecialtyDrinkManager SERVER_SPECIALITY_DRINK_MANAGER = new SpecialtyDrinkManager();
 
 
     @Override
@@ -56,36 +44,13 @@ public class PDAPI implements ModInitializer {
         PDBlocks.init();
         PDComponents.init();
         PDItems.init();
+        PDCreativeTabs.init();
         PDMobEffects.init();
 
-        PDClientboundPackets.registerPackets();
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(SERVER_ADDITION_MANAGER);
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(SERVER_SPECIALITY_DRINK_MANAGER);
 
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new DrinkAdditionManager());
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new SpecialtyDrinkManager());
-
-        DrinkUtil.registerOldToNewConverter("Coffee/Additions", tag -> {
-            if (!(tag instanceof ListTag list)) return tag;
-            if (list.isEmpty()) return list;
-            for (int i = 0; i < list.size(); i++) {
-                ResourceLocation id = new ResourceLocation(list.getString(i));
-                boolean ogCoffee = !DrinkAdditionManager.containsId(id) && DrinkAdditionManager.containsId(PDAPI.asId(id.getPath()));
-                if (!ogCoffee) continue;
-                id = PDAPI.asId(id.getPath());
-                list.set(i, DrinkUtil.stringAsNbt(id.toString()));
-            }
-            return list;
-        });
-
-        PDScreens.init();
-
-        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, SPECIALTY_DRINKS_TAB, FabricItemGroup.builder().icon(() -> new ItemStack(PDItems.MILK_BOTTLE))
-                .title(Component.translatable("creative_tab.pdapi.specialty_drinks")).build());
-        ItemGroupEvents.modifyEntriesEvent(SPECIALTY_DRINKS_TAB).register(stacks -> {
-            for (SpecialtyDrink d : SpecialtyDrinkManager.values()
-                    .stream().sorted(DrinkUtil.alphabetizer(SpecialtyDrink::languageKey)).toList()) {
-                stacks.accept(d.getAsItem());
-            }
-        });
+        PDMenuTypes.init();
 
         LOGGER.info("Pluto's Drinks API ready!");
     }

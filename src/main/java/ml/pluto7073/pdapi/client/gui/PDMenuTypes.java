@@ -6,7 +6,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 
-public final class PDScreens {
+public final class PDMenuTypes {
 
     public static final MenuType<DrinkWorkstationMenu> WORKSTATION_MENU_TYPE;
 

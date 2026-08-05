@@ -1,13 +1,11 @@
-package ml.pluto7073.pdapi.config;
+package ml.pluto7073.pdapi.client;
 
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.plutonium.annotations.BooleanOption;
 import ml.pluto7073.plutonium.annotations.DoubleOption;
-import ml.pluto7073.plutonium.config.ClientConfig;
 import ml.pluto7073.plutonium.config.JointClientConfig;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import org.apache.logging.log4j.Logger;
 
 @Environment(EnvType.CLIENT)
 public class PDClientConfig extends JointClientConfig {

@@ -1,0 +1,226 @@
+package ml.pluto7073.pdapi.item;
+
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
+
+@MethodsReturnNonnullByDefault
+public abstract class AbstractMugDrinkItem extends AbstractCustomizableDrinkItem {
+
+    private final Block mugBlock;
+
+    protected AbstractMugDrinkItem(Block mugBlock, Item baseItem, double baseVolume, Properties settings) {
+        super(baseItem, baseVolume, settings);
+        this.mugBlock = mugBlock;
+    }
+
+    public InteractionResult useOn(UseOnContext context) {
+        InteractionResult interactionResult = this.place(new BlockPlaceContext(context));
+        if (!interactionResult.consumesAction() && this.isEdible()) {
+            InteractionResult interactionResult2 = this.use(context.getLevel(), context.getPlayer(), context.getHand()).getResult();
+            return interactionResult2 == InteractionResult.CONSUME ? InteractionResult.CONSUME_PARTIAL : interactionResult2;
+        } else {
+            return interactionResult;
+        }
+    }
+
+    public InteractionResult place(BlockPlaceContext context) {
+        if (!this.getBlock().isEnabled(context.getLevel().enabledFeatures())) {
+            return InteractionResult.FAIL;
+        } else if (!context.canPlace()) {
+            return InteractionResult.FAIL;
+        } else {
+            BlockPlaceContext blockPlaceContext = this.updatePlacementContext(context);
+            if (blockPlaceContext == null) {
+                return InteractionResult.FAIL;
+            } else {
+                BlockState blockState = this.getPlacementState(blockPlaceContext);
+                if (blockState == null) {
+                    return InteractionResult.FAIL;
+                } else if (!this.placeBlock(blockPlaceContext, blockState)) {
+                    return InteractionResult.FAIL;
+                } else {
+                    BlockPos blockPos = blockPlaceContext.getClickedPos();
+                    Level level = blockPlaceContext.getLevel();
+                    Player player = blockPlaceContext.getPlayer();
+                    ItemStack itemStack = blockPlaceContext.getItemInHand();
+                    BlockState blockState2 = level.getBlockState(blockPos);
+                    if (blockState2.is(blockState.getBlock())) {
+                        blockState2 = this.updateBlockStateFromTag(blockPos, level, itemStack, blockState2);
+                        this.updateCustomBlockEntityTag(blockPos, level, player, itemStack, blockState2);
+                        blockState2.getBlock().setPlacedBy(level, blockPos, blockState2, player, itemStack);
+                        if (player instanceof ServerPlayer) {
+                            CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayer)player, blockPos, itemStack);
+                        }
+                    }
+
+                    SoundType soundType = blockState2.getSoundType();
+                    level.playSound(player, blockPos, this.getPlaceSound(blockState2), SoundSource.BLOCKS, (soundType.getVolume() + 1.0F) / 2.0F, soundType.getPitch() * 0.8F);
+                    level.gameEvent(GameEvent.BLOCK_PLACE, blockPos, GameEvent.Context.of(player, blockState2));
+                    if (player == null || !player.getAbilities().instabuild) {
+                        itemStack.shrink(1);
+                    }
+
+                    return InteractionResult.sidedSuccess(level.isClientSide);
+                }
+            }
+        }
+    }
+
+    protected SoundEvent getPlaceSound(BlockState state) {
+        return state.getSoundType().getPlaceSound();
+    }
+
+    @Nullable
+    public BlockPlaceContext updatePlacementContext(BlockPlaceContext context) {
+        return context;
+    }
+
+    protected boolean updateCustomBlockEntityTag(BlockPos pos, Level level, @Nullable Player player, ItemStack stack, BlockState state) {
+        return updateCustomBlockEntityTag(level, player, pos, stack);
+    }
+
+    @Nullable
+    protected BlockState getPlacementState(BlockPlaceContext context) {
+        BlockState blockState = this.getBlock().getStateForPlacement(context);
+        return blockState != null && this.canPlace(context, blockState) ? blockState : null;
+    }
+
+    private BlockState updateBlockStateFromTag(BlockPos pos, Level level, ItemStack stack, BlockState state) {
+        BlockState blockState = state;
+        CompoundTag compoundTag = stack.getTag();
+        if (compoundTag != null) {
+            CompoundTag compoundTag2 = compoundTag.getCompound("BlockStateTag");
+            StateDefinition<Block, BlockState> stateDefinition = state.getBlock().getStateDefinition();
+
+            for(String string : compoundTag2.getAllKeys()) {
+                Property<?> property = stateDefinition.getProperty(string);
+                if (property != null) {
+                    String string2 = compoundTag2.get(string).getAsString();
+                    blockState = updateState(blockState, property, string2);
+                }
+            }
+        }
+
+        if (blockState != state) {
+            level.setBlock(pos, blockState, 2);
+        }
+
+        return blockState;
+    }
+
+    private static <T extends Comparable<T>> BlockState updateState(BlockState state, Property<T> property, String valueIdentifier) {
+        return property.getValue(valueIdentifier).map((value) -> state.setValue(property, value)).orElse(state);
+    }
+
+    protected boolean canPlace(BlockPlaceContext context, BlockState state) {
+        Player player = context.getPlayer();
+        CollisionContext collisionContext = player == null ? CollisionContext.empty() : CollisionContext.of(player);
+        return (!this.mustSurvive() || state.canSurvive(context.getLevel(), context.getClickedPos())) && context.getLevel().isUnobstructed(state, context.getClickedPos(), collisionContext);
+    }
+
+    protected boolean mustSurvive() {
+        return true;
+    }
+
+    protected boolean placeBlock(BlockPlaceContext context, BlockState state) {
+        return context.getLevel().setBlock(context.getClickedPos(), state, 11);
+    }
+
+    public static boolean updateCustomBlockEntityTag(Level level, @Nullable Player player, BlockPos pos, ItemStack stack) {
+        MinecraftServer minecraftServer = level.getServer();
+        if (minecraftServer != null) {
+            CompoundTag compoundTag = getBlockEntityData(stack);
+            if (compoundTag != null) {
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                if (blockEntity != null) {
+                    if (!level.isClientSide && blockEntity.onlyOpCanSetNbt() && (player == null || !player.canUseGameMasterBlocks())) {
+                        return false;
+                    }
+
+                    CompoundTag compoundTag2 = blockEntity.saveWithoutMetadata();
+                    CompoundTag compoundTag3 = compoundTag2.copy();
+                    compoundTag2.merge(compoundTag);
+                    if (!compoundTag2.equals(compoundTag3)) {
+                        blockEntity.load(compoundTag2);
+                        blockEntity.setChanged();
+                        return true;
+                    }
+                }
+            }
+
+        }
+        return false;
+    }
+
+    public String getDescriptionId() {
+        return this.getBlock().getDescriptionId();
+    }
+
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+        super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
+        this.getBlock().appendHoverText(stack, level, tooltipComponents, isAdvanced);
+    }
+
+    public Block getBlock() {
+        return this.mugBlock;
+    }
+
+    public void registerBlocks(Map<Block, Item> blockToItemMap, Item item) {
+        blockToItemMap.put(this.getBlock(), item);
+    }
+
+    @Nullable
+    public static CompoundTag getBlockEntityData(ItemStack stack) {
+        return stack.getTagElement("BlockEntityTag");
+    }
+
+    public static void setBlockEntityData(ItemStack stack, BlockEntityType<?> blockEntityType, CompoundTag blockEntityData) {
+        if (blockEntityData.isEmpty()) {
+            stack.removeTagKey("BlockEntityTag");
+        } else {
+            BlockEntity.addEntityType(blockEntityData, blockEntityType);
+            stack.addTagElement("BlockEntityTag", blockEntityData);
+        }
+
+    }
+
+    public FeatureFlagSet requiredFeatures() {
+        return this.getBlock().requiredFeatures();
+    }
+
+}

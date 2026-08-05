@@ -1,7 +1,7 @@
 package ml.pluto7073.pdapi.mixin.client;
 
 import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
-import ml.pluto7073.pdapi.config.PDClientConfig;
+import ml.pluto7073.pdapi.client.PDClientConfig;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;

@@ -2,7 +2,6 @@ package ml.pluto7073.pdapi.client.gui;
 
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.PDItems;
@@ -37,7 +36,7 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
     }
 
     public DrinkWorkstationMenu(int syncId, Inventory playerInventory, ContainerLevelAccess context) {
-        super(PDScreens.WORKSTATION_MENU_TYPE, syncId, playerInventory, context);
+        super(PDMenuTypes.WORKSTATION_MENU_TYPE, syncId, playerInventory, context);
         this.world = playerInventory.player.level();
         this.recipes = this.world.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE);
     }
@@ -82,12 +81,12 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     @Override
     public void createResult() {
-        if (inputSlots.getItem(0).isDamaged()) return;
+        if (inputSlots.getItem(0).getOrCreateTag().contains("Sipped")) return;
 
         Container testInput = DrinkUtil.copyContainerContents(inputSlots);
 
         if (inputSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0)).getBaseItem(inputSlots.getItem(0)));
+            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0), world).getBaseItem(inputSlots.getItem(0)));
         }
 
         List<RecipeHolder<DrinkWorkstationRecipe>> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, testInput, world);
@@ -102,13 +101,13 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
             // Specialty Drink testing
             Container testResults = DrinkUtil.copyContainerContents(resultSlots);
             if (resultSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0)).getBaseItem(resultSlots.getItem(0)));
+                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0), world).getBaseItem(resultSlots.getItem(0)));
             }
-            List<SpecialtyDrink> matchingDrinks = SpecialtyDrinkManager.values().stream()
+            List<SpecialtyDrink> matchingDrinks = world.getSpecialtyDrinkManager().values().stream()
                     .filter(drink -> drink.matches(testResults)).toList();
             if (matchingDrinks.isEmpty()) return;
             SpecialtyDrink drink = matchingDrinks.get(0);
-            stack = drink.getAsItem();
+            stack = drink.getAsItem(world);
             CompoundTag data = resultSlots.getItem(0).getOrCreateTag().copy();
             data.remove("Drink");
             data.getCompound(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY)

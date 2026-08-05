@@ -6,8 +6,6 @@ import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
-import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
-import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
@@ -18,9 +16,6 @@ import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -31,7 +26,6 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -40,12 +34,11 @@ import net.minecraft.world.level.Level;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class DrinkUtil {
-
-    private static final HashMap<String, Converter<Tag>> OLD_CONVERSION_REGISTRY = new HashMap<>();
 
     public static ResourceLocation getAsId(ResourceLocation file, String dir) {
         return file.withPath(s -> s.replace(dir + '/', "").replace(".json", ""));
@@ -82,11 +75,11 @@ public final class DrinkUtil {
         return r << 16 | g << 8 | b;
     }
 
-    public static int getColorForDrinkWithDefault(ItemStack drink, int normal) {
-        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink);
+    public static int getColorForDrinkWithDefault(ItemStack drink, int normal, Level level) {
+        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink, level);
         List<Integer> colors = Arrays.stream(additions).filter(DrinkAddition::changesColor)
                 .map(DrinkAddition::getColor).collect(Collectors.toCollection(ArrayList::new));
-        colors.add(0, normal);
+        colors.addFirst(normal);
         return averageColors(colors);
     }
 
@@ -134,24 +127,6 @@ public final class DrinkUtil {
         return list2.isEmpty();
     }
 
-    private static void handleCompound(Stack<String> currentPath, CompoundTag compound) {
-        for (String key : compound.getAllKeys()) {
-            Tag element = compound.get(key);
-            if (element == null) continue;
-            currentPath.push(key);
-            String current = convertPathStackToString(currentPath);
-            if (OLD_CONVERSION_REGISTRY.containsKey(current)) {
-                element = OLD_CONVERSION_REGISTRY.get(current).convert(element);
-                compound.put(key, element);
-                continue;
-            }
-            if (element.getId() == CompoundTag.TAG_COMPOUND) {
-                handleCompound(currentPath, (CompoundTag) element);
-            }
-            currentPath.pop();
-        }
-    }
-
     public static Container copyContainerContents(Container source) {
         Container container = new SimpleContainer(source.getContainerSize());
         for (int i = 0; i < source.getContainerSize(); i++) {
@@ -160,19 +135,25 @@ public final class DrinkUtil {
         return container;
     }
 
-    public static DrinkAddition[] getAdditionsFromStack(ItemStack stack) {
-        DrinkAdditions additions = stack.get(PDComponents.ADDITIONS);
-        assert additions != null: stack.getItem() + " doesn't contain 'pdapi:additions'";
-        return additions.additions().toArray(new DrinkAddition[0]);
+    public static DrinkAddition[] getAdditionsFromStack(ItemStack stack, Level level) {
+        CompoundTag drinkData = stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
+        return getAdditionsFromTag(drinkData, level);
     }
 
-    public static void registerOldToNewConverter(String nbtPath, Converter<Tag> converter) {
-        OLD_CONVERSION_REGISTRY.put(nbtPath, converter);
+    public static DrinkAddition[] getAdditionsFromTag(CompoundTag drinkData, Level level) {
+        ListTag additions = drinkData.getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
+        ArrayList<DrinkAddition> additionsList = new ArrayList<>();
+        for (int i = 0; i < additions.size(); i++) {
+            String id = additions.getString(i);
+            ResourceLocation identifier = new ResourceLocation(id);
+            additionsList.add(level.getDrinkAdditionManager().get(identifier));
+        }
+        return additionsList.toArray(new DrinkAddition[0]);
     }
 
     private static String convertPathStackToString(Stack<String> stack) {
         if (stack.isEmpty()) return "";
-        StringBuilder builder = new StringBuilder(stack.get(0));
+        StringBuilder builder = new StringBuilder(stack.getFirst());
         for (int i = 1; i < stack.size(); i++) {
             builder.append("/").append(stack.get(i));
         }
@@ -198,10 +179,10 @@ public final class DrinkUtil {
         return stack;
     }
 
-    public static int getDrinkColor(ItemStack stack) {
+    public static int getDrinkColor(ItemStack stack, Level level) {
         if (!stack.is(PDItems.SPECIALTY_DRINK)) return -1;
         try {
-            SpecialtyDrink drink = getSpecialDrink(stack);
+            SpecialtyDrink drink = getSpecialDrink(stack, level);
             return 255 << 24 | drink.color();
         } catch (IllegalArgumentException e) {
             return 0xfff918c5;
@@ -223,42 +204,6 @@ public final class DrinkUtil {
                 .map(InProgressItemRecipe::base)
                 .flatMap(ingredient -> Stream.of(ingredient.getItems()))
                 .map(ItemStack::getItem).toArray(Item[]::new);
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static Ingredient additionToIngredient(ResourceLocation additionId) {
-        Level level = Minecraft.getInstance().level;
-        if (level == null) {
-            PDAPI.LOGGER.warn("Ingredient list for \"{}\" could not be determined cause you are not in a world", additionId);
-            return Ingredient.EMPTY;
-        }
-        List<RecipeHolder<DrinkWorkstationRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
-                .stream().filter(r -> r.value().getResult().equals(additionId)).toList();
-        if (recipes.isEmpty()) return Ingredient.EMPTY;
-        List<ItemStack> matchingStacks = new ArrayList<>();
-        recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.value().getAddition().getItems())));
-        if (matchingStacks.isEmpty()) return Ingredient.EMPTY;
-        return Ingredient.of(matchingStacks.stream());
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static Ingredient getValidBasesForAddition(ResourceLocation additionId) {
-        Level level = Minecraft.getInstance().level;
-        if (level == null) {
-            PDAPI.LOGGER.warn("Valid bases for \"{}\" can only be retrieved when a level is loaded", additionId);
-            return Ingredient.EMPTY;
-        }
-        List<RecipeHolder<DrinkWorkstationRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
-                .stream().filter(r -> r.value().getResult().equals(additionId)).toList();
-        if (recipes.isEmpty()) return Ingredient.EMPTY;
-        List<ItemStack> matchingStacks = new ArrayList<>();
-        recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.value().getBase().getItems())));
-        if (matchingStacks.isEmpty()) return Ingredient.EMPTY;
-        return Ingredient.of(matchingStacks.stream());
-    }
-
-    public interface Converter<T extends Tag> {
-        T convert(T startingElement);
     }
 
 }

@@ -1,12 +1,15 @@
 package ml.pluto7073.pdapi.client.gui;
 
 import ml.pluto7073.pdapi.PDAPI;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.ItemCombinerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
+@Environment(EnvType.CLIENT)
 public class DrinkWorkstationScreen extends ItemCombinerScreen<DrinkWorkstationMenu> {
 
     private static final ResourceLocation TEXTURE = PDAPI.asId("textures/gui/container/drink_workstation.png");

@@ -3,9 +3,8 @@ package ml.pluto7073.pdapi.addition;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
-import com.mojang.serialization.JsonOps;
-import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.addition.action.NoSipAction;
 import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncAdditionRegistryPacket;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -13,11 +12,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
-import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -30,36 +25,29 @@ import java.util.*;
 
 public class DrinkAdditionManager implements SimpleSynchronousResourceReloadListener {
 
-    private static final Map<ResourceLocation, DrinkAddition> REGISTRY = new HashMap<>();
-    private static final Map<ResourceLocation, DrinkAddition> STATIC_REGISTRY = new HashMap<>();
-
     public static final String ADDITIONS_NBT_KEY = "Additions";
-    public static final DrinkAddition EMPTY = register(PDAPI.asId("empty"), new DrinkAddition.Builder().build());
     public static final ResourceLocation PHASE = PDAPI.asId("phase/additions");
+
+    private final Map<ResourceLocation, DrinkAddition> registry = new HashMap<>();
 
     public DrinkAdditionManager() {
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(PHASE, (player, joined) -> send(player));
     }
 
-    public static DrinkAddition register(ResourceLocation id, DrinkAddition addition) {
-        return register(id, addition, true);
-    }
-
-    public static DrinkAddition register(ResourceLocation id, DrinkAddition addition, boolean staticAdd) {
+    public DrinkAddition register(ResourceLocation id, DrinkAddition addition) {
         if (containsId(id)) {
-            if (get(id).currentWeight() >= addition.currentWeight()) return get(id);
+            if (get(id).getCurrentWeight() >= addition.getCurrentWeight()) return get(id);
         }
-        REGISTRY.put(id, addition);
-        if (staticAdd) STATIC_REGISTRY.put(id, addition);
+        registry.put(id, addition);
+        if (addition.actions().stream().anyMatch(action -> action instanceof NoSipAction)) {
+            IllegalArgumentException exception = new IllegalArgumentException("'pdapi:no_sip' action is only effective in Specialty Drinks");
+            PDAPI.LOGGER.warn("Encountered a warning loading drink addition {}, addition remains loaded", id, exception);
+        }
         return addition;
     }
 
-    public static void register(AdditionHolder holder) {
-        REGISTRY.put(holder.id(), holder.value());
-    }
-
-    public static ResourceLocation getId(DrinkAddition addition) {
-        for (Map.Entry<ResourceLocation, DrinkAddition> entry : REGISTRY.entrySet()) {
+    public ResourceLocation getId(DrinkAddition addition) {
+        for (Map.Entry<ResourceLocation, DrinkAddition> entry : registry.entrySet()) {
             if (Objects.equals(entry.getValue(), addition)) {
                 return entry.getKey();
             }
@@ -67,22 +55,34 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
         throw new IllegalArgumentException("Unregistered drink addition: " + addition.toString());
     }
 
-    public static DrinkAddition get(ResourceLocation id) {
-        return REGISTRY.get(id);
+    public DrinkAddition get(ResourceLocation id) {
+        return registry.get(id);
     }
 
-    public static void resetRegistry() {
-        REGISTRY.clear();
-        REGISTRY.putAll(STATIC_REGISTRY);
+    public void resetRegistry() {
+        registry.clear();
     }
 
-    public static boolean containsId(ResourceLocation id) {
-        return REGISTRY.containsKey(id);
+    public boolean containsId(ResourceLocation id) {
+        return registry.containsKey(id);
     }
 
-    public static void send(ServerPlayer entity) {
-        ServerPlayNetworking.send(entity, new ClientboundSyncAdditionRegistryPacket(REGISTRY.entrySet().stream()
-                .map(entry -> new AdditionHolder(entry.getKey(), entry.getValue())).toList()));
+    public boolean containsAddition(DrinkAddition addition) {
+        return registry.containsValue(addition);
+    }
+
+    public boolean contains(ResourceLocation id, DrinkAddition addition) {
+        return containsId(id) && containsAddition(addition) && get(id).equals(addition);
+    }
+
+    public boolean contains(Map.Entry<ResourceLocation, DrinkAddition> entry) {
+        return contains(entry.getKey(), entry.getValue());
+    }
+
+    public void send(ServerPlayer entity) {
+
+        ServerPlayNetworking.send(entity, new ClientboundSyncAdditionRegistryPacket(registry));
+
     }
 
     @Override
@@ -104,12 +104,13 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
                 if (object.has("fabric:load_conditions")) {
                     boolean b = ResourceCondition.CONDITION_CODEC.parse(JsonOps.INSTANCE, object.get("fabric:load_conditions"))
                             .getOrThrow().test(null);
+
                     if (!b) continue;
                 }
 
                 register(id, DrinkAddition.CODEC.parse(JsonOps.INSTANCE, object).getOrThrow(), false);
                 i++;
-            } catch (Exception e) {
+            } catch (IOException e) {
                 PDAPI.LOGGER.error("Could not load Drink Addition {}", id, e);
             }
         }

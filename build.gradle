@@ -1,27 +1,36 @@
 plugins {
-	id 'fabric-loom' version '1.10.+'
+	id 'fabric-loom' version '1.12.+'
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "2.+"
 	id "com.github.breadmoirai.github-release" version "2.+"
 	id "com.matthewprenger.cursegradle" version "1.+"
 }
 
-version = "" + project.minecraft_version + "+" + project.mod_version
+static String getBuildNo() {
+	if (System.getenv().containsKey("GITHUB_RUN_NUMBER")) {
+		return "+build." + System.getenv("GITHUB_RUN_NUMBER")
+	} else {
+		return "+dev"
+	}
+}
+
+version = "" + project.minecraft_version + "+" + project.mod_version + getBuildNo()
 group = project.maven_group
+
+System.out.println("Version: " + version)
 
 base {
 	archivesName = project.archives_base_name
 }
 
 repositories {
-	maven { url "https://maven.shedaniel.me/" }
-	maven { url "https://maven.architectury.dev/" }
-	maven { url "https://maven.terraformersmc.com/" }
-	maven { url "https://pluto-mod-maven.web.app/maven" }
-	maven { url "https://maven.parchmentmc.org" }
-	maven { url "https://maven.quiltmc.org/repository/release" }
-	maven { url "https://api.modrinth.com/maven" }
-	maven { url "https://maven.nucleoid.xyz/" }
+	maven { url = "https://maven.shedaniel.me/" }
+	maven { url = "https://maven.terraformersmc.com/releases/" }
+	maven { url = "https://maven.plutonia.xyz/maven" }
+	maven { url = "https://maven.parchmentmc.org" }
+	maven { url = "https://maven.quiltmc.org/repository/release" }
+	maven { url = "https://api.modrinth.com/maven" }
+    maven { url "https://maven.nucleoid.xyz/" }
 }
 
 sourceSets {
@@ -35,7 +44,7 @@ sourceSets {
 
 loom {
 
-    accessWidenerPath = file("src/main/resources/pdapi.accesswidener")
+    accessWidenerPath = file("src/main/resources/pdapi.classtweaker")
 
 	runs {
 		configureEach {
@@ -81,8 +90,8 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings(loom.layered {
 		it.mappings "org.quiltmc:quilt-mappings:${minecraft_version}+build.${quilt_mappings}:intermediary-v2"
-		//it.parchment "org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip"  Fuck Parchment
 		it.officialMojangMappings { nameSyntheticMembers = false }
+		it.parchment "org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip"
 	})
 
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
@@ -95,16 +104,12 @@ dependencies {
 	// modCompileOnly "maven.modrinth:dehydration:${project.dehydration_version}"
 	modImplementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}"
 
-	modApi "dev.architectury:architectury-fabric:$architectury_version"
-
 	modApi(include("ml.pluto7073:chemicals:$project.minecraft_version+$project.chemicals_version"))
 	modApi(include("ml.pluto7073:plutonium:$plutonium_version"))
 
 	// Dev Env
 	modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
 	modLocalRuntime "maven.modrinth:kiwi:$kiwi_version"
-	// modLocalRuntime "maven.modrinth:plutos-coffee-mod:$minecraft_version+$plutoscoffee_version"
-	// modLocalRuntime "maven.modrinth:bartending:$minecraft_version+$bartending_version"
 }
 
 processResources {
@@ -116,7 +121,7 @@ processResources {
 }
 
 tasks.register("buildOrPublish") {
-	String user = System.getenv("MAVEN_USER")
+	String user = System.getenv("PUBLISH_LOCATION")
 	if (user != null && !user.isEmpty()) {
 		dependsOn(tasks.publish)
 		println("prepared for publish")

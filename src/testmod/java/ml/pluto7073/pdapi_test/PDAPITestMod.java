@@ -1,10 +1,6 @@
 package ml.pluto7073.pdapi_test;
 
-import ml.pluto7073.pdapi.PDAPI;
-import ml.pluto7073.pdapi.item.PDItems;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.mixin.itemgroup.ItemGroupAccessor;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -22,8 +18,6 @@ public class PDAPITestMod implements ModInitializer {
     @Override
     public void onInitialize() {
         Registry.register(BuiltInRegistries.ITEM, id("test_item"), TEST_ITEM);
-        ItemGroupEvents.modifyEntriesEvent(PDAPI.SPECIALTY_DRINKS_TAB)
-                        .register(entries -> entries.accept(TEST_ITEM));
         LOGGER.info("Test mod initialized");
     }
 
