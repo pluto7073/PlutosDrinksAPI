@@ -15,12 +15,7 @@ public class CaffeineOverdoseEffect extends MobEffect {
     @Override
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         super.applyEffectTick(entity, amplifier);
-        entity.hurt(PDDamageTypes.of(entity.level(), PDDamageTypes.CAFFEINE_OVERDOSE), (float) PDCommonConfig.INSTANCE.caffeineDamageMultiplier);
-    }
-
-    @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        return true;
+        return entity.hurt(PDDamageTypes.of(entity.level(), PDDamageTypes.CAFFEINE_OVERDOSE), (float) PDCommonConfig.INSTANCE.caffeineDamageMultiplier);
     }
 
 }

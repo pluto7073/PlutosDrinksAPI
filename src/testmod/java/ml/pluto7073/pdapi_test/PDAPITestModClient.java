@@ -14,7 +14,7 @@ public class PDAPITestModClient implements ClientModInitializer {
     public void onInitializeClient() {
         ColorProviderRegistry.ITEM.register((stack, i) ->
                 i > 0 ? -1 :
-                DrinkUtil.getColorForDrinkWithDefault(stack, 0x0000FF, Minecraft.getInstance().level),
+                DrinkUtil.getColorForDrinkWithDefault(stack, 0x0000FF),
                 PDAPITestMod.TEST_ITEM);
         ItemGroupEvents.modifyEntriesEvent(PDCreativeTabs.SPECIALTY_DRINKS_TAB)
                 .register(entries -> entries.accept(PDAPITestMod.TEST_ITEM));

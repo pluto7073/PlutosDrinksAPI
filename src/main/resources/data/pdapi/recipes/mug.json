@@ -10,7 +10,7 @@
     }
   },
   "result": {
-    "item": "pdapi:mug",
+    "id": "pdapi:mug",
     "count": 4
   }
 }

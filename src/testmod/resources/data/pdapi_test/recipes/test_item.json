@@ -4,6 +4,6 @@
     "item": "minecraft:glass_bottle"
   },
   "result": {
-    "item": "pdapi_test:test_item"
+    "id": "pdapi_test:test_item"
   }
 }

@@ -5,14 +5,12 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -29,13 +27,13 @@ public abstract class ItemRendererMixin {
     @WrapMethod(method = "render")
     private void pdapi$ReplaceModelAndStack(ItemStack stack, ItemDisplayContext modelTransformationMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model, Operation<Void> original) {
         if (Minecraft.getInstance().level == null) return;
-        SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, Minecraft.getInstance().level);
-        if (!stack.is(PDItems.SPECIALTY_DRINK) || drink == SpecialtyDrinkManager.EMPTY) {
+        Holder<SpecialtyDrink> drink = DrinkUtil.getSpecialDrink(stack);
+        if (!stack.is(PDItems.SPECIALTY_DRINK) || drink == SpecialtyDrink.EMPTY) {
             original.call(stack, modelTransformationMode, leftHanded, matrices, vertexConsumers, light, overlay, model);
         } else {
-            ItemStack newStack = drink.getBaseItem(stack);
+            ItemStack newStack = drink.value().getBaseItem(stack, Minecraft.getInstance().level.registryAccess());
             BakedModel baseDrinkModel = getModel(newStack, null, null, 0);
-            original.call(drink.color() == -1 ? newStack : stack, modelTransformationMode, leftHanded, matrices, vertexConsumers, light, overlay, baseDrinkModel);
+            original.call(drink.value().color() == -1 ? newStack : stack, modelTransformationMode, leftHanded, matrices, vertexConsumers, light, overlay, baseDrinkModel);
         }
     }
 

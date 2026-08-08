@@ -30,7 +30,8 @@ repositories {
 	maven { url = "https://maven.parchmentmc.org" }
 	maven { url = "https://maven.quiltmc.org/repository/release" }
 	maven { url = "https://api.modrinth.com/maven" }
-    maven { url "https://maven.nucleoid.xyz/" }
+    maven { url = "https://maven.nucleoid.xyz/" }
+	maven { url = "https://maven.architectury.dev/" }
 }
 
 sourceSets {
@@ -95,6 +96,7 @@ dependencies {
 	})
 
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
+	modCompileOnly "dev.architectury:architectury-fabric:$project.architectury_version"
 
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
@@ -109,7 +111,7 @@ dependencies {
 
 	// Dev Env
 	modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
-	modLocalRuntime "maven.modrinth:kiwi:$kiwi_version"
+	//modLocalRuntime "maven.modrinth:kiwi:$kiwi_version"
 }
 
 processResources {

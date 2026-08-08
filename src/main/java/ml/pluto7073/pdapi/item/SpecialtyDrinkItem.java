@@ -5,6 +5,8 @@ import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,25 +27,25 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     }
 
     @Override
-    protected Item baseItem(ItemStack stack, Level level) {
-        SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, level);
+    protected Item baseItem(ItemStack stack, HolderLookup.Provider provider) {
+        Holder<SpecialtyDrink> drink = DrinkUtil.getSpecialDrink(stack);
         AbstractCustomizableDrinkItem base =
-                (AbstractCustomizableDrinkItem) drink.getBaseItem(stack).getItem();
-        return base.baseItem(stack, level);
+                (AbstractCustomizableDrinkItem) drink.value().getBaseItem(stack, provider).getItem();
+        return base.baseItem(stack, provider);
     }
 
     @Override
-    public double getTotalVolume(ItemStack stack, Level level) {
+    public double getTotalVolume(ItemStack stack, HolderLookup.Provider provider) {
         try {
-            SpecialtyDrink specialty = DrinkUtil.getSpecialDrink(stack, level);
-            if (specialty.volume() != 0) {
-                return specialty.volume();
+            Holder<SpecialtyDrink> specialty = DrinkUtil.getSpecialDrink(stack);
+            if (specialty.value().volume() != 0) {
+                return specialty.value().volume();
             }
-            ItemStack baseItem = specialty.getBaseItem(stack);
+            ItemStack baseItem = specialty.value().getBaseItem(stack, provider);
             if (baseItem.getItem() instanceof AbstractCustomizableDrinkItem drink) {
-                return drink.getTotalVolume(baseItem, level);
+                return drink.getTotalVolume(baseItem, provider);
             } else {
-                return super.getTotalVolume(stack, level);
+                return super.getTotalVolume(stack, provider);
             }
         } catch (Exception e) {
             PDAPI.LOGGER.warn("Error getting total volume of {}", stack, e);
@@ -55,9 +57,9 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     public float getChemicalContent(ResourceLocation name, ItemStack stack, Level level) {
         float amount;
         try {
-            SpecialtyDrink specialty = DrinkUtil.getSpecialDrink(stack, level);
-            amount = specialty.chemicals().getOrDefault(name, 0f);
-            ItemStack baseItem = specialty.getBaseItem(stack);
+            Holder<SpecialtyDrink> specialty = DrinkUtil.getSpecialDrink(stack);
+            amount = specialty.value().chemicals().getOrDefault(name, 0f);
+            ItemStack baseItem = specialty.value().getBaseItem(stack, level.registryAccess());
             if (baseItem.getItem() instanceof AbstractCustomizableDrinkItem drink) {
                 return amount + drink.getChemicalContent(name, baseItem, level);
             } else {
@@ -71,20 +73,22 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity user) {
-        SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, level);
+        Holder<SpecialtyDrink> drink = DrinkUtil.getSpecialDrink(stack);
 
-        if (!level.isClientSide) drink.actions(level).forEach(action -> action.onDrink(stack, level, user));
+        if (!level.isClientSide) drink.value().actions(level.registryAccess()).forEach(action -> action.onDrink(stack, level, user));
 
         return super.finishUsingItem(stack, level, user);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
-        if (world == null) return;
-        tooltip.add(Component.translatable(DrinkUtil.getSpecialDrink(stack, world).name(world)).withStyle(ChatFormatting.AQUA));
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        Holder<SpecialtyDrink> drink = DrinkUtil.getSpecialDrink(stack);
+        if (drink == SpecialtyDrink.EMPTY) return;
+        String key = drink.value().name().orElse(drink.unwrapKey().orElseThrow().location().toLanguageKey("drink"));
+        tooltip.add(Component.translatable(key).withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.empty());
 
-        super.appendHoverText(stack, world, tooltip, context);
+        super.appendHoverText(stack, context, tooltip, flag);
     }
 
 }

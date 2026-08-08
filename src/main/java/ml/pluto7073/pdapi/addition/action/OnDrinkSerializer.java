@@ -1,8 +1,10 @@
 package ml.pluto7073.pdapi.addition.action;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 public interface OnDrinkSerializer<T extends OnDrinkAction> {
@@ -16,25 +18,24 @@ public interface OnDrinkSerializer<T extends OnDrinkAction> {
     class EmptySerializer<T extends OnDrinkAction> implements OnDrinkSerializer<T> {
 
         private final T value;
-        private final Codec<T> codec;
+        private final MapCodec<T> codec;
+        private final StreamCodec<RegistryFriendlyByteBuf, T> streamCodec;
 
         public EmptySerializer(T value) {
             this.value = value;
-            this.codec = Codec.unit(value);
+            this.codec = MapCodec.unit(value);
+            this.streamCodec = ByteBufCodecs.fromCodecWithRegistries(codec.codec());
         }
 
         @Override
-        public Codec<T> codec() {
+        public MapCodec<T> codec() {
             return codec;
         }
 
         @Override
-        public T fromNetwork(FriendlyByteBuf buf) {
-            return value;
+        public StreamCodec<RegistryFriendlyByteBuf, T> streamCodec() {
+            return streamCodec;
         }
-
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, T action) {}
     }
 
 

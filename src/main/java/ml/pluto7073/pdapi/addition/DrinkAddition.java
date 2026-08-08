@@ -7,13 +7,14 @@ import com.mojang.serialization.Keyable;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
-import ml.pluto7073.pdapi.addition.chemicals.ConsumableChemicalRegistry;
-import ml.pluto7073.pdapi.networking.NetworkingUtils;
+import net.minecraft.core.Holder;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.RegistryFixedCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -40,8 +41,7 @@ public class DrinkAddition {
     public static final StreamCodec<RegistryFriendlyByteBuf, DrinkAddition> STREAM_CODEC =
             StreamCodec.of((buf, add) -> add.toNetwork(buf), DrinkAddition::fromNetwork);
 
-    public static final Codec<DrinkAddition> COMPONENT_CODEC =
-            ResourceLocation.CODEC.xmap(DrinkAdditionManager::get, DrinkAdditionManager::getId);
+    public static final Codec<Holder<DrinkAddition>> COMPONENT_CODEC = RegistryFixedCodec.create(PDRegistries.DRINK_ADDITION_KEY);
 
     private final List<OnDrinkAction> actions;
     private final double volume;
@@ -121,10 +121,10 @@ public class DrinkAddition {
         return new DrinkAddition(actions, volume, changesColor, color, chemicals, maxAmount, name, currentWeight);
     }
 
-    public String getTranslationKey(Level level) {
+    public String getTranslationKey(Holder<DrinkAddition> holder) {
         if (name != null && !name.isEmpty()) return name;
         try {
-            ResourceLocation id = level.getDrinkAdditionManager().getId(this);
+            ResourceLocation id = holder.unwrapKey().orElseThrow().location();
             return id.toLanguageKey("drink_addition");
         } catch (IllegalArgumentException e) {
             PDAPI.LOGGER.error("Couldn't get translation key for a drink addition", e);

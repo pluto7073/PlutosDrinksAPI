@@ -1,5 +1,7 @@
 package ml.pluto7073.pdapi_test;
 
+import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
 import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -15,11 +17,6 @@ public class TestItem extends AbstractCustomizableDrinkItem {
 
     @Override
     public float getChemicalContent(ResourceLocation name, ItemStack stack, Level level) {
-        CompoundTag tag = stack.getOrCreateTagElement("Chemicals");
-        float amount = 0;
-        if (tag.contains(name.toString())) {
-            amount = tag.getFloat(name.toString());
-        }
-        return super.getChemicalContent(name, stack, level) + amount;
+        return name.equals(CaffeineHandler.INSTANCE.getId()) ? 1000 : 0;
     }
 }

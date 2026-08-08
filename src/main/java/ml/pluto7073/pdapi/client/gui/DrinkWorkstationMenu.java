@@ -1,7 +1,7 @@
 package ml.pluto7073.pdapi.client.gui;
 
-import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
-import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
+import ml.pluto7073.pdapi.PDRegistries;
+import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.PDItems;
@@ -9,7 +9,11 @@ import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.PatchedDataComponentMap;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -81,12 +85,12 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     @Override
     public void createResult() {
-        if (inputSlots.getItem(0).getOrCreateTag().contains("Sipped")) return;
+        if (inputSlots.getItem(0).getOrDefault(PDComponents.SIPPED, 0.0) > 0) return;
 
         Container testInput = DrinkUtil.copyContainerContents(inputSlots);
 
         if (inputSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0), world).getBaseItem(inputSlots.getItem(0)));
+            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0)).value().getBaseItem(inputSlots.getItem(0), world.registryAccess()));
         }
 
         List<RecipeHolder<DrinkWorkstationRecipe>> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, testInput, world);
@@ -94,26 +98,27 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
             resultSlots.setItem(0, ItemStack.EMPTY);
         } else {
             currentRecipe = list.get(0);
-            ItemStack stack = currentRecipe.value().craft(inputSlots);
+            ItemStack stack = currentRecipe.value().assemble(inputSlots, world);
             resultSlots.setRecipeUsed(currentRecipe);
             resultSlots.setItem(0, stack);
 
             // Specialty Drink testing
             Container testResults = DrinkUtil.copyContainerContents(resultSlots);
             if (resultSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0), world).getBaseItem(resultSlots.getItem(0)));
+                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0)).value().getBaseItem(resultSlots.getItem(0), world.registryAccess()));
             }
-            List<SpecialtyDrink> matchingDrinks = world.getSpecialtyDrinkManager().values().stream()
-                    .filter(drink -> drink.matches(testResults)).toList();
+            List<Holder.Reference<SpecialtyDrink>> matchingDrinks = world.registryAccess().lookupOrThrow(PDRegistries.SPECIALITY_DRINK_KEY).listElements()
+                    .filter(drink -> drink.value().matches(testResults)).toList();
             if (matchingDrinks.isEmpty()) return;
-            SpecialtyDrink drink = matchingDrinks.get(0);
-            stack = drink.getAsItem(world);
-            CompoundTag data = resultSlots.getItem(0).getOrCreateTag().copy();
-            data.remove("Drink");
-            data.getCompound(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY)
-                            .remove(DrinkAdditionManager.ADDITIONS_NBT_KEY);
-            data.merge(stack.getOrCreateTag());
-            stack.setTag(data);
+            Holder<SpecialtyDrink> drink = matchingDrinks.getFirst();
+            stack = SpecialtyDrink.getAsItem(drink);
+            DataComponentMap data = resultSlots.getItem(0).getComponents(); // Get the components from the current resultItem (Non Specialty Drink)
+            data = PatchedDataComponentMap.fromPatch(data, DataComponentPatch.builder()
+                    .remove(PDComponents.SPECIALTY_DRINK)
+                    .remove(PDComponents.ADDITIONS).build()); // Remove the drink and additions from the existing data, we don't want to copy that over
+            for (DataComponentType<?> type : data.keySet()) {
+                DrinkWorkstationRecipe.copyToStackYayGenerics(type, data, stack);
+            }
             resultSlots.setItem(0, stack);
         }
     }
@@ -121,14 +126,14 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
     @Override
     protected ItemCombinerMenuSlotDefinition createInputSlotDefinitions() {
         return ItemCombinerMenuSlotDefinition.create().withSlot(0, 27, 47, stack -> {
-                    boolean fromAdditions = this.recipes.stream().anyMatch(recipe -> recipe.testBase(stack));
+                    boolean fromAdditions = this.recipes.stream().anyMatch(recipe -> recipe.value().testBase(stack));
                     boolean fromInProgress = this.world.getRecipeManager()
                             .getAllRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE)
-                            .stream().anyMatch(recipe -> recipe.base().test(stack));
+                            .stream().anyMatch(recipe -> recipe.value().base().test(stack));
                     return fromAdditions || fromInProgress;
                 })
                 .withSlot(1, 76, 47, stack -> this.recipes.stream().anyMatch(recipe ->
-                        recipe.testAddition(stack)))
+                        recipe.value().testAddition(stack)))
                 .withResultSlot(2, 134, 47).build();
     }
 

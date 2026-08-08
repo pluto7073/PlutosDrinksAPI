@@ -10,6 +10,7 @@ import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamDecoder;
 import net.minecraft.network.codec.StreamEncoder;
 import net.minecraft.resources.ResourceLocation;
@@ -34,6 +35,27 @@ public final class NetworkingUtils {
             list.add(intMap.get(i));
         }
         return list;
+    }
+
+    public static List<OnDrinkAction> readDrinkActionsList(RegistryFriendlyByteBuf buf) {
+        return listFromNetwork(buf, b -> {
+            ResourceLocation id = b.readResourceLocation();
+            @SuppressWarnings("unchecked")
+            OnDrinkSerializer<OnDrinkAction> serializer = (OnDrinkSerializer<OnDrinkAction>)
+                    PDRegistries.ON_DRINK_SERIALIZER.get(id);
+            if (serializer == null) throw new IllegalStateException();
+            return serializer.streamCodec().decode(buf);
+        });
+    }
+
+    public static void writeDrinkActionsList(RegistryFriendlyByteBuf buf, OnDrinkAction[] actions) {
+        arrayToNetwork(buf, actions, (b, action) -> {
+            @SuppressWarnings("unchecked")
+            OnDrinkSerializer<OnDrinkAction> serializer = (OnDrinkSerializer<OnDrinkAction>) action.serializer();
+            ResourceLocation id = PDRegistries.ON_DRINK_SERIALIZER.getKey(serializer);
+            b.writeResourceLocation(id);
+            serializer.streamCodec().encode(buf, action);
+        });
     }
 
 }

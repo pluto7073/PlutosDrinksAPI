@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.block;
 
+import com.mojang.serialization.MapCodec;
 import ml.pluto7073.pdapi.block.entity.MugBlockEntity;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
@@ -15,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -59,31 +61,36 @@ public class MugBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (this == PDBlocks.MUG) return InteractionResult.PASS;
-        if (player.getItemInHand(hand).isEmpty()) return InteractionResult.PASS;
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (this == PDBlocks.MUG) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        if (player.getItemInHand(hand).isEmpty()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         Optional<? extends MugBlockEntity> opt = level.getBlockEntity(pos, blockEntity.get());
         MugBlockEntity entity;
         if (opt.isEmpty()) {
-            return InteractionResult.PASS;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         } else {
             entity = opt.get();
         }
         if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
         }
         Container container = new SimpleContainer(2);
         container.setItem(0, entity.saveToItem());
         container.setItem(1, player.getItemInHand(hand));
-        List<DrinkWorkstationRecipe> recipes = level.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, container, level);
-        ItemStack result = recipes.get(0).craft(container, level);
+        List<RecipeHolder<DrinkWorkstationRecipe>> recipes = level.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, container, level);
+        ItemStack result = recipes.getFirst().value().assemble(container, level.registryAccess());
         entity.loadFromItem(result);
         entity.setChanged();
         player.getItemInHand(hand).shrink(1);
         if (player.getItemInHand(hand).isEmpty()) {
             player.setItemInHand(hand, ItemStack.EMPTY);
         }
-        return InteractionResult.CONSUME;
+        return ItemInteractionResult.CONSUME;
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return simpleCodec(properties -> new MugBlock(() -> null, properties));
     }
 
     @Override

@@ -1,15 +1,15 @@
 package ml.pluto7073.pdapi.datagen.provider;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrinkBase;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.resource.conditions.v1.ConditionJsonProvider;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.impl.datagen.FabricDataGenHelper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.data.CachedOutput;
@@ -17,11 +17,11 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 @MethodsReturnNonnullByDefault
 public abstract class SpecialtyDrinkProvider implements DataProvider {
@@ -44,9 +44,9 @@ public abstract class SpecialtyDrinkProvider implements DataProvider {
             if (!generated.add(id))
                 throw new IllegalStateException("Duplicate Drink " + id);
 
-            JsonElement json = SpecialtyDrink.CODEC.encodeStart(JsonOps.INSTANCE, drink).getOrThrow(false, s -> {});
-            ConditionJsonProvider[] conditions = FabricDataGenHelper.consumeConditions(drink);
-            ConditionJsonProvider.write((JsonObject) json, conditions);
+            JsonElement json = SpecialtyDrink.CODEC.encodeStart(JsonOps.INSTANCE, drink).getOrThrow();
+            @Nullable ResourceCondition[] conditions = FabricDataGenHelper.consumeConditions(drink);
+            FabricDataGenHelper.addConditions(json, conditions);
 
             list.add(DataProvider.saveStable(output, json, drinkPathProvider.json(id)));
         });
@@ -68,10 +68,11 @@ public abstract class SpecialtyDrinkProvider implements DataProvider {
     }
 
     @SuppressWarnings("UnstableApiUsage")
-    protected BiConsumer<ResourceLocation, SpecialtyDrink> withConditions(BiConsumer<ResourceLocation, SpecialtyDrink> output, ConditionJsonProvider... conditions) {
+    protected BiConsumer<ResourceLocation, SpecialtyDrink> withConditions(BiConsumer<ResourceLocation, SpecialtyDrink> exporter, ResourceCondition... conditions) {
+        Preconditions.checkArgument(conditions.length > 0, "Must add at least one condition.");
         return (id, drink) -> {
             FabricDataGenHelper.addConditions(drink, conditions);
-            output.accept(id, drink);
+            exporter.accept(id, drink);
         };
     }
 

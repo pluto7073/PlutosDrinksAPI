@@ -20,12 +20,13 @@ import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,9 +48,12 @@ public class DrinkREI implements REIClientPlugin {
     @Override
     public void registerDisplays(DisplayRegistry registry) {
         registry.registerRecipeFiller(DrinkWorkstationRecipe.class, PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, DrinkAdditionDisplay::new);
-        if (Minecraft.getInstance().level == null) return;
-        registry.registerFiller(SpecialtyDrink.class, drink -> new IngredientSequenceDisplay(drink, Minecraft.getInstance().level));
-        Minecraft.getInstance().level.getSpecialtyDrinkManager().values().forEach(registry::add);
+        Level level = Minecraft.getInstance().level;
+        if (level == null) return;
+        List<Holder.Reference<SpecialtyDrink>> drinks = level.registryAccess().lookupOrThrow(PDRegistries.SPECIALITY_DRINK_KEY).listElements().toList();
+        if (drinks.isEmpty()) return;
+        registry.registerFiller(((Holder<SpecialtyDrink>) drinks.getFirst()).getClass(), IngredientSequenceDisplay::new);
+        drinks.forEach(registry::add);
     }
 
     @Override
@@ -68,8 +72,8 @@ public class DrinkREI implements REIClientPlugin {
                     continue;
                 }
                 if (DrinkUtil.sameItems(Arrays.stream(i.getItems()).map(ItemStack::getItem).toArray(Item[]::new),
-                        list.get(list.size() - 1).stream().map(ItemStack::getItem).toArray(Item[]::new))) {
-                    list.get(list.size() - 1).replaceAll(stack -> stack.copyWithCount(stack.getCount() + 1));
+                        list.getLast().stream().map(ItemStack::getItem).toArray(Item[]::new))) {
+                    list.getLast().replaceAll(stack -> stack.copyWithCount(stack.getCount() + 1));
                 } else {
                     list.add(Lists.newArrayList(Arrays.stream(i.getItems()).map(ItemStack::copy).toArray(ItemStack[]::new)));
                 }

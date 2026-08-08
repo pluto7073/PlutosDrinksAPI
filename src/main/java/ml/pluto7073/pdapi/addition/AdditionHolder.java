@@ -1,11 +1,11 @@
 package ml.pluto7073.pdapi.addition;
 
-import ml.pluto7073.pdapi.networking.packet.clientbound.ClientboundSyncAdditionRegistryPacket;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.crafting.Recipe;
 
+@MethodsReturnNonnullByDefault
 public record AdditionHolder(ResourceLocation id, DrinkAddition value) {
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AdditionHolder> STREAM_CODEC =

@@ -1,15 +1,17 @@
 package ml.pluto7073.pdapi.block.entity;
 
+import com.google.common.collect.ImmutableList;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.DataResult;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
-import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
-import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
+import ml.pluto7073.pdapi.component.DrinkAdditions;
+import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -30,7 +32,7 @@ import static ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem.DRINK_DATA_N
 @MethodsReturnNonnullByDefault
 public abstract class MugBlockEntity extends BlockEntity {
 
-    protected final List<DrinkAddition> additions;
+    protected final List<Holder<DrinkAddition>> additions;
     protected double sips;
 
     public MugBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
@@ -44,72 +46,56 @@ public abstract class MugBlockEntity extends BlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
         CompoundTag tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, provider);
         return tag;
     }
 
     @Override
-    protected void saveAdditional(CompoundTag nbt) {
-        super.saveAdditional(nbt);
-        ListTag list = new ListTag();
+    protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider provider) {
+        super.saveAdditional(nbt, provider);
         if (level == null) return;
-        for (DrinkAddition addition : additions) {
-            ResourceLocation id = level.getDrinkAdditionManager().getId(addition);
-            list.add(StringTag.valueOf(id.toString()));
-        }
-        nbt.put("Additions", list);
+        DataResult<Tag> tagDataResult = DrinkAdditions.CODEC.encodeStart(provider.createSerializationContext(NbtOps.INSTANCE), new DrinkAdditions(additions));
+        nbt.put("Additions", tagDataResult.getOrThrow());
         nbt.putDouble("Sipped", sips);
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         ListTag list = tag.getList("Additions", Tag.TAG_STRING);
         additions.clear();
-        if (level == null) return;
-        for (int i = 0; i < list.size(); i++) {
-            ResourceLocation id = new ResourceLocation(list.getString(i));
-            additions.add(level.getDrinkAdditionManager().get(id));
-        }
+        DrinkAdditions additions = DrinkAdditions.CODEC.decode(registries.createSerializationContext(NbtOps.INSTANCE), list).map(Pair::getFirst).getOrThrow();
+        this.additions.addAll(additions.additions());
         sips = tag.getDouble("Sipped");
     }
 
     public void loadFromItem(ItemStack stack) {
         additions.clear();
-        additions.addAll(List.of(DrinkUtil.getAdditionsFromStack(stack, level)));
-        sips = stack.getOrCreateTag().getDouble("Sipped");
+        additions.addAll(stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions());
+        sips = stack.getOrDefault(PDComponents.SIPPED, 0.0);
     }
 
     /**
-     * <strong>Note:</strong> override {@link MugBlockEntity#saveAdditionalToItemTag(CompoundTag)} to add data to the saved item
+     * <strong>Note:</strong> override {@link MugBlockEntity#saveAdditionalToItemTag(ItemStack)} to add data to the saved item
      * @return A new instance of the corresponding itemStack
      */
     public final ItemStack saveToItem() {
         Item item = getBlockState().getBlock().asItem();
         if (item == Items.AIR) return ItemStack.EMPTY;
         ItemStack stack = item.getDefaultInstance();
-        CompoundTag tag = stack.getOrCreateTag();
-        CompoundTag drinkData = new CompoundTag();
-        tag.put(DRINK_DATA_NBT_KEY, drinkData);
-        saveAdditionalToItemTag(tag);
+        stack.set(PDComponents.SIPPED, sips);
+        stack.set(PDComponents.ADDITIONS, new DrinkAdditions(ImmutableList.copyOf(additions)));
+        saveAdditionalToItemTag(stack);
         return stack;
     }
 
     /**
      * Adds nbt data to the item version of this Mug Block<br><br>
-     * <strong>Note:</strong> Always call <code>super.saveAdditionalToItemTag()</code> or else Drink Additions won't be saved
-     * @param itemTag The base tag of the item for any extra info, including the DrinkData tag
+     * @param stack The stack to add extra information to. Contains additions already
      */
-    public void saveAdditionalToItemTag(CompoundTag itemTag) {
-        if (level == null) return;
-        ListTag tag = new ListTag();
-        for (DrinkAddition addition : additions) {
-            tag.add(StringTag.valueOf(level.getDrinkAdditionManager().getId(addition).toString()));
-        }
-        itemTag.getCompound(DRINK_DATA_NBT_KEY).put(DrinkAdditionManager.ADDITIONS_NBT_KEY, tag);
-        itemTag.putDouble("Sipped", sips);
+    public void saveAdditionalToItemTag(ItemStack stack) {
     }
 
 }

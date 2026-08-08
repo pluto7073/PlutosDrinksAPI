@@ -7,8 +7,11 @@ import me.shedaniel.rei.api.common.registry.RecipeManagerContext;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import ml.pluto7073.pdapi.compat.rei.DrinkREI;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
+import ml.pluto7073.pdapi.util.DrinkUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,9 +19,9 @@ import java.util.Optional;
 
 public class DrinkAdditionDisplay extends BasicDisplay {
 
-    public DrinkAdditionDisplay(DrinkWorkstationRecipe recipe) {
-        this(EntryIngredients.ofIngredients(recipe.getIngredients()),
-                Collections.singletonList(EntryIngredients.of(recipe.getResultItem(null))),
+    public DrinkAdditionDisplay(RecipeHolder<DrinkWorkstationRecipe> recipe) {
+        this(EntryIngredients.ofIngredients(recipe.value().getIngredients()),
+                Collections.singletonList(EntryIngredients.of(recipe.value().getResultItem(Minecraft.getInstance().level.registryAccess()))),
                 recipe);
     }
 
@@ -26,8 +29,8 @@ public class DrinkAdditionDisplay extends BasicDisplay {
         this(inputs, outputs, RecipeManagerContext.getInstance().byId(tag, "location"));
     }
 
-    public DrinkAdditionDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, Recipe<?> recipe) {
-        super(inputs, outputs, Optional.ofNullable(recipe).map(Recipe::getId));
+    public DrinkAdditionDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, RecipeHolder<?> recipe) {
+        super(inputs, outputs, Optional.ofNullable(recipe).map(RecipeHolder::id));
     }
 
     @Override

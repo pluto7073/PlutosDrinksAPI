@@ -2,39 +2,30 @@ package ml.pluto7073.pdapi.util;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
-import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.addition.chemicals.CaffeineHandler;
+import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
-import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import ml.pluto7073.pdapi.item.PDItems;
-import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.InProgressItemRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.level.Level;
 
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,6 +33,10 @@ public final class DrinkUtil {
 
     public static ResourceLocation getAsId(ResourceLocation file, String dir) {
         return file.withPath(s -> s.replace(dir + '/', "").replace(".json", ""));
+    }
+
+    public static ResourceLocation unwrapKey(Holder<?> holder) {
+        return holder.unwrapKey().map(ResourceKey::location).orElse(new ResourceLocation("empty"));
     }
 
     public static <T> Comparator<T> alphabetizer(Function<T, String> toString) {
@@ -75,8 +70,8 @@ public final class DrinkUtil {
         return r << 16 | g << 8 | b;
     }
 
-    public static int getColorForDrinkWithDefault(ItemStack drink, int normal, Level level) {
-        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink, level);
+    public static int getColorForDrinkWithDefault(ItemStack drink, int normal) {
+        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink);
         List<Integer> colors = Arrays.stream(additions).filter(DrinkAddition::changesColor)
                 .map(DrinkAddition::getColor).collect(Collectors.toCollection(ArrayList::new));
         colors.addFirst(normal);
@@ -135,20 +130,8 @@ public final class DrinkUtil {
         return container;
     }
 
-    public static DrinkAddition[] getAdditionsFromStack(ItemStack stack, Level level) {
-        CompoundTag drinkData = stack.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
-        return getAdditionsFromTag(drinkData, level);
-    }
-
-    public static DrinkAddition[] getAdditionsFromTag(CompoundTag drinkData, Level level) {
-        ListTag additions = drinkData.getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING);
-        ArrayList<DrinkAddition> additionsList = new ArrayList<>();
-        for (int i = 0; i < additions.size(); i++) {
-            String id = additions.getString(i);
-            ResourceLocation identifier = new ResourceLocation(id);
-            additionsList.add(level.getDrinkAdditionManager().get(identifier));
-        }
-        return additionsList.toArray(new DrinkAddition[0]);
+    public static DrinkAddition[] getAdditionsFromStack(ItemStack stack) {
+        return stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions().stream().map(Holder::value).toArray(DrinkAddition[]::new);
     }
 
     private static String convertPathStackToString(Stack<String> stack) {
@@ -170,19 +153,19 @@ public final class DrinkUtil {
         return CaffeineHandler.INSTANCE.get(player);
     }
 
-    public static SpecialtyDrink getSpecialDrink(ItemStack stack) {
+    public static Holder<SpecialtyDrink> getSpecialDrink(ItemStack stack) {
         return stack.getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY);
     }
 
-    public static ItemStack setSpecialDrink(ItemStack stack, SpecialtyDrink drink) {
+    public static ItemStack setSpecialDrink(ItemStack stack, Holder<SpecialtyDrink> drink) {
         stack.set(PDComponents.SPECIALTY_DRINK, drink);
         return stack;
     }
 
-    public static int getDrinkColor(ItemStack stack, Level level) {
+    public static int getDrinkColor(ItemStack stack) {
         if (!stack.is(PDItems.SPECIALTY_DRINK)) return -1;
         try {
-            SpecialtyDrink drink = getSpecialDrink(stack, level);
+            SpecialtyDrink drink = getSpecialDrink(stack).value();
             return 255 << 24 | drink.color();
         } catch (IllegalArgumentException e) {
             return 0xfff918c5;
@@ -190,9 +173,9 @@ public final class DrinkUtil {
     }
 
     public static boolean isInProgressItem(Item item, RecipeManager recipes) {
-        List<InProgressItemRecipe> items = recipes.getAllRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE);
-        for (InProgressItemRecipe recipe : items) {
-            if (recipe.getResultItem(null).is(item)) return true;
+        List<RecipeHolder<InProgressItemRecipe>> items = recipes.getAllRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE);
+        for (RecipeHolder<InProgressItemRecipe> recipe : items) {
+            if (recipe.value().getResultItem(null).is(item)) return true;
         }
         return false;
     }
@@ -200,8 +183,8 @@ public final class DrinkUtil {
     public static Item[] getPossibleBases(Item item, RecipeManager manager) {
         return manager.getAllRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE)
                 .stream()
-                .filter(recipe -> recipe.getResultItem(null).is(item))
-                .map(InProgressItemRecipe::base)
+                .filter(recipe -> recipe.value().getResultItem(null).is(item))
+                .map(recipe -> recipe.value().base())
                 .flatMap(ingredient -> Stream.of(ingredient.getItems()))
                 .map(ItemStack::getItem).toArray(Item[]::new);
     }

@@ -1,57 +1,37 @@
 package ml.pluto7073.pdapi.recipes;
 
-import com.google.gson.JsonObject;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import ml.pluto7073.pdapi.PDRegistries;
+import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.item.PDItems;
-import ml.pluto7073.pdapi.util.DrinkUtil;
-import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.block.PDBlocks;
-import ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ExtraCodecs;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 @MethodsReturnNonnullByDefault
-public class DrinkWorkstationRecipe implements Recipe<Container> {
-
-    final Ingredient base;
-    final Ingredient addition;
-    final ResourceLocation result;
-
-    public DrinkWorkstationRecipe(Ingredient base, Ingredient addition, ResourceLocation result) {
-        this.base = base;
-        this.addition = addition;
-        this.result = result;
-    }
+public record DrinkWorkstationRecipe(Ingredient base, Ingredient addition,
+                                     ResourceLocation result) implements Recipe<Container> {
 
     @Override
     public boolean matches(Container inventory, Level world) {
@@ -60,18 +40,32 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
 
     @Override
     public ItemStack assemble(Container inventory, HolderLookup.Provider registryManager) {
-        return craft(inventory, null);
+        ItemStack stack = inventory.getItem(0).copy();
+        DrinkAdditions resAdds = stack.get(PDComponents.ADDITIONS).withAddition(registryManager.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY)
+                .getOrThrow(ResourceKey.create(PDRegistries.DRINK_ADDITION_KEY, result)));
+        stack.set(PDComponents.ADDITIONS, resAdds);
+
+        return stack;
     }
 
-    public ItemStack craft(Container inventory, Level level) {
-        ItemStack stack = inventory.getItem(0).copy();
-        if (stack.is(PDTags.HAS_IN_PROGRESS_ITEM)) {
-            stack = new ItemStack(InProgressItemRegistry.getInProgress(stack.getItem()));
+    public ItemStack assemble(Container inventory, Level level) {
+        ItemStack stack = assemble(inventory, level.registryAccess());
+
+        List<RecipeHolder<InProgressItemRecipe>> inProgressRecipes = level.getRecipeManager()
+                .getRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE, inventory, level);
+        if (!inProgressRecipes.isEmpty()) {
+            DataComponentMap map = stack.getComponents();
+            stack = inProgressRecipes.getFirst().value().assemble(inventory, level.registryAccess());
+            for (DataComponentType<?> type : map.keySet()) {
+                if (type == PDComponents.FROM_ITEM) continue;
+                copyToStackYayGenerics(type, map, stack);
+            }
         }
-        DrinkAdditions additions = stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY)
-                .withAddition(DrinkAdditionManager.get(result));
-        stack.set(PDComponents.ADDITIONS, additions);
         return stack;
+    }
+
+    public static <T> void copyToStackYayGenerics(DataComponentType<T> type, DataComponentMap source, ItemStack destination) {
+        destination.set(type, source.get(type));
     }
 
     @Override
@@ -80,17 +74,12 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.Provider registryManager) {
+    public ItemStack getResultItem(HolderLookup.Provider provider) {
         ItemStack stack = base.getItems()[0].copy();
-        stack.set(PDComponents.ADDITIONS, DrinkAdditions.of(result));
+        Holder.Reference<DrinkAddition> addition = provider.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY).getOrThrow(ResourceKey.create(PDRegistries.DRINK_ADDITION_KEY, result));
+        stack.set(PDComponents.ADDITIONS, new DrinkAdditions(List.of(addition)));
         return stack;
     }
-
-    public Ingredient getBase() { return base; }
-
-    public Ingredient getAddition() { return addition; }
-
-    public ResourceLocation getResult() { return result; }
 
     public boolean testAddition(ItemStack stack) {
         return addition.test(stack);
@@ -138,15 +127,16 @@ public class DrinkWorkstationRecipe implements Recipe<Container> {
     public static class Serializer implements RecipeSerializer<DrinkWorkstationRecipe> {
 
         private static final MapCodec<DrinkWorkstationRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
-                instance.group(Ingredient.CODEC.fieldOf("base").forGetter(DrinkWorkstationRecipe::getBase),
-                        Ingredient.CODEC.fieldOf("addition").forGetter(DrinkWorkstationRecipe::getAddition),
-                        ResourceLocation.CODEC.fieldOf("result").forGetter(DrinkWorkstationRecipe::getResult))
-                .apply(instance, DrinkWorkstationRecipe::new));
+                instance.group(Ingredient.CODEC.fieldOf("base").forGetter(DrinkWorkstationRecipe::base),
+                                Ingredient.CODEC.fieldOf("addition").forGetter(DrinkWorkstationRecipe::addition),
+                                ResourceLocation.CODEC.fieldOf("result").forGetter(DrinkWorkstationRecipe::result))
+                        .apply(instance, DrinkWorkstationRecipe::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, DrinkWorkstationRecipe> STREAM_CODEC =
                 StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
-        public Serializer() {}
+        public Serializer() {
+        }
 
         @Override
         public MapCodec<DrinkWorkstationRecipe> codec() {

@@ -1,17 +1,27 @@
 package ml.pluto7073.pdapi.datagen.provider;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.impl.datagen.FabricDataGenHelper;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.Recipe;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,24 +44,24 @@ public abstract class DrinkAdditionProvider implements DataProvider {
     public abstract void buildAdditions(BiConsumer<ResourceLocation, DrinkAddition> consumer);
 
     public final CompletableFuture<?> run(CachedOutput writer) {
-        return this.registries.thenCompose((provider) -> {
-            return this.run(writer, provider);
-        });
+        return this.registries.thenCompose((provider) -> this.run(writer, provider));
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     public CompletableFuture<?> run(CachedOutput output, final HolderLookup.Provider provider) {
         Set<ResourceLocation> generatedAdditions = Sets.newHashSet();
         List<CompletableFuture<?>> list = new ArrayList<>();
 
-        buildAdditions(builder -> {
-            DrinkAddition addition = builder.build();
-
-            ResourceLocation id = builder.id;
+        buildAdditions((id, addition) -> {
             if (!generatedAdditions.add(id)) {
                 throw new IllegalStateException("Duplicate Addition " + id);
             }
 
-            list.add(DataProvider.saveStable(output, provider, DrinkAddition.CODEC, addition, additionPathProvider.json(id)));
+            JsonElement json = DrinkAddition.CODEC.encodeStart(provider.createSerializationContext(JsonOps.INSTANCE), addition).getOrThrow();
+            @Nullable ResourceCondition[] conditions = FabricDataGenHelper.consumeConditions(addition);
+            FabricDataGenHelper.addConditions(json, conditions);
+
+            list.add(DataProvider.saveStable(output, json, additionPathProvider.json(id)));
         });
         return CompletableFuture.allOf(list.toArray(CompletableFuture[]::new));
     }
@@ -66,10 +76,11 @@ public abstract class DrinkAdditionProvider implements DataProvider {
     }
 
     @SuppressWarnings("UnstableApiUsage")
-    protected BiConsumer<ResourceLocation, DrinkAddition> withConditions(BiConsumer<ResourceLocation, DrinkAddition> output, ConditionJsonProvider... conditions) {
-        return (id, drink) -> {
-            FabricDataGenHelper.addConditions(drink, conditions);
-            output.accept(id, drink);
+    protected BiConsumer<ResourceLocation, DrinkAddition> withConditions(BiConsumer<ResourceLocation, DrinkAddition> exporter, ResourceCondition... conditions) {
+        Preconditions.checkArgument(conditions.length > 0, "Must add at least one condition.");
+        return (id, addition) -> {
+            FabricDataGenHelper.addConditions(addition, conditions);
+            exporter.accept(id, addition);
         };
     }
 
