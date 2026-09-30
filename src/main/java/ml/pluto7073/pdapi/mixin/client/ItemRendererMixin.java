@@ -30,7 +30,7 @@ public abstract class ItemRendererMixin {
     private void pdapi$ReplaceModelAndStack(ItemStack stack, ItemDisplayContext modelTransformationMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model, Operation<Void> original) {
         if (Minecraft.getInstance().level == null) return;
         SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, Minecraft.getInstance().level);
-        if (!stack.is(PDItems.SPECIALTY_DRINK) || drink == SpecialtyDrinkManager.EMPTY) {
+        if (drink == SpecialtyDrinkManager.EMPTY) {
             original.call(stack, modelTransformationMode, leftHanded, matrices, vertexConsumers, light, overlay, model);
         } else {
             ItemStack newStack = drink.getBaseItem(stack);

@@ -1,4 +1,9 @@
 
+## Fixes
+- Items with no/empty tags have issues stacking together
+
+---
+
 ## Changes
 - Mod now requires Java 21 and Fabric Loader 0.18
 - Milk no longer restores hunger

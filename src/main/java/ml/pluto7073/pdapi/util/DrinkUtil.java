@@ -169,6 +169,7 @@ public final class DrinkUtil {
     }
 
     public static SpecialtyDrink getSpecialDrink(ItemStack stack, Level level) {
+        if (!stack.is(PDItems.SPECIALTY_DRINK)) return SpecialtyDrinkManager.EMPTY;
         CompoundTag nbt = stack.getOrCreateTag();
         String id = nbt.getString("Drink");
         SpecialtyDrink drink = level.getSpecialtyDrinkManager().get(new ResourceLocation(id));
