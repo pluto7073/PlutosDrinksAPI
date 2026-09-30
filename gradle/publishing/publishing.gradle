@@ -9,7 +9,7 @@ tasks.register("publishMod") {
     dependsOn(remapJar)
     dependsOn(remapSourcesJar)
     dependsOn(tasks.modrinth)
-    dependsOn(tasks.curseforge)
+    //dependsOn(tasks.curseforge)
     dependsOn(tasks.githubRelease)
 }
 
