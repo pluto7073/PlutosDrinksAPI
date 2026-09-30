@@ -11,6 +11,8 @@ curseforge {
         changelog = changelog_text
         changelogType = "markdown"
         releaseType = 'release'
+        addGameVersion("Client")
+        addGameVersion("Server")
         relations {
             embeddedLibrary("chemicals")
             requiredDependency("fabric-api")
