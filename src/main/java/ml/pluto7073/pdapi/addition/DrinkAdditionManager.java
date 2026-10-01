@@ -45,12 +45,13 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
     }
 
     public ResourceLocation getId(DrinkAddition addition) {
+        if (addition == null) return new ResourceLocation("empty");
         for (Map.Entry<ResourceLocation, DrinkAddition> entry : registry.entrySet()) {
             if (Objects.equals(entry.getValue(), addition)) {
                 return entry.getKey();
             }
         }
-        throw new IllegalArgumentException("Unregistered drink addition: " + addition.toString());
+        return new ResourceLocation("empty");
     }
 
     public DrinkAddition get(ResourceLocation id) {
