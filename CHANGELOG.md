@@ -1,5 +1,10 @@
 
 ## Fixes
+- Client copy of specialty drinks and drink additions stored in wrong location causing crashes and errors when changing dimensions
+
+---
+
+## Fixes
 - Items with no/empty tags have issues stacking together
 
 ---

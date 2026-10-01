@@ -5,4 +5,5 @@ transitive-accessible method net/minecraft/core/registries/BuiltInRegistries reg
 transitive-inject-interface net/minecraft/world/level/Level ml/pluto7073/pdapi/internal/PDAPILevelExtensions
 transitive-inject-interface net/minecraft/client/multiplayer/ClientLevel ml/pluto7073/pdapi/internal/PDAPILevelExtensions
 transitive-inject-interface net/minecraft/server/level/ServerLevel ml/pluto7073/pdapi/internal/PDAPILevelExtensions
+transitive-inject-interface net/minecraft/client/multiplayer/ClientPacketListener ml/pluto7073/pdapi/internal/PDAPILevelExtensions
 

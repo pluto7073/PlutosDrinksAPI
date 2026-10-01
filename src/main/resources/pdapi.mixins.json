@@ -10,9 +10,10 @@
   ],
   "client": [
     "client.ClientLevelMixin",
+    "client.ClientPacketListenerMixin",
+    "client.ItemClientMixin",
     "client.ItemRendererMixin",
-    "client.LivingEntityRendererMixin",
-    "client.ItemClientMixin"
+    "client.LivingEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
