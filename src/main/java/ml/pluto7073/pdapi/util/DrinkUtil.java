@@ -144,7 +144,9 @@ public final class DrinkUtil {
         for (int i = 0; i < additions.size(); i++) {
             String id = additions.getString(i);
             ResourceLocation identifier = new ResourceLocation(id);
-            additionsList.add(level.getDrinkAdditionManager().get(identifier));
+            DrinkAddition addition = level.getDrinkAdditionManager().get(identifier);
+            if (addition == null) continue;
+            additionsList.add(addition);
         }
         return additionsList.toArray(new DrinkAddition[0]);
     }

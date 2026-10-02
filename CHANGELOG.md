@@ -1,5 +1,10 @@
 
 ## Fixes
+- Parsing drink additions from item NBT can include `null` additions causing crashes
+
+---
+
+## Fixes
 - Client copy of specialty drinks and drink additions stored in wrong location causing crashes and errors when changing dimensions
 
 ---
