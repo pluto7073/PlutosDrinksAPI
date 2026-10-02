@@ -34,7 +34,7 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
 
     private final HashMap<ResourceLocation, SpecialtyDrink> registry = new HashMap<>();
 
-    public SpecialtyDrinkManager() {
+    public void initStaticServer() {
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(PHASE, (player, joined) ->
                 ServerPlayNetworking.send(player, new ClientboundSyncSpecialtyDrinkRegistryPacket(registry)));
     }

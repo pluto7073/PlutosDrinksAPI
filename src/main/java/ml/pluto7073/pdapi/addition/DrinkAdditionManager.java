@@ -28,7 +28,7 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
 
     private final Map<ResourceLocation, DrinkAddition> registry = new HashMap<>();
 
-    public DrinkAdditionManager() {
+    public void initStaticServer() {
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(PHASE, (player, joined) -> send(player));
     }
 

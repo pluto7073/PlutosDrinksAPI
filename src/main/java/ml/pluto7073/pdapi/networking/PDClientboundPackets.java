@@ -33,11 +33,9 @@ public class PDClientboundPackets {
     private static void receiveAdditionsList(ClientboundSyncAdditionRegistryPacket packet, LocalPlayer player, PacketSender sender) {
         player.level().getDrinkAdditionManager().resetRegistry();
 
-        packet.additions().entrySet().stream()
-                .filter(Predicate.not(player.level().getDrinkAdditionManager()::contains))
-                .forEach(entry -> player.level().getDrinkAdditionManager().register(entry.getKey(), entry.getValue()));
+        packet.additions().forEach(player.level().getDrinkAdditionManager()::register);
 
-        PDAPI.LOGGER.info("Received server-side Drink Additions list");
+        PDAPI.LOGGER.info("Received {} Drink Additions from server", packet.additions().size());
     }
 
     @Environment(EnvType.CLIENT)
@@ -45,6 +43,8 @@ public class PDClientboundPackets {
         player.level().getSpecialtyDrinkManager().reset();
 
         packet.registry().forEach(player.level().getSpecialtyDrinkManager()::register);
+
+        PDAPI.LOGGER.info("Received {} Specialty Drinks from server", packet.registry().size());
     }
 
 }

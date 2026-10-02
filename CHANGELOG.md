@@ -1,6 +1,7 @@
 
 ## Fixes
 - Parsing drink additions from item NBT can include `null` additions causing crashes
+- Client sends empty Drink and Addition registries to itself overriding newly received additions and drinks on Singleplayer
 
 ---
 

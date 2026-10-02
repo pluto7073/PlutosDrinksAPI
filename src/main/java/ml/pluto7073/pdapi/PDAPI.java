@@ -45,6 +45,8 @@ public class PDAPI implements ModInitializer {
 
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(SERVER_ADDITION_MANAGER);
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(SERVER_SPECIALITY_DRINK_MANAGER);
+        SERVER_ADDITION_MANAGER.initStaticServer();
+        SERVER_SPECIALITY_DRINK_MANAGER.initStaticServer();
 
         PDMenuTypes.init();
 
