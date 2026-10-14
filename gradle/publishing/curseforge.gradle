@@ -2,14 +2,15 @@
 
 curseforge {
     apiKey = System.getenv("CURSE_TOKEN") ?: "unset"
+    options {
+        forgeGradleIntegration = false
+        fabricIntegration = true
+    }
     project {
         id = "1114525"
         changelog = changelog_text
+        changelogType = "markdown"
         releaseType = 'release'
-        for (final def version in project.minecraft_dependency.split(',')) {
-            addGameVersion(version)
-        }
-        addGameVersion("Fabric")
         relations {
             embeddedLibrary("chemicals")
             requiredDependency("fabric-api")

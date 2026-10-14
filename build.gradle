@@ -3,7 +3,7 @@ plugins {
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "2.+"
 	id "com.github.breadmoirai.github-release" version "2.+"
-	id "com.matthewprenger.cursegradle" version "1.+"
+	id "me.hypherionmc.cursegradle" version "2.+"
 }
 
 static String getBuildNo() {
