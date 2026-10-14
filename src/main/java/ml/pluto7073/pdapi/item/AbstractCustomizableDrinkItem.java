@@ -101,6 +101,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         Player player = user instanceof Player ? (Player) user : null;
+        Item baseItem = baseItem(stack, world);
 
         if (player != null) {
             double sipped = stack.getOrDefault(PDComponents.SIPPED, 0.0);
@@ -135,11 +136,11 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
 
         if (player == null || !player.getAbilities().instabuild) {
             if (stack.isEmpty()) {
-                return new ItemStack(baseItem(stack, world));
+                return new ItemStack(baseItem);
             }
 
             if (player != null) {
-                player.getInventory().add(new ItemStack(baseItem(stack, world)));
+                player.getInventory().add(new ItemStack(baseItem));
             }
         }
         user.gameEvent(GameEvent.DRINK);
