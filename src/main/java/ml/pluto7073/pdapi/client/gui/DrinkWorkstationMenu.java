@@ -2,6 +2,8 @@ package ml.pluto7073.pdapi.client.gui;
 
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.component.PDComponents;
+import ml.pluto7073.pdapi.recipes.WorkstationRecipeInput;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.PDItems;
@@ -47,7 +49,7 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
 
     @Override
     protected boolean mayPickup(Player player, boolean present) {
-        return currentRecipe != null && currentRecipe.value().matches(inputSlots, world);
+        return currentRecipe != null && currentRecipe.value().matches(ofContainer(inputSlots), world);
     }
 
     @Override
@@ -90,27 +92,33 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
         Container testInput = DrinkUtil.copyContainerContents(inputSlots);
 
         if (inputSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0)).value().getBaseItem(inputSlots.getItem(0), world.registryAccess()));
+            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0), world).getBaseItem(inputSlots.getItem(0)));
         }
 
-        List<RecipeHolder<DrinkWorkstationRecipe>> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, testInput, world);
+        WorkstationRecipeInput testRecipeInput = new WorkstationRecipeInput(testInput.getItem(0),
+                testInput.getItem(1));
+
+        List<RecipeHolder<DrinkWorkstationRecipe>> list = world.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, testRecipeInput, world);
         if (list.isEmpty()) {
             resultSlots.setItem(0, ItemStack.EMPTY);
         } else {
-            currentRecipe = list.get(0);
-            ItemStack stack = currentRecipe.value().assemble(inputSlots, world);
+            currentRecipe = list.getFirst();
+            ItemStack stack = currentRecipe.value().assemble(new WorkstationRecipeInput(
+                    inputSlots.getItem(0),
+                    inputSlots.getItem(1)
+            ), world);
             resultSlots.setRecipeUsed(currentRecipe);
             resultSlots.setItem(0, stack);
 
             // Specialty Drink testing
             Container testResults = DrinkUtil.copyContainerContents(resultSlots);
             if (resultSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0)).value().getBaseItem(resultSlots.getItem(0), world.registryAccess()));
+                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0), world).getBaseItem(resultSlots.getItem(0)));
             }
-            List<Holder.Reference<SpecialtyDrink>> matchingDrinks = world.registryAccess().lookupOrThrow(PDRegistries.SPECIALITY_DRINK_KEY).listElements()
+            List<SpecialtyDrinkManager.DrinkHolder> matchingDrinks = world.getSpecialtyDrinkManager().values().stream()
                     .filter(drink -> drink.value().matches(testResults)).toList();
             if (matchingDrinks.isEmpty()) return;
-            Holder<SpecialtyDrink> drink = matchingDrinks.getFirst();
+            var drink = matchingDrinks.getFirst();
             stack = SpecialtyDrink.getAsItem(drink);
             DataComponentMap data = resultSlots.getItem(0).getComponents(); // Get the components from the current resultItem (Non Specialty Drink)
             data = PatchedDataComponentMap.fromPatch(data, DataComponentPatch.builder()
@@ -155,6 +163,10 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
     @Override
     public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
         return slot.container != resultSlots && super.canTakeItemForPickAll(stack, slot);
+    }
+
+    private static WorkstationRecipeInput ofContainer(Container container) {
+        return new WorkstationRecipeInput(container.getItem(0), container.getItem(1));
     }
 
 }

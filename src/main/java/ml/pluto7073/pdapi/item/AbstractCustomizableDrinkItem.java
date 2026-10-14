@@ -48,9 +48,9 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         this.baseItem = baseItem;
     }
 
-    public double getTotalVolume(ItemStack stack, HolderLookup.Provider provider) {
+    public double getTotalVolume(ItemStack stack, Level level) {
         double vol = baseVolume;
-        for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack)) {
+        for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack, level)) {
             vol += a.volume();
         }
         return vol;
@@ -59,7 +59,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     @Override
     public float getChemicalContent(ResourceLocation name, ItemStack stack, Level level) {
         int amount = 0;
-        for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack)) {
+        for (DrinkAddition a : DrinkUtil.getAdditionsFromStack(stack, level)) {
             if (a.getChemicals().containsKey(name))
                 amount += a.getChemicals().get(name);
         }
@@ -69,15 +69,15 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     @Override
     public float getConsumedChemicalContent(ResourceLocation id, ItemStack stack, Level level) {
         float amount = getChemicalContent(id, stack, level);
-        return (float) (getSipAmount(stack, level.registryAccess()) / getTotalVolume(stack, level.registryAccess())) * amount;
+        return (float) (getSipAmount(stack, level) / getTotalVolume(stack, level)) * amount;
     }
 
-    protected Item baseItem(ItemStack stack, HolderLookup.Provider provider) {
+    protected Item baseItem(ItemStack stack, Level level) {
         return baseItem;
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return MAX_USE_TIME;
     }
 
@@ -94,8 +94,8 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     /**
      * @return the amount of liquid to be sipped.  1oz for >10oz drinks, 0.5oz for less than 10oz drinks
      */
-    protected double getSipAmount(ItemStack stack, HolderLookup.Provider provider) {
-        return getTotalVolume(stack, provider) > 10 ? 1 : 0.5;
+    protected double getSipAmount(ItemStack stack, Level level) {
+        return getTotalVolume(stack, level) > 10 ? 1 : 0.5;
     }
 
     @Override
@@ -104,8 +104,8 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
 
         if (player != null) {
             double sipped = stack.getOrDefault(PDComponents.SIPPED, 0.0);
-            sipped += getSipAmount(stack, world.registryAccess());
-            if (sipped >= getTotalVolume(stack, world.registryAccess())) {
+            sipped += getSipAmount(stack, world);
+            if (sipped >= getTotalVolume(stack, world)) {
                 stack.shrink(1);
                 stack.remove(PDComponents.SIPPED);
             } else  {
@@ -120,7 +120,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         }
 
         if (!world.isClientSide) {
-            DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(stack);
+            DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(stack, world);
             for (DrinkAddition addition : additions) {
                 addition.onDrink(stack, world, user);
             }
@@ -135,11 +135,11 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
 
         if (player == null || !player.getAbilities().instabuild) {
             if (stack.isEmpty()) {
-                return new ItemStack(baseItem(stack, world.registryAccess()));
+                return new ItemStack(baseItem(stack, world));
             }
 
             if (player != null) {
-                player.getInventory().add(new ItemStack(baseItem(stack, world.registryAccess())));
+                player.getInventory().add(new ItemStack(baseItem(stack, world)));
             }
         }
         user.gameEvent(GameEvent.DRINK);
@@ -148,10 +148,10 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag config) {
-        HashMap<Holder<DrinkAddition>, Integer> additionCounts = new HashMap<>();
-        List<Holder<DrinkAddition>> order = new ArrayList<>();
-        List<Holder<DrinkAddition>> additions = stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
-        for (Holder<DrinkAddition> addIn : additions) {
+        HashMap<ResourceLocation, Integer> additionCounts = new HashMap<>();
+        List<ResourceLocation> order = new ArrayList<>();
+        List<ResourceLocation> additions = stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
+        for (ResourceLocation addIn : additions) {
             if (additionCounts.containsKey(addIn)) {
                 int count = additionCounts.get(addIn);
                 additionCounts.put(addIn, ++count);
@@ -160,7 +160,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
                 order.add(addIn);
             }
         }
-        order.forEach(holder -> tooltip.add(Component.translatable(holder.value().getTranslationKey(holder), additionCounts.get(holder)).withStyle(ChatFormatting.GRAY)));
+        order.forEach(holder -> tooltip.add(Component.translatable(holder.toLanguageKey("drink_addition"), additionCounts.get(holder)).withStyle(ChatFormatting.GRAY)));
     }
 
     @Override

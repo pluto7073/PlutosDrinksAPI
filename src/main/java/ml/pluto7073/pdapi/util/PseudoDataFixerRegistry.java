@@ -19,12 +19,12 @@ public class PseudoDataFixerRegistry {
     }
 
     public static ResourceLocation getReplacement(ResourceLocation id) {
-        return REGISTRY.getOrDefault(id, new ResourceLocation("empty"));
+        return REGISTRY.getOrDefault(id, ResourceLocation.withDefaultNamespace("empty"));
     }
 
     static {
-        REGISTRY.put(new ResourceLocation("plutoscoffee:milk_bottle"), PDAPI.asId("milk_bottle"));
-        REGISTRY.put(new ResourceLocation("plutoscoffee:coffee_workstation"), PDAPI.asId("drink_workstation"));
+        REGISTRY.put(ResourceLocation.parse("plutoscoffee:milk_bottle"), PDAPI.asId("milk_bottle"));
+        REGISTRY.put(ResourceLocation.parse("plutoscoffee:coffee_workstation"), PDAPI.asId("drink_workstation"));
     }
 
 }

@@ -9,6 +9,7 @@ import ml.pluto7073.pdapi.client.ClientDrinkUtil;
 import ml.pluto7073.pdapi.compat.rei.DrinkREI;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
@@ -26,7 +27,7 @@ import java.util.Optional;
 
 public class IngredientSequenceDisplay extends BasicDisplay {
 
-    public IngredientSequenceDisplay(Holder<SpecialtyDrink> drink) {
+    public IngredientSequenceDisplay(SpecialtyDrinkManager.DrinkHolder drink) {
         super(Util.make(() -> {
             ItemStack base = drink.value().base().buildItemStack();
             Ingredient baseIngredient = Ingredient.of(base);
@@ -44,7 +45,7 @@ public class IngredientSequenceDisplay extends BasicDisplay {
             List<EntryIngredient> list = new ArrayList<>(List.of(EntryIngredients.ofIngredient(baseIngredient)));
             list.addAll(DrinkREI.Util.condenseIngredients(stepsToIngredientList(drink.value())));
             return list;
-        }), Collections.singletonList(EntryIngredients.of(SpecialtyDrink.getAsItem(drink))), Optional.of(DrinkUtil.unwrapKey(drink)));
+        }), Collections.singletonList(EntryIngredients.of(SpecialtyDrink.getAsItem(drink))), Optional.of(drink.key()));
     }
 
     public static List<Ingredient> stepsToIngredientList(SpecialtyDrink drink) {

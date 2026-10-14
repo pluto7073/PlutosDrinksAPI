@@ -22,6 +22,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.level.Level;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -36,7 +37,7 @@ public final class DrinkUtil {
     }
 
     public static ResourceLocation unwrapKey(Holder<?> holder) {
-        return holder.unwrapKey().map(ResourceKey::location).orElse(new ResourceLocation("empty"));
+        return holder.unwrapKey().map(ResourceKey::location).orElse(ResourceLocation.withDefaultNamespace("empty"));
     }
 
     public static <T> Comparator<T> alphabetizer(Function<T, String> toString) {
@@ -55,7 +56,7 @@ public final class DrinkUtil {
     }
 
     public static int averageColors(Collection<Integer> colors) {
-        if (colors.isEmpty()) return 0xFFFFFF;
+        if (colors.isEmpty()) return 0xFFFFFFFF;
         int r = 0;
         int g = 0;
         int b = 0;
@@ -67,11 +68,11 @@ public final class DrinkUtil {
         r /= colors.size();
         g /= colors.size();
         b /= colors.size();
-        return r << 16 | g << 8 | b;
+        return 255 << 24 | r << 16 | g << 8 | b;
     }
 
-    public static int getColorForDrinkWithDefault(ItemStack drink, int normal) {
-        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink);
+    public static int getColorForDrinkWithDefault(ItemStack drink, int normal, Level level) {
+        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink, level);
         List<Integer> colors = Arrays.stream(additions).filter(DrinkAddition::changesColor)
                 .map(DrinkAddition::getColor).collect(Collectors.toCollection(ArrayList::new));
         colors.addFirst(normal);
@@ -130,8 +131,9 @@ public final class DrinkUtil {
         return container;
     }
 
-    public static DrinkAddition[] getAdditionsFromStack(ItemStack stack) {
-        return stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions().stream().map(Holder::value).toArray(DrinkAddition[]::new);
+    public static DrinkAddition[] getAdditionsFromStack(ItemStack stack, Level level) {
+        return stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions()
+                .stream().map(level.getDrinkAdditionManager()::get).filter(Objects::nonNull).toArray(DrinkAddition[]::new);
     }
 
     private static String convertPathStackToString(Stack<String> stack) {
@@ -153,19 +155,20 @@ public final class DrinkUtil {
         return CaffeineHandler.INSTANCE.get(player);
     }
 
-    public static Holder<SpecialtyDrink> getSpecialDrink(ItemStack stack) {
-        return stack.getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY);
+    public static SpecialtyDrink getSpecialDrink(ItemStack stack, Level level) {
+        SpecialtyDrink drink = level.getSpecialtyDrinkManager().get(stack.getOrDefault(PDComponents.SPECIALTY_DRINK, ResourceLocation.withDefaultNamespace("empty")));
+        return drink == null ? SpecialtyDrink.EMPTY : drink;
     }
 
-    public static ItemStack setSpecialDrink(ItemStack stack, Holder<SpecialtyDrink> drink) {
-        stack.set(PDComponents.SPECIALTY_DRINK, drink);
+    public static ItemStack setSpecialDrink(ItemStack stack, SpecialtyDrink drink, Level level) {
+        stack.set(PDComponents.SPECIALTY_DRINK, level.getSpecialtyDrinkManager().getId(drink));
         return stack;
     }
 
-    public static int getDrinkColor(ItemStack stack) {
+    public static int getDrinkColor(ItemStack stack, Level level) {
         if (!stack.is(PDItems.SPECIALTY_DRINK)) return -1;
         try {
-            SpecialtyDrink drink = getSpecialDrink(stack).value();
+            SpecialtyDrink drink = getSpecialDrink(stack, level);
             return 255 << 24 | drink.color();
         } catch (IllegalArgumentException e) {
             return 0xfff918c5;

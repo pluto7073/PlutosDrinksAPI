@@ -26,13 +26,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY;
 
 @MethodsReturnNonnullByDefault
 public abstract class MugBlockEntity extends BlockEntity {
 
-    protected final List<Holder<DrinkAddition>> additions;
+    protected final List<ResourceLocation> additions;
     protected double sips;
 
     public MugBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
@@ -64,6 +65,7 @@ public abstract class MugBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        if (level == null) return;
         ListTag list = tag.getList("Additions", Tag.TAG_STRING);
         additions.clear();
         DrinkAdditions additions = DrinkAdditions.CODEC.decode(registries.createSerializationContext(NbtOps.INSTANCE), list).map(Pair::getFirst).getOrThrow();

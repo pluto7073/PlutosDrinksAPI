@@ -26,7 +26,7 @@ public class ClientDrinkUtil {
             return Ingredient.EMPTY;
         }
         List<RecipeHolder<DrinkWorkstationRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE)
-                .stream().filter(r -> r.id().equals(additionId)).toList();
+                .stream().filter(r -> r.value().result().equals(additionId)).toList();
         if (recipes.isEmpty()) return Ingredient.EMPTY;
         List<ItemStack> matchingStacks = new ArrayList<>();
         recipes.forEach(r -> matchingStacks.addAll(Arrays.asList(r.value().addition().getItems())));

@@ -31,31 +31,30 @@ import java.util.stream.Stream;
 
 @MethodsReturnNonnullByDefault
 public record DrinkWorkstationRecipe(Ingredient base, Ingredient addition,
-                                     ResourceLocation result) implements Recipe<Container> {
+                                     ResourceLocation result) implements Recipe<WorkstationRecipeInput> {
 
     @Override
-    public boolean matches(Container inventory, Level world) {
+    public boolean matches(WorkstationRecipeInput inventory, Level world) {
         return base.test(inventory.getItem(0)) && addition.test(inventory.getItem(1));
     }
 
     @Override
-    public ItemStack assemble(Container inventory, HolderLookup.Provider registryManager) {
+    public ItemStack assemble(WorkstationRecipeInput inventory, HolderLookup.Provider registryManager) {
         ItemStack stack = inventory.getItem(0).copy();
-        DrinkAdditions resAdds = stack.get(PDComponents.ADDITIONS).withAddition(registryManager.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY)
-                .getOrThrow(ResourceKey.create(PDRegistries.DRINK_ADDITION_KEY, result)));
+        DrinkAdditions resAdds = stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).withAddition(result);
         stack.set(PDComponents.ADDITIONS, resAdds);
 
         return stack;
     }
 
-    public ItemStack assemble(Container inventory, Level level) {
+    public ItemStack assemble(WorkstationRecipeInput inventory, Level level) {
         ItemStack stack = assemble(inventory, level.registryAccess());
 
         List<RecipeHolder<InProgressItemRecipe>> inProgressRecipes = level.getRecipeManager()
-                .getRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE, inventory, level);
+                .getRecipesFor(PDRecipeTypes.IN_PROGRESS_RECIPE_TYPE, new InProgressItemRecipe.StackHolder(inventory.base()), level);
         if (!inProgressRecipes.isEmpty()) {
             DataComponentMap map = stack.getComponents();
-            stack = inProgressRecipes.getFirst().value().assemble(inventory, level.registryAccess());
+            stack = inProgressRecipes.getFirst().value().assemble(new InProgressItemRecipe.StackHolder(inventory.base()), level.registryAccess());
             for (DataComponentType<?> type : map.keySet()) {
                 if (type == PDComponents.FROM_ITEM) continue;
                 copyToStackYayGenerics(type, map, stack);
@@ -76,8 +75,7 @@ public record DrinkWorkstationRecipe(Ingredient base, Ingredient addition,
     @Override
     public ItemStack getResultItem(HolderLookup.Provider provider) {
         ItemStack stack = base.getItems()[0].copy();
-        Holder.Reference<DrinkAddition> addition = provider.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY).getOrThrow(ResourceKey.create(PDRegistries.DRINK_ADDITION_KEY, result));
-        stack.set(PDComponents.ADDITIONS, new DrinkAdditions(List.of(addition)));
+        stack.set(PDComponents.ADDITIONS, new DrinkAdditions(List.of(result)));
         return stack;
     }
 

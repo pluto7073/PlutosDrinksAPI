@@ -22,7 +22,7 @@ public class PDAPITestMod implements ModInitializer {
     }
 
     public static ResourceLocation id(String id) {
-        return new ResourceLocation(MODID, id);
+        return ResourceLocation.fromNamespaceAndPath(MODID, id);
     }
 
 }

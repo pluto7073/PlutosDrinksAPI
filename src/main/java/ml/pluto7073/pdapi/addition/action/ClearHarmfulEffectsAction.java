@@ -4,14 +4,19 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.Holder;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClearHarmfulEffectsAction implements OnDrinkAction {
 
@@ -26,11 +31,13 @@ public class ClearHarmfulEffectsAction implements OnDrinkAction {
         int limit = this.limit;
 
         if (limit == -1) limit = user.getActiveEffects().size();
+        List<Holder<MobEffect>> toRemove = new ArrayList<>();
         for (MobEffectInstance effect : user.getActiveEffects()) {
             if (effect.getEffect().value().isBeneficial()) continue;
             limit--;
-            user.removeEffect(effect.getEffect());
+            toRemove.add(effect.getEffect());
         }
+        toRemove.forEach(user::removeEffect);
     }
 
     @Override

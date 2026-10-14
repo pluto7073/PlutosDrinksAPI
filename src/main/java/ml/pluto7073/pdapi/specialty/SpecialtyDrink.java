@@ -29,6 +29,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -47,10 +48,10 @@ public class SpecialtyDrink {
                     Codec.STRING.fieldOf("name").orElse("").forGetter(drink -> drink.name))
             .apply(instance, SpecialtyDrink::new));
 
-    public static final Holder<SpecialtyDrink> EMPTY = new Holder.Direct<>(new SpecialtyDrink(
+    public static final SpecialtyDrink EMPTY = new SpecialtyDrink(
             new SpecialtyDrink.ItemBase(Items.AIR),
             List.of(), List.of(), 0, 0xfc0ffc, Map.of(), "Drink"
-    ));
+    );
 
     public static final Codec<Holder<SpecialtyDrink>> COMPONENT_CODEC = RegistryFixedCodec.create(PDRegistries.SPECIALITY_DRINK_KEY);
     public static final StreamCodec<RegistryFriendlyByteBuf, Holder<SpecialtyDrink>> STREAM_COMPONENT_CODEC = ByteBufCodecs.fromCodecWithRegistries(COMPONENT_CODEC);
@@ -84,11 +85,12 @@ public class SpecialtyDrink {
         return List.of(steps);
     }
 
-    public List<OnDrinkAction> actions(HolderLookup.Provider provider) {
+    public List<OnDrinkAction> actions(Level level) {
         ArrayList<OnDrinkAction> stepActions = new ArrayList<>();
         for (ResourceLocation step : steps) {
-            Holder<DrinkAddition> holder = provider.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY).getOrThrow(ResourceKey.create(PDRegistries.DRINK_ADDITION_KEY, step));
-            stepActions.addAll(holder.value().actions());
+            DrinkAddition addition = level.getDrinkAdditionManager().get(step);
+            if (addition == null) continue;
+            stepActions.addAll(addition.actions());
         }
         stepActions.addAll(List.of(actions));
         return ImmutableList.copyOf(stepActions);
@@ -110,15 +112,10 @@ public class SpecialtyDrink {
         return name.isEmpty() ? Optional.empty() : Optional.of(name);
     }
 
-    public ItemStack getBaseItem(ItemStack source, HolderLookup.Provider provider) {
+    public ItemStack getBaseItem(ItemStack source) {
         ItemStack stack = base.buildItemStack();
         DrinkAdditions baseAdditions = source.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY);
-        List<Holder<DrinkAddition>> additions = new ArrayList<>();
-        HolderLookup.RegistryLookup<DrinkAddition> additionRegistry = provider.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY);
-        for (ResourceLocation step : steps) {
-            Holder.Reference<DrinkAddition> addition = additionRegistry.getOrThrow(ResourceKey.create(PDRegistries.DRINK_ADDITION_KEY, step));
-            additions.add(addition);
-        }
+        List<ResourceLocation> additions = new ArrayList<>(List.of(steps));
         stack.set(PDComponents.ADDITIONS, DrinkAdditions.or(new DrinkAdditions(additions), baseAdditions));
         return stack;
     }
@@ -126,10 +123,10 @@ public class SpecialtyDrink {
     public boolean matches(Container container) {
         ItemStack currentResult = container.getItem(0);
         if (!base.matches(currentResult)) return false;
-        List<Holder<DrinkAddition>> additions = currentResult.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
+        List<ResourceLocation> additions = currentResult.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
         if (steps.length != additions.size()) return false;
         for (int i = 0; i < additions.size(); i++) {
-            ResourceLocation actual = additions.get(i).unwrapKey().orElseThrow().location();
+            ResourceLocation actual = additions.get(i);
             ResourceLocation wanted = steps[i];
             if (!actual.equals(wanted)) return false;
         }
@@ -159,13 +156,15 @@ public class SpecialtyDrink {
         return new SpecialtyDrink(base, steps, list, volume, color, chemicals, name);
     }
 
-    public static ItemStack getAsItem(Holder<SpecialtyDrink> drink) {
-        return DrinkUtil.setSpecialDrink(new ItemStack(PDItems.SPECIALTY_DRINK, 1), drink);
+    public static ItemStack getAsItem(SpecialtyDrinkManager.DrinkHolder drink) {
+        ItemStack stack = new ItemStack(PDItems.SPECIALTY_DRINK, 1);
+        stack.set(PDComponents.SPECIALTY_DRINK, drink.key());
+        return stack;
     }
 
-    public static String languageKey(Holder<SpecialtyDrink> drink) {
+    public static String languageKey(SpecialtyDrinkManager.DrinkHolder drink) {
         if (drink.value().name.isEmpty()) {
-            return drink.unwrapKey().orElseThrow().location().toLanguageKey("drink");
+            return drink.key().toLanguageKey("drink");
         }
         return drink.value().name;
     }

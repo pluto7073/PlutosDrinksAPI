@@ -5,6 +5,7 @@ import ml.pluto7073.pdapi.block.entity.MugBlockEntity;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
+import ml.pluto7073.pdapi.recipes.WorkstationRecipeInput;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -74,11 +75,12 @@ public class MugBlock extends BaseEntityBlock {
         if (level.isClientSide) {
             return ItemInteractionResult.SUCCESS;
         }
-        Container container = new SimpleContainer(2);
-        container.setItem(0, entity.saveToItem());
-        container.setItem(1, player.getItemInHand(hand));
-        List<RecipeHolder<DrinkWorkstationRecipe>> recipes = level.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, container, level);
-        ItemStack result = recipes.getFirst().value().assemble(container, level.registryAccess());
+        WorkstationRecipeInput input = new WorkstationRecipeInput(
+                entity.saveToItem(),
+                player.getItemInHand(hand)
+        );
+        List<RecipeHolder<DrinkWorkstationRecipe>> recipes = level.getRecipeManager().getRecipesFor(PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, input, level);
+        ItemStack result = recipes.getFirst().value().assemble(input, level.registryAccess());
         entity.loadFromItem(result);
         entity.setChanged();
         player.getItemInHand(hand).shrink(1);

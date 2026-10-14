@@ -8,7 +8,12 @@
     "pdapi:sugar",
     "pdapi_test:random_addition"
   ],
-  "onDrinkActions": [],
+  "onDrinkActions": [
+    {
+      "type": "pdapi:chorus_teleport",
+      "maxRadius": 10
+    }
+  ],
   "chemicals": {},
   "color": 12396008,
   "name": "Testing Specialty Drink??",

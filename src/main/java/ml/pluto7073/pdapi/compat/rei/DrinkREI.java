@@ -20,6 +20,7 @@ import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.recipes.DrinkWorkstationRecipe;
 import ml.pluto7073.pdapi.recipes.PDRecipeTypes;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
@@ -28,9 +29,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class DrinkREI implements REIClientPlugin {
 
@@ -50,9 +49,9 @@ public class DrinkREI implements REIClientPlugin {
         registry.registerRecipeFiller(DrinkWorkstationRecipe.class, PDRecipeTypes.DRINK_WORKSTATION_RECIPE_TYPE, DrinkAdditionDisplay::new);
         Level level = Minecraft.getInstance().level;
         if (level == null) return;
-        List<Holder.Reference<SpecialtyDrink>> drinks = level.registryAccess().lookupOrThrow(PDRegistries.SPECIALITY_DRINK_KEY).listElements().toList();
+        var drinks = level.getSpecialtyDrinkManager().values().stream().toList();
         if (drinks.isEmpty()) return;
-        registry.registerFiller(((Holder<SpecialtyDrink>) drinks.getFirst()).getClass(), IngredientSequenceDisplay::new);
+        registry.registerFiller(SpecialtyDrinkManager.DrinkHolder.class, IngredientSequenceDisplay::new);
         drinks.forEach(registry::add);
     }
 

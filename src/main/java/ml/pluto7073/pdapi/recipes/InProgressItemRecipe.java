@@ -20,7 +20,7 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
 @MethodsReturnNonnullByDefault
-public record InProgressItemRecipe(Ingredient base, ItemStack result) implements Recipe<Container> {
+public record InProgressItemRecipe(Ingredient base, ItemStack result) implements Recipe<InProgressItemRecipe.StackHolder> {
 
     /**
      * Constructs a new Recipe for an In Progress item
@@ -30,12 +30,12 @@ public record InProgressItemRecipe(Ingredient base, ItemStack result) implements
     public InProgressItemRecipe {}
 
     @Override
-    public boolean matches(Container inventory, Level world) {
+    public boolean matches(StackHolder inventory, Level world) {
         return base.test(inventory.getItem(0));
     }
 
     @Override
-    public ItemStack assemble(Container inventory, HolderLookup.Provider registryManager) {
+    public ItemStack assemble(StackHolder inventory, HolderLookup.Provider registryManager) {
         ItemStack result = result().copy();
 
         result.set(PDComponents.FROM_ITEM, inventory.getItem(0).getItem());
@@ -92,6 +92,20 @@ public record InProgressItemRecipe(Ingredient base, ItemStack result) implements
         @Override
         public StreamCodec<RegistryFriendlyByteBuf, InProgressItemRecipe> streamCodec() {
             return STREAM_CODEC;
+        }
+    }
+
+    public record StackHolder(ItemStack stack) implements RecipeInput {
+
+        @Override
+        public ItemStack getItem(int index) {
+            if (index != 0) throw new IllegalArgumentException("Container does not contain slot: " + index);
+            return stack;
+        }
+
+        @Override
+        public int size() {
+            return 1;
         }
     }
 

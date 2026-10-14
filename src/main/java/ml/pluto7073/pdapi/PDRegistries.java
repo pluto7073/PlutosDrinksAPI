@@ -26,9 +26,8 @@ public final class PDRegistries {
     public static final Registry<SpecialtyDrinkBaseSerializer> SPECIALTY_DRINK_BASE =
             BuiltInRegistries.registerSimple(SPECIALTY_DRINK_BASE_KEY, registry -> SpecialtyDrinkBaseSerializer.ITEM_BASE);
 
-    public static void initSynced() {
-        DynamicRegistries.registerSynced(DRINK_ADDITION_KEY, DrinkAddition.CODEC);
-        DynamicRegistries.registerSynced(SPECIALITY_DRINK_KEY, SpecialtyDrink.CODEC);
+    public static void init() {
+
     }
 
 }

@@ -8,28 +8,31 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public record DrinkAdditions(List<Holder<DrinkAddition>> additions) {
+public record DrinkAdditions(List<ResourceLocation> additions) {
 
     public static final DrinkAdditions EMPTY = new DrinkAdditions(new ArrayList<>());
-    public static final Codec<DrinkAdditions> CODEC = DrinkAddition.COMPONENT_CODEC.listOf().xmap(DrinkAdditions::new, DrinkAdditions::additions);
-    public static final StreamCodec<RegistryFriendlyByteBuf, DrinkAdditions> STREAM_CODEC =
-            StreamCodec.of(ByteBufCodecs.fromCodecWithRegistries(CODEC), ByteBufCodecs.fromCodecWithRegistries(CODEC));
+    public static final Codec<DrinkAdditions> CODEC = ResourceLocation.CODEC.listOf().xmap(DrinkAdditions::new, DrinkAdditions::additions);
+    public static final StreamCodec<RegistryFriendlyByteBuf, DrinkAdditions> STREAM_CODEC = StreamCodec.composite(
+            ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()), DrinkAdditions::additions,
+            DrinkAdditions::new
+    );
 
     public static DrinkAdditions or(DrinkAdditions first, DrinkAdditions second) {
-        List<Holder<DrinkAddition>> additions = Lists.newArrayList(first.additions);
+        List<ResourceLocation> additions = Lists.newArrayList(first.additions);
         additions.addAll(second.additions);
         return new DrinkAdditions(additions);
     }
 
-    public static DrinkAdditions of(List<Holder<DrinkAddition>> additions) {
+    public static DrinkAdditions of(List<ResourceLocation> additions) {
         return new DrinkAdditions(additions);
     }
 
-    public DrinkAdditions withAddition(Holder<DrinkAddition> addition) {
+    public DrinkAdditions withAddition(ResourceLocation addition) {
         return new DrinkAdditions(Util.copyAndAdd(additions, addition));
     }
 }
