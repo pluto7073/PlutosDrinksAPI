@@ -86,7 +86,7 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
         // TODO, find a way around this and to access SpecialtyDrinkManager
         ResourceLocation id = stack.get(PDComponents.SPECIALTY_DRINK);
         if (id != null) {
-            tooltip.add(Component.translatable(id.toLanguageKey("specialty_drink")).withStyle(ChatFormatting.AQUA));
+            tooltip.add(Component.translatable(id.toLanguageKey("drink")).withStyle(ChatFormatting.AQUA));
             tooltip.add(Component.empty());
         }
 
