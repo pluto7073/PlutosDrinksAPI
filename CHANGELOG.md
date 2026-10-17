@@ -1,5 +1,10 @@
 
 ## Fixes
+- Specialty drink base can't be found from an empty item stack, causing a crash
+
+---
+
+## Fixes
 - Parsing drink additions from item NBT can include `null` additions causing crashes
 - Client sends empty Drink and Addition registries to itself overriding newly received additions and drinks on Singleplayer
 
