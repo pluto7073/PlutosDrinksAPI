@@ -2,6 +2,7 @@ package ml.pluto7073.pdapi.item;
 
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.component.PDComponents;
+import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.ChatFormatting;
@@ -83,10 +84,18 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        // TODO, find a way around this and to access SpecialtyDrinkManager
         ResourceLocation id = stack.get(PDComponents.SPECIALTY_DRINK);
         if (id != null) {
-            tooltip.add(Component.translatable(id.toLanguageKey("drink")).withStyle(ChatFormatting.AQUA));
+            String key = id.toLanguageKey("drink");
+            SpecialtyDrinkManager manager = context.getSpecialtyDrinkManager();
+            nameFinder: if (manager != null) {
+                SpecialtyDrink drink = manager.get(id);
+                if (drink == null) break nameFinder;
+                if (drink.name().isPresent()) {
+                    key = drink.name().get();
+                }
+            }
+            tooltip.add(Component.translatable(key).withStyle(ChatFormatting.AQUA));
             tooltip.add(Component.empty());
         }
 

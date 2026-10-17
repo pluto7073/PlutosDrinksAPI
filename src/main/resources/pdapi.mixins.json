@@ -6,7 +6,8 @@
     "CowEntityMixin",
     "DefaultedMappedRegistryMixin",
     "LevelMixin",
-    "ServerLevelMixin"
+    "ServerLevelMixin",
+    "TooltipContextMixin"
   ],
   "client": [
     "client.ClientLevelMixin",

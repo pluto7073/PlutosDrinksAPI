@@ -1,5 +1,6 @@
 package ml.pluto7073.pdapi.item;
 
+import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.chemicals.item.ChemicalContaining;
@@ -161,7 +162,19 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
                 order.add(addIn);
             }
         }
-        order.forEach(holder -> tooltip.add(Component.translatable(holder.toLanguageKey("drink_addition"), additionCounts.get(holder)).withStyle(ChatFormatting.GRAY)));
+        DrinkAdditionManager manager = context.getDrinkAdditionManager();
+        order.forEach(id -> addTooltipForAddition(id, manager, tooltip, additionCounts.get(id)));
+    }
+
+    private static void addTooltipForAddition(ResourceLocation id, @Nullable DrinkAdditionManager manager, List<Component> tooltip, int count) {
+        nameGetter: if (manager != null) {
+            DrinkAddition addition = manager.get(id);
+            if (addition == null) break nameGetter;
+            if (addition.getName() == null || addition.getName().isEmpty()) break nameGetter;
+            tooltip.add(Component.literal(addition.getName() + " x" + count).withStyle(ChatFormatting.GRAY));
+            return;
+        }
+        tooltip.add(Component.translatable(id.toLanguageKey("drink_addition"), count).withStyle(ChatFormatting.GRAY));
     }
 
     @Override

@@ -1,9 +1,4 @@
 
-## Version Note
-- Any Addition/Drink names specified in the `.json` files will currently not be used
-- This is due to differences in what the `appendHoverText()` method has access to, and a fix is currently being worked on
-- In the meantime, to define a custom name, use a translation key in a resourcepack
-
 ## Changes
 - Updated to 1.21.1
 

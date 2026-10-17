@@ -121,6 +121,10 @@ public class DrinkAddition {
         return new DrinkAddition(actions, volume, changesColor, color, chemicals, maxAmount, name, currentWeight);
     }
 
+    public String getName() {
+        return name;
+    }
+
     public String getTranslationKey(Holder<DrinkAddition> holder) {
         if (name != null && !name.isEmpty()) return name;
         try {
