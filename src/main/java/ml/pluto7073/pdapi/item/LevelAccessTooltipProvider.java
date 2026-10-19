@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * <bold>Temporary</bold> solution to not being able to access Level in <code>Item.appendHoverText()</code>
+ * <strong>Temporary</strong> solution to not being able to access Level in <code>Item.appendHoverText()</code>
  * <br/>(End goal is to use Dynamic registries to house Drink Additions and Specialty drinks so that the
  * item components have direct access to the full Specialty Drink and Drink Addition data on demand but
  * that isn't working right now hence why {@link DrinkAdditionManager} and {@link SpecialtyDrinkManager}
