@@ -4,14 +4,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "CowEntityMixin",
-    "DefaultedMappedRegistryMixin",
-    "ItemStackMixin",
-    "LevelMixin",
-    "ServerLevelMixin"
+    "DefaultedMappedRegistryMixin"
   ],
   "client": [
-    "client.ClientLevelMixin",
-    "client.ClientPacketListenerMixin",
     "client.ItemClientMixin",
     "client.ItemRendererMixin",
     "client.LivingEntityRendererMixin"

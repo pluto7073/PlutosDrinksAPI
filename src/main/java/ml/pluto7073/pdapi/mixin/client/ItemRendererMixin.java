@@ -3,6 +3,7 @@ package ml.pluto7073.pdapi.mixin.client;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.vertex.PoseStack;
+import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.util.DrinkUtil;
@@ -27,13 +28,13 @@ public abstract class ItemRendererMixin {
     @WrapMethod(method = "render")
     private void pdapi$ReplaceModelAndStack(ItemStack stack, ItemDisplayContext modelTransformationMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model, Operation<Void> original) {
         if (Minecraft.getInstance().level == null) return;
-        SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, Minecraft.getInstance().level);
+        Holder<SpecialtyDrink> drink = stack.getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY);
         if (!stack.is(PDItems.SPECIALTY_DRINK) || drink == SpecialtyDrink.EMPTY) {
             original.call(stack, modelTransformationMode, leftHanded, matrices, vertexConsumers, light, overlay, model);
         } else {
-            ItemStack newStack = drink.getBaseItem(stack);
+            ItemStack newStack = drink.value().getBaseItem(stack, Minecraft.getInstance().level.registryAccess());
             BakedModel baseDrinkModel = getModel(newStack, null, null, 0);
-            original.call(drink.color() == -1 ? newStack : stack, modelTransformationMode, leftHanded, matrices, vertexConsumers, light, overlay, baseDrinkModel);
+            original.call(drink.value().color() == -1 ? newStack : stack, modelTransformationMode, leftHanded, matrices, vertexConsumers, light, overlay, baseDrinkModel);
         }
     }
 

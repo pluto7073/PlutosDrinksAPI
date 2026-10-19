@@ -69,36 +69,12 @@ public class ApplyEffectRadiusAction implements OnDrinkAction {
                                 Codec.INT.fieldOf("duration").forGetter(action -> action.duration),
                                 Codec.INT.fieldOf("amplifier").forGetter(action -> action.amplifier))
                         .apply(instance, ApplyEffectRadiusAction::new));
-        public static StreamCodec<RegistryFriendlyByteBuf, ApplyEffectRadiusAction> STREAM_CODEC =
-                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
         @Override
         public MapCodec<ApplyEffectRadiusAction> codec() {
             return CODEC;
         }
 
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, ApplyEffectRadiusAction> streamCodec() {
-            return STREAM_CODEC;
-        }
-
-        public static ApplyEffectRadiusAction fromNetwork(FriendlyByteBuf buf) {
-            Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.getHolder(buf.readResourceKey(Registries.MOB_EFFECT)).orElseThrow();
-            int duration = buf.readInt();
-            int amplifier = buf.readInt();
-            boolean includeDrinker = buf.readBoolean();
-            int radius = buf.readInt();
-            return new ApplyEffectRadiusAction(radius, includeDrinker, effect, duration, amplifier);
-        }
-
-        public static void toNetwork(FriendlyByteBuf buf, ApplyEffectRadiusAction action) {
-            buf.writeResourceKey(BuiltInRegistries.MOB_EFFECT.getResourceKey(action.effect.value())
-                    .orElseThrow(IllegalStateException::new));
-            buf.writeInt(action.duration);
-            buf.writeInt(action.amplifier);
-            buf.writeBoolean(action.includeDrinker);
-            buf.writeInt(action.radius);
-        }
     }
 
 }

@@ -71,10 +71,10 @@ public final class DrinkUtil {
         return 255 << 24 | r << 16 | g << 8 | b;
     }
 
-    public static int getColorForDrinkWithDefault(ItemStack drink, int normal, Level level) {
-        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink, level);
-        List<Integer> colors = Arrays.stream(additions).filter(DrinkAddition::changesColor)
-                .map(DrinkAddition::getColor).collect(Collectors.toCollection(ArrayList::new));
+    public static int getColorForDrinkWithDefault(ItemStack drink, int normal) {
+        List<Holder<DrinkAddition>> additions = drink.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
+        List<Integer> colors = additions.stream().map(Holder::value).filter(DrinkAddition::changesColor)
+                .map(DrinkAddition::color).collect(Collectors.toCollection(ArrayList::new));
         colors.addFirst(normal);
         return averageColors(colors);
     }
@@ -131,11 +131,6 @@ public final class DrinkUtil {
         return container;
     }
 
-    public static DrinkAddition[] getAdditionsFromStack(ItemStack stack, Level level) {
-        return stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions()
-                .stream().map(level.getDrinkAdditionManager()::get).filter(Objects::nonNull).toArray(DrinkAddition[]::new);
-    }
-
     private static String convertPathStackToString(Stack<String> stack) {
         if (stack.isEmpty()) return "";
         StringBuilder builder = new StringBuilder(stack.getFirst());
@@ -155,21 +150,11 @@ public final class DrinkUtil {
         return CaffeineHandler.INSTANCE.get(player);
     }
 
-    public static SpecialtyDrink getSpecialDrink(ItemStack stack, Level level) {
-        SpecialtyDrink drink = level.getSpecialtyDrinkManager().get(stack.getOrDefault(PDComponents.SPECIALTY_DRINK, ResourceLocation.withDefaultNamespace("empty")));
-        return drink == null ? SpecialtyDrink.EMPTY : drink;
-    }
-
-    public static ItemStack setSpecialDrink(ItemStack stack, SpecialtyDrink drink, Level level) {
-        stack.set(PDComponents.SPECIALTY_DRINK, level.getSpecialtyDrinkManager().getId(drink));
-        return stack;
-    }
-
-    public static int getDrinkColor(ItemStack stack, Level level) {
+    public static int getDrinkColor(ItemStack stack) {
         if (!stack.is(PDItems.SPECIALTY_DRINK)) return -1;
         try {
-            SpecialtyDrink drink = getSpecialDrink(stack, level);
-            return 255 << 24 | drink.color();
+            Holder<SpecialtyDrink> drink = stack.getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY);
+            return 255 << 24 | drink.value().color();
         } catch (IllegalArgumentException e) {
             return 0xfff918c5;
         }

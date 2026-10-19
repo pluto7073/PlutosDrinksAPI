@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-@SuppressWarnings("deprecation")
 @MethodsReturnNonnullByDefault
 public class MugBlock extends BaseEntityBlock {
 

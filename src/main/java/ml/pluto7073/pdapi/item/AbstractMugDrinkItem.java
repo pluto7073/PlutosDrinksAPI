@@ -176,9 +176,9 @@ public abstract class AbstractMugDrinkItem extends AbstractCustomizableDrinkItem
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, level, tooltip, flag);
-        this.getBlock().appendHoverText(stack, TooltipContext.of(level), tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+        this.getBlock().appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 
     public Block getBlock() {

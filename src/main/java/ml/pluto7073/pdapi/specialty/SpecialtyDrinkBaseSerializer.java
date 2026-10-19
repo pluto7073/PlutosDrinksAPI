@@ -1,13 +1,9 @@
 package ml.pluto7073.pdapi.specialty;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import net.minecraft.core.Registry;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
 
 public interface SpecialtyDrinkBaseSerializer {
 
@@ -18,8 +14,6 @@ public interface SpecialtyDrinkBaseSerializer {
     );
 
     MapCodec<? extends SpecialtyDrinkBase> codec();
-    void toNetwork(FriendlyByteBuf buf, SpecialtyDrinkBase base);
-    SpecialtyDrinkBase fromNetwork(FriendlyByteBuf buf);
 
     static void init () {}
 

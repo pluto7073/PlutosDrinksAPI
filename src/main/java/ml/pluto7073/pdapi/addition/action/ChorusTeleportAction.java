@@ -64,26 +64,12 @@ public class ChorusTeleportAction implements OnDrinkAction {
         public static final MapCodec<ChorusTeleportAction> CODEC = RecordCodecBuilder.mapCodec(instance ->
                 instance.group(Codec.INT.fieldOf("maxRadius").forGetter(action -> action.radius))
                         .apply(instance, ChorusTeleportAction::new));
-        public static final StreamCodec<RegistryFriendlyByteBuf, ChorusTeleportAction> STREAM_CODEC =
-                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
         @Override
         public MapCodec<ChorusTeleportAction> codec() {
             return CODEC;
         }
 
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, ChorusTeleportAction> streamCodec() {
-            return STREAM_CODEC;
-        }
-
-        public static ChorusTeleportAction fromNetwork(FriendlyByteBuf buf) {
-            return new ChorusTeleportAction(buf.readInt());
-        }
-
-        public static void toNetwork(FriendlyByteBuf buf, ChorusTeleportAction action) {
-            buf.writeInt(action.radius);
-        }
     }
 
 }

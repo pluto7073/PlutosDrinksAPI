@@ -45,34 +45,12 @@ public class ApplyStatusEffectAction implements OnDrinkAction {
                         Codec.INT.fieldOf("duration").forGetter(action -> action.duration),
                         Codec.INT.fieldOf("amplifier").forGetter(action -> action.amplifier))
                         .apply(instance, ApplyStatusEffectAction::new));
-        public static final StreamCodec<RegistryFriendlyByteBuf, ApplyStatusEffectAction> STREAM_CODEC =
-                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
         @Override
         public MapCodec<ApplyStatusEffectAction> codec() {
             return CODEC;
         }
 
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, ApplyStatusEffectAction> streamCodec() {
-            return STREAM_CODEC;
-        }
-
-        public static ApplyStatusEffectAction fromNetwork(FriendlyByteBuf buf) {
-            ResourceLocation id = buf.readResourceLocation();
-            Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.getHolder(id).orElseThrow();
-            int duration = buf.readInt();
-            int amplifier = buf.readInt();
-            return new ApplyStatusEffectAction(effect, duration, amplifier);
-        }
-
-        public static void toNetwork(FriendlyByteBuf buf, ApplyStatusEffectAction action) {
-            ResourceLocation id = BuiltInRegistries.MOB_EFFECT.getKey(action.effect.value());
-            if (id == null) throw new IllegalStateException();
-            buf.writeResourceLocation(id);
-            buf.writeInt(action.duration);
-            buf.writeInt(action.amplifier);
-        }
     }
 
 }

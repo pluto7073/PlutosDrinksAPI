@@ -16,7 +16,8 @@ public class ItemClientMixin {
     @Inject(at = @At("HEAD"), method = "getBarWidth", cancellable = true)
     private void pdapi$InjectGetBarWidth(ItemStack stack, CallbackInfoReturnable<Integer> cir) {
         if (((Item) (Object) this) instanceof AbstractCustomizableDrinkItem item) {
-            cir.setReturnValue((int) Math.round(13.0f - stack.getOrDefault(PDComponents.SIPPED, 0.0) * 13.0f / item.getTotalVolume(stack, Minecraft.getInstance().level)));
+            if (Minecraft.getInstance().level == null) return;
+            cir.setReturnValue((int) Math.round(13.0f - stack.getOrDefault(PDComponents.SIPPED, 0.0) * 13.0f / item.getTotalVolume(stack, Minecraft.getInstance().level.registryAccess())));
         }
     }
 

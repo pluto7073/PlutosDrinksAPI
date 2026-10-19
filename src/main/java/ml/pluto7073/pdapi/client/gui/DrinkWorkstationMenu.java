@@ -3,7 +3,6 @@ package ml.pluto7073.pdapi.client.gui;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.recipes.WorkstationRecipeInput;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.PDItems;
@@ -92,7 +91,8 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
         Container testInput = DrinkUtil.copyContainerContents(inputSlots);
 
         if (inputSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-            testInput.setItem(0, DrinkUtil.getSpecialDrink(inputSlots.getItem(0), world).getBaseItem(inputSlots.getItem(0)));
+            testInput.setItem(0, inputSlots.getItem(0).getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY)
+                    .value().getBaseItem(inputSlots.getItem(0), world.registryAccess()));
         }
 
         WorkstationRecipeInput testRecipeInput = new WorkstationRecipeInput(testInput.getItem(0),
@@ -113,9 +113,10 @@ public class DrinkWorkstationMenu extends ItemCombinerMenu {
             // Specialty Drink testing
             Container testResults = DrinkUtil.copyContainerContents(resultSlots);
             if (resultSlots.getItem(0).is(PDItems.SPECIALTY_DRINK)) {
-                testResults.setItem(0, DrinkUtil.getSpecialDrink(resultSlots.getItem(0), world).getBaseItem(resultSlots.getItem(0)));
+                testResults.setItem(0, inputSlots.getItem(0).getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY)
+                        .value().getBaseItem(resultSlots.getItem(0), world.registryAccess()));
             }
-            List<SpecialtyDrinkManager.DrinkHolder> matchingDrinks = world.getSpecialtyDrinkManager().values().stream()
+            List<? extends Holder<SpecialtyDrink>> matchingDrinks = world.registryAccess().lookupOrThrow(PDRegistries.SPECIALITY_DRINK_KEY).listElements()
                     .filter(drink -> drink.value().matches(testResults)).toList();
             if (matchingDrinks.isEmpty()) return;
             var drink = matchingDrinks.getFirst();

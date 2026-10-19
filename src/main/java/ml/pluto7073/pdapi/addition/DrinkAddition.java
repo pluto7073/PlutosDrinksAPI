@@ -1,16 +1,12 @@
 package ml.pluto7073.pdapi.addition;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.Keyable;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.chemicals.Chemicals;
-import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import net.minecraft.core.Holder;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -24,115 +20,31 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-public class DrinkAddition {
+public record DrinkAddition(List<OnDrinkAction> actions, double volume, boolean changesColor, int color,
+                            Map<ResourceLocation, Float> chemicals, int maxAmount, int currentWeight, String name) {
 
     public static final Codec<DrinkAddition> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(Codec.list(OnDrinkAction.CODEC).fieldOf("onDrinkActions").orElse(List.of()).forGetter(DrinkAddition::actions),
-                    Codec.DOUBLE.fieldOf("volume").orElse(0.0).forGetter(DrinkAddition::volume),
-                    Codec.BOOL.fieldOf("changesColor").orElse(false).forGetter(DrinkAddition::changesColor),
-                    Codec.INT.fieldOf("color").orElse(0).forGetter(DrinkAddition::getColor),
-                    Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.CHEMICAL_HANDLER).fieldOf("chemicals").orElse(Map.of())
-                            .forGetter(DrinkAddition::getChemicals),
-                    Codec.INT.fieldOf("maxAmount").orElse(0).forGetter(DrinkAddition::getMaxAmount),
-                    Codec.STRING.fieldOf("name").orElse("").forGetter(addition -> addition.name),
-                    Codec.INT.fieldOf("weight").orElse(0).forGetter(DrinkAddition::getCurrentWeight))
-            .apply(instance, DrinkAddition::new));
-
-    public static final StreamCodec<RegistryFriendlyByteBuf, DrinkAddition> STREAM_CODEC =
-            StreamCodec.of((buf, add) -> add.toNetwork(buf), DrinkAddition::fromNetwork);
+                            Codec.DOUBLE.fieldOf("volume").orElse(0.0).forGetter(DrinkAddition::volume),
+                            Codec.BOOL.fieldOf("changesColor").orElse(false).forGetter(DrinkAddition::changesColor),
+                            Codec.INT.fieldOf("color").orElse(0).forGetter(DrinkAddition::color),
+                            Codec.simpleMap(ResourceLocation.CODEC, Codec.FLOAT, Chemicals.CHEMICAL_HANDLER).fieldOf("chemicals").orElse(Map.of())
+                                    .forGetter(DrinkAddition::chemicals),
+                            Codec.INT.fieldOf("maxAmount").orElse(0).forGetter(DrinkAddition::maxAmount),
+                            Codec.STRING.fieldOf("name").orElse("").forGetter(addition -> addition.name),
+                            Codec.INT.fieldOf("weight").orElse(0).forGetter(DrinkAddition::currentWeight))
+                    .apply(instance, DrinkAddition::new));
 
     public static final Codec<Holder<DrinkAddition>> COMPONENT_CODEC = RegistryFixedCodec.create(PDRegistries.DRINK_ADDITION_KEY);
+    public static final StreamCodec<RegistryFriendlyByteBuf, Holder<DrinkAddition>> STREAM_COMPONENT_CODEC = ByteBufCodecs.holderRegistry(PDRegistries.DRINK_ADDITION_KEY);
 
-    private final List<OnDrinkAction> actions;
-    private final double volume;
-    private final boolean changesColor;
-    private final int color;
-    private final Map<ResourceLocation, Float> chemicals;
-    private final int maxAmount;
-    private final int currentWeight;
-    private final String name;
-
-    protected DrinkAddition(List<OnDrinkAction> actions, double volume, boolean changesColor, int color, Map<ResourceLocation, Float> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
-        this.actions = actions;
-        this.volume = volume;
-        this.changesColor = changesColor;
-        this.color = color;
-        this.chemicals = chemicals;
-        this.maxAmount = maxAmount;
-        this.currentWeight = currentWeight;
-        this.name = name;
+    private DrinkAddition(List<OnDrinkAction> actions, double volume, boolean changesColor, int color, Map<ResourceLocation, Float> chemicals, int maxAmount, @Nullable String name, int currentWeight) {
+        this(actions, volume, changesColor, color, chemicals, maxAmount, currentWeight, name);
     }
 
     public void onDrink(ItemStack stack, Level level, LivingEntity user) {
         for (OnDrinkAction action : actions) {
             action.onDrink(stack, level, user);
-        }
-    }
-
-    public List<OnDrinkAction> actions() {
-        return actions;
-    }
-
-    public double volume() {
-        return volume;
-    }
-
-    public boolean changesColor() {
-        return changesColor;
-    }
-
-    public int getColor() {
-        return color;
-    }
-
-    public Map<ResourceLocation, Float> getChemicals() {
-        return chemicals;
-    }
-
-    public int getMaxAmount() {
-        return maxAmount;
-    }
-
-    public int getCurrentWeight() {
-        return currentWeight;
-    }
-
-    public void toNetwork(RegistryFriendlyByteBuf buf) {
-        OnDrinkAction.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, actions());
-        buf.writeDouble(volume);
-        buf.writeBoolean(changesColor);
-        buf.writeInt(color);
-        buf.writeMap(chemicals, FriendlyByteBuf::writeResourceLocation, FriendlyByteBuf::writeFloat);
-        buf.writeInt(maxAmount);
-        buf.writeInt(currentWeight);
-        buf.writeUtf(Objects.requireNonNullElse(name, ""));
-    }
-
-    public static DrinkAddition fromNetwork(RegistryFriendlyByteBuf buf) {
-        List<OnDrinkAction> actions = OnDrinkAction.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf);
-        double volume = buf.readDouble();
-        boolean changesColor = buf.readBoolean();
-        int color = buf.readInt();
-        Map<ResourceLocation, Float> chemicals = buf.readMap(FriendlyByteBuf::readResourceLocation, FriendlyByteBuf::readFloat);
-        int maxAmount = buf.readInt();
-        int currentWeight = buf.readInt();
-        String name = buf.readUtf();
-        if (name.isEmpty()) name = null;
-        return new DrinkAddition(actions, volume, changesColor, color, chemicals, maxAmount, name, currentWeight);
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getTranslationKey(Holder<DrinkAddition> holder) {
-        if (name != null && !name.isEmpty()) return name;
-        try {
-            ResourceLocation id = holder.unwrapKey().orElseThrow().location();
-            return id.toLanguageKey("drink_addition");
-        } catch (IllegalArgumentException e) {
-            PDAPI.LOGGER.error("Couldn't get translation key for a drink addition", e);
-            return "drink_addition.pdapi.empty";
         }
     }
 

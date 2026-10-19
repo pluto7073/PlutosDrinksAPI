@@ -17,8 +17,8 @@ public class PDComponents {
 
     public static final DataComponentType<DrinkAdditions> ADDITIONS = register("additions", builder ->
             builder.persistent(DrinkAdditions.CODEC).networkSynchronized(DrinkAdditions.STREAM_CODEC));
-    public static final DataComponentType<ResourceLocation> SPECIALTY_DRINK = register("specialty_drink", builder ->
-            builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));
+    public static final DataComponentType<Holder<SpecialtyDrink>> SPECIALTY_DRINK = register("specialty_drink", builder ->
+            builder.persistent(SpecialtyDrink.COMPONENT_CODEC).networkSynchronized(SpecialtyDrink.STREAM_COMPONENT_CODEC));
     public static final DataComponentType<Double> SIPPED = register("sipped", builder ->
             builder.persistent(Codec.DOUBLE).networkSynchronized(ByteBufCodecs.DOUBLE));
     public static final DataComponentType<Item> FROM_ITEM = register("from_item", builder ->

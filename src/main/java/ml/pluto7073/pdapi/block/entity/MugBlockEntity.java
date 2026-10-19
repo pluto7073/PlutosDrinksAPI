@@ -33,7 +33,7 @@ import static ml.pluto7073.pdapi.item.AbstractCustomizableDrinkItem.DRINK_DATA_N
 @MethodsReturnNonnullByDefault
 public abstract class MugBlockEntity extends BlockEntity {
 
-    protected final List<ResourceLocation> additions;
+    protected final List<Holder<DrinkAddition>> additions;
     protected double sips;
 
     public MugBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {

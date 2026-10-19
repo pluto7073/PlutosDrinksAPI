@@ -4,7 +4,6 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.base.SingleFluidStorage;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("UnstableApiUsage")
 public class BasicSingleStorage extends SingleFluidStorage {
 
     public final FluidVariant allowedVariant;

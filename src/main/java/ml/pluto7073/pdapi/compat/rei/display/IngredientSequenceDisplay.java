@@ -9,16 +9,14 @@ import ml.pluto7073.pdapi.client.ClientDrinkUtil;
 import ml.pluto7073.pdapi.compat.rei.DrinkREI;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +25,7 @@ import java.util.Optional;
 
 public class IngredientSequenceDisplay extends BasicDisplay {
 
-    public IngredientSequenceDisplay(SpecialtyDrinkManager.DrinkHolder drink) {
+    public IngredientSequenceDisplay(Holder<SpecialtyDrink> drink) {
         super(Util.make(() -> {
             ItemStack base = drink.value().base().buildItemStack();
             Ingredient baseIngredient = Ingredient.of(base);
@@ -45,7 +43,7 @@ public class IngredientSequenceDisplay extends BasicDisplay {
             List<EntryIngredient> list = new ArrayList<>(List.of(EntryIngredients.ofIngredient(baseIngredient)));
             list.addAll(DrinkREI.Util.condenseIngredients(stepsToIngredientList(drink.value())));
             return list;
-        }), Collections.singletonList(EntryIngredients.of(SpecialtyDrink.getAsItem(drink))), Optional.of(drink.key()));
+        }), Collections.singletonList(EntryIngredients.of(SpecialtyDrink.getAsItem(drink))), drink.unwrapKey().map(ResourceKey::location));
     }
 
     public static List<Ingredient> stepsToIngredientList(SpecialtyDrink drink) {

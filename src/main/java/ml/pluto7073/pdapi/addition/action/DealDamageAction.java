@@ -42,29 +42,12 @@ public class DealDamageAction implements OnDrinkAction {
                 instance.group(Codec.FLOAT.fieldOf("amount").forGetter(action -> action.amount),
                         ResourceKey.codec(Registries.DAMAGE_TYPE).fieldOf("source").forGetter(action -> action.source))
                         .apply(instance, DealDamageAction::new));
-        public static final StreamCodec<RegistryFriendlyByteBuf, DealDamageAction> STREAM_CODEC =
-                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
         @Override
         public MapCodec<DealDamageAction> codec() {
             return CODEC;
         }
 
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, DealDamageAction> streamCodec() {
-            return STREAM_CODEC;
-        }
-
-        public static DealDamageAction fromNetwork(FriendlyByteBuf buf) {
-            float amount = buf.readFloat();
-            ResourceKey<DamageType> source = buf.readResourceKey(Registries.DAMAGE_TYPE);
-            return new DealDamageAction(amount, source);
-        }
-
-        public static void toNetwork(FriendlyByteBuf buf, DealDamageAction action) {
-            buf.writeFloat(action.amount);
-            buf.writeResourceKey(action.source);
-        }
     }
 
 }

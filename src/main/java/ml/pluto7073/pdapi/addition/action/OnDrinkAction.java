@@ -12,8 +12,6 @@ import net.minecraft.world.level.Level;
 public interface OnDrinkAction {
 
     Codec<OnDrinkAction> CODEC = PDRegistries.ON_DRINK_SERIALIZER.byNameCodec().dispatch(OnDrinkAction::serializer, OnDrinkSerializer::codec);
-    StreamCodec<RegistryFriendlyByteBuf, OnDrinkAction> STREAM_CODEC = ByteBufCodecs.registry(PDRegistries.ON_DRINK_SERIALIZER_KEY)
-            .dispatch(OnDrinkAction::serializer, OnDrinkSerializer::streamCodec);
 
     void onDrink(ItemStack stack, Level level, LivingEntity user);
     OnDrinkSerializer<?> serializer();

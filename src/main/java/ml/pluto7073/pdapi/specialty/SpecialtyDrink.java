@@ -1,7 +1,6 @@
 package ml.pluto7073.pdapi.specialty;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -9,16 +8,13 @@ import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
-import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.item.PDItems;
-import ml.pluto7073.pdapi.networking.NetworkingUtils;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -29,7 +25,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -48,16 +43,13 @@ public class SpecialtyDrink {
                     Codec.STRING.fieldOf("name").orElse("").forGetter(drink -> drink.name))
             .apply(instance, SpecialtyDrink::new));
 
-    public static final SpecialtyDrink EMPTY = new SpecialtyDrink(
+    public static final Holder<SpecialtyDrink> EMPTY = Holder.direct(new SpecialtyDrink(
             new SpecialtyDrink.ItemBase(Items.AIR),
             List.of(), List.of(), 0, 0xfc0ffc, Map.of(), "Drink"
-    );
+    ));
 
     public static final Codec<Holder<SpecialtyDrink>> COMPONENT_CODEC = RegistryFixedCodec.create(PDRegistries.SPECIALITY_DRINK_KEY);
-    public static final StreamCodec<RegistryFriendlyByteBuf, Holder<SpecialtyDrink>> STREAM_COMPONENT_CODEC = ByteBufCodecs.fromCodecWithRegistries(COMPONENT_CODEC);
-
-    public static final StreamCodec<RegistryFriendlyByteBuf, SpecialtyDrink> STREAM_CODEC =
-            ByteBufCodecs.fromCodecWithRegistries(CODEC);
+    public static final StreamCodec<RegistryFriendlyByteBuf, Holder<SpecialtyDrink>> STREAM_COMPONENT_CODEC = ByteBufCodecs.holderRegistry(PDRegistries.SPECIALITY_DRINK_KEY);
 
     private final SpecialtyDrinkBase base;
     private final ResourceLocation[] steps;
@@ -85,12 +77,13 @@ public class SpecialtyDrink {
         return List.of(steps);
     }
 
-    public List<OnDrinkAction> actions(Level level) {
+    public List<OnDrinkAction> actions(HolderLookup.Provider provider) {
         ArrayList<OnDrinkAction> stepActions = new ArrayList<>();
         for (ResourceLocation step : steps) {
-            DrinkAddition addition = level.getDrinkAdditionManager().get(step);
-            if (addition == null) continue;
-            stepActions.addAll(addition.actions());
+            var addition = provider.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY)
+                    .get(ResourceKey.create(PDRegistries.DRINK_ADDITION_KEY, step));
+            if (addition.isEmpty()) continue;
+            stepActions.addAll(addition.get().value().actions());
         }
         stepActions.addAll(List.of(actions));
         return ImmutableList.copyOf(stepActions);
@@ -112,10 +105,13 @@ public class SpecialtyDrink {
         return name.isEmpty() ? Optional.empty() : Optional.of(name);
     }
 
-    public ItemStack getBaseItem(ItemStack source) {
+    public ItemStack getBaseItem(ItemStack source, HolderLookup.Provider provider) {
         ItemStack stack = base.buildItemStack();
         DrinkAdditions baseAdditions = source.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY);
-        List<ResourceLocation> additions = new ArrayList<>(List.of(steps));
+        var registry = provider.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY);
+        List<Holder<DrinkAddition>> additions = Arrays.stream(steps)
+                .map(id -> (Holder<DrinkAddition>) registry.getOrThrow(ResourceKey.create(PDRegistries.DRINK_ADDITION_KEY, id)))
+                .toList();
         stack.set(PDComponents.ADDITIONS, DrinkAdditions.or(new DrinkAdditions(additions), baseAdditions));
         return stack;
     }
@@ -123,48 +119,25 @@ public class SpecialtyDrink {
     public boolean matches(Container container) {
         ItemStack currentResult = container.getItem(0);
         if (!base.matches(currentResult)) return false;
-        List<ResourceLocation> additions = currentResult.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
+        List<Holder<DrinkAddition>> additions = currentResult.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
         if (steps.length != additions.size()) return false;
         for (int i = 0; i < additions.size(); i++) {
-            ResourceLocation actual = additions.get(i);
+            ResourceLocation actual = additions.get(i).unwrapKey().orElseThrow().location();
             ResourceLocation wanted = steps[i];
             if (!actual.equals(wanted)) return false;
         }
         return true;
     }
 
-    public void toNetwork(RegistryFriendlyByteBuf buf) {
-        buf.writeResourceLocation(PDRegistries.SPECIALTY_DRINK_BASE.getKey(base.serializer()));
-        base.serializer().toNetwork(buf, base);
-        NetworkingUtils.arrayToNetwork(buf, steps, FriendlyByteBuf::writeResourceLocation);
-        buf.writeMap(chemicals, FriendlyByteBuf::writeResourceLocation, FriendlyByteBuf::writeFloat);
-        buf.writeDouble(volume);
-        buf.writeInt(color);
-        NetworkingUtils.writeDrinkActionsList(buf, actions);
-        buf.writeUtf(name);
-    }
-
-    public static SpecialtyDrink fromNetwork(RegistryFriendlyByteBuf buf) {
-        ResourceLocation baseSerializer = buf.readResourceLocation();
-        SpecialtyDrinkBase base = PDRegistries.SPECIALTY_DRINK_BASE.getOptional(baseSerializer).orElseThrow().fromNetwork(buf);
-        List<ResourceLocation> steps = NetworkingUtils.listFromNetwork(buf, FriendlyByteBuf::readResourceLocation);
-        HashMap<ResourceLocation, Float> chemicals = Maps.newHashMap(buf.readMap(FriendlyByteBuf::readResourceLocation, FriendlyByteBuf::readFloat));
-        double volume = buf.readDouble();
-        int color = buf.readInt();
-        List<OnDrinkAction> list = NetworkingUtils.readDrinkActionsList(buf);
-        String name = buf.readUtf();
-        return new SpecialtyDrink(base, steps, list, volume, color, chemicals, name);
-    }
-
-    public static ItemStack getAsItem(SpecialtyDrinkManager.DrinkHolder drink) {
+    public static ItemStack getAsItem(Holder<SpecialtyDrink> drink) {
         ItemStack stack = new ItemStack(PDItems.SPECIALTY_DRINK, 1);
-        stack.set(PDComponents.SPECIALTY_DRINK, drink.key());
+        stack.set(PDComponents.SPECIALTY_DRINK, drink);
         return stack;
     }
 
-    public static String languageKey(SpecialtyDrinkManager.DrinkHolder drink) {
+    public static String languageKey(Holder<SpecialtyDrink> drink) {
         if (drink.value().name.isEmpty()) {
-            return drink.key().toLanguageKey("drink");
+            return drink.unwrapKey().orElseThrow().location().toLanguageKey("drink");
         }
         return drink.value().name;
     }
@@ -205,17 +178,6 @@ public class SpecialtyDrink {
             return CODEC;
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, SpecialtyDrinkBase base) {
-            if (!(base instanceof ItemBase item)) throw new IllegalStateException();
-            buf.writeResourceLocation(BuiltInRegistries.ITEM.getKey(item.item));
-        }
-
-        @Override
-        public SpecialtyDrinkBase fromNetwork(FriendlyByteBuf buf) {
-            Item item = BuiltInRegistries.ITEM.get(buf.readResourceLocation());
-            return new ItemBase(item);
-        }
     }
 
 }

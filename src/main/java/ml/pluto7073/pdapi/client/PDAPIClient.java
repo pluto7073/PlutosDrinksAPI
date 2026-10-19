@@ -3,9 +3,7 @@ package ml.pluto7073.pdapi.client;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.block.PDBlocks;
 import ml.pluto7073.pdapi.item.PDCreativeTabs;
-import ml.pluto7073.pdapi.networking.clientbound.PDClientboundPackets;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
-import ml.pluto7073.pdapi.specialty.SpecialtyDrinkManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.client.gui.DrinkWorkstationScreen;
 import ml.pluto7073.pdapi.client.gui.PDMenuTypes;
@@ -31,11 +29,10 @@ public class PDAPIClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         initEntries();
-        PDClientboundPackets.registerReceivers();
 
         MenuScreens.register(PDMenuTypes.WORKSTATION_MENU_TYPE, DrinkWorkstationScreen::new);
 
-        ColorProviderRegistry.ITEM.register((stack, index) -> index > 0 ? -1 : DrinkUtil.getDrinkColor(stack, Minecraft.getInstance().level), PDItems.SPECIALTY_DRINK);
+        ColorProviderRegistry.ITEM.register((stack, index) -> index > 0 ? -1 : DrinkUtil.getDrinkColor(stack), PDItems.SPECIALTY_DRINK);
         ColorProviderRegistry.ITEM.register((stack, index) -> index > 0 ? 0 : -1, PDItems.MUG);
         ColorProviderRegistry.BLOCK.register((state, getter, pos, index) -> index > 0 ? 0 : -1, PDBlocks.MUG);
 
@@ -49,7 +46,8 @@ public class PDAPIClient implements ClientModInitializer {
         });
         ItemGroupEvents.modifyEntriesEvent(PDCreativeTabs.SPECIALTY_DRINKS_TAB).register(stacks -> {
             if (Minecraft.getInstance().level == null) return;
-            Stream<SpecialtyDrinkManager.DrinkHolder> stream = Minecraft.getInstance().level.getSpecialtyDrinkManager().values().stream();
+            var registry = Minecraft.getInstance().level.registryAccess().lookupOrThrow(PDRegistries.SPECIALITY_DRINK_KEY);
+            Stream<? extends Holder<SpecialtyDrink>> stream = registry.listElements();
             stream.sorted(DrinkUtil.alphabetizer(SpecialtyDrink::languageKey)).map(SpecialtyDrink::getAsItem).forEach(stacks::accept);
         });
 

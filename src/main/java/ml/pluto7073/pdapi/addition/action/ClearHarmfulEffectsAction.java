@@ -50,25 +50,10 @@ public class ClearHarmfulEffectsAction implements OnDrinkAction {
         public static final MapCodec<ClearHarmfulEffectsAction> CODEC = RecordCodecBuilder.mapCodec(instance ->
                 instance.group(Codec.INT.fieldOf("limit").orElse(-1).forGetter(action -> action.limit))
                         .apply(instance, ClearHarmfulEffectsAction::new));
-        public static final StreamCodec<RegistryFriendlyByteBuf, ClearHarmfulEffectsAction> STREAM_CODEC =
-                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
         @Override
         public MapCodec<ClearHarmfulEffectsAction> codec() {
             return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, ClearHarmfulEffectsAction> streamCodec() {
-            return STREAM_CODEC;
-        }
-
-        public static ClearHarmfulEffectsAction fromNetwork(FriendlyByteBuf buf) {
-            return new ClearHarmfulEffectsAction(buf.readInt());
-        }
-
-        public static void toNetwork(FriendlyByteBuf buf, ClearHarmfulEffectsAction action) {
-            buf.writeInt(action.limit);
         }
 
     }

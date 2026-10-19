@@ -34,12 +34,12 @@ public class DrinkWorkstationRecipe implements Recipe<WorkstationRecipeInput> {
 
     private final Ingredient base;
     private final Ingredient addition;
-    private final ResourceLocation result;
+    private final ResourceKey<DrinkAddition> result;
 
     public DrinkWorkstationRecipe(Ingredient base, Ingredient addition, ResourceLocation result) {
         this.base = base;
         this.addition = addition;
-        this.result = result;
+        this.result = ResourceKey.create(PDRegistries.DRINK_ADDITION_KEY, result);
     }
 
     public Ingredient base() {
@@ -51,7 +51,7 @@ public class DrinkWorkstationRecipe implements Recipe<WorkstationRecipeInput> {
     }
 
     public ResourceLocation result() {
-        return result;
+        return result.location();
     }
 
     @Override
@@ -60,9 +60,10 @@ public class DrinkWorkstationRecipe implements Recipe<WorkstationRecipeInput> {
     }
 
     @Override
-    public ItemStack assemble(WorkstationRecipeInput inventory, HolderLookup.Provider registryManager) {
+    public ItemStack assemble(WorkstationRecipeInput inventory, HolderLookup.Provider provider) {
         ItemStack stack = inventory.getItem(0).copy();
-        DrinkAdditions resAdds = stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).withAddition(result);
+        Holder<DrinkAddition> addition = provider.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY).getOrThrow(result);
+        DrinkAdditions resAdds = stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).withAddition(addition);
         stack.set(PDComponents.ADDITIONS, resAdds);
 
         return stack;
@@ -96,7 +97,8 @@ public class DrinkWorkstationRecipe implements Recipe<WorkstationRecipeInput> {
     @Override
     public ItemStack getResultItem(HolderLookup.Provider provider) {
         ItemStack stack = base.getItems()[0].copy();
-        stack.set(PDComponents.ADDITIONS, new DrinkAdditions(List.of(result)));
+        Holder<DrinkAddition> addition = provider.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY).getOrThrow(result);
+        stack.set(PDComponents.ADDITIONS, new DrinkAdditions(List.of(addition)));
         return stack;
     }
 
@@ -151,8 +153,12 @@ public class DrinkWorkstationRecipe implements Recipe<WorkstationRecipeInput> {
                                 ResourceLocation.CODEC.fieldOf("result").forGetter(DrinkWorkstationRecipe::result))
                         .apply(instance, DrinkWorkstationRecipe::new));
 
-        public static final StreamCodec<RegistryFriendlyByteBuf, DrinkWorkstationRecipe> STREAM_CODEC =
-                StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
+        public static final StreamCodec<RegistryFriendlyByteBuf, DrinkWorkstationRecipe> STREAM_CODEC = StreamCodec.composite(
+                Ingredient.CONTENTS_STREAM_CODEC, DrinkWorkstationRecipe::base,
+                Ingredient.CONTENTS_STREAM_CODEC, DrinkWorkstationRecipe::addition,
+                ResourceLocation.STREAM_CODEC, DrinkWorkstationRecipe::result,
+                DrinkWorkstationRecipe::new
+        );
 
         public Serializer() {
         }
@@ -165,19 +171,6 @@ public class DrinkWorkstationRecipe implements Recipe<WorkstationRecipeInput> {
         @Override
         public StreamCodec<RegistryFriendlyByteBuf, DrinkWorkstationRecipe> streamCodec() {
             return STREAM_CODEC;
-        }
-
-        public static DrinkWorkstationRecipe fromNetwork(RegistryFriendlyByteBuf buf) {
-            Ingredient ingredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buf);
-            Ingredient ingredient2 = Ingredient.CONTENTS_STREAM_CODEC.decode(buf);
-            ResourceLocation result = ResourceLocation.STREAM_CODEC.decode(buf);
-            return new DrinkWorkstationRecipe(ingredient, ingredient2, result);
-        }
-
-        public static void toNetwork(RegistryFriendlyByteBuf buf, DrinkWorkstationRecipe recipe) {
-            Ingredient.CONTENTS_STREAM_CODEC.encode(buf, recipe.base);
-            Ingredient.CONTENTS_STREAM_CODEC.encode(buf, recipe.addition);
-            ResourceLocation.STREAM_CODEC.encode(buf, recipe.result);
         }
 
     }
