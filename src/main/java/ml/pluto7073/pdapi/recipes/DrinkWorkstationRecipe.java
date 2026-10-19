@@ -30,8 +30,29 @@ import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 @MethodsReturnNonnullByDefault
-public record DrinkWorkstationRecipe(Ingredient base, Ingredient addition,
-                                     ResourceLocation result) implements Recipe<WorkstationRecipeInput> {
+public class DrinkWorkstationRecipe implements Recipe<WorkstationRecipeInput> {
+
+    private final Ingredient base;
+    private final Ingredient addition;
+    private final ResourceLocation result;
+
+    public DrinkWorkstationRecipe(Ingredient base, Ingredient addition, ResourceLocation result) {
+        this.base = base;
+        this.addition = addition;
+        this.result = result;
+    }
+
+    public Ingredient base() {
+        return base;
+    }
+
+    public Ingredient addition() {
+        return addition;
+    }
+
+    public ResourceLocation result() {
+        return result;
+    }
 
     @Override
     public boolean matches(WorkstationRecipeInput inventory, Level world) {
