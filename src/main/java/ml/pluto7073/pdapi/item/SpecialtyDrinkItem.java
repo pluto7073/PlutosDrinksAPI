@@ -83,11 +83,11 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         ResourceLocation id = stack.get(PDComponents.SPECIALTY_DRINK);
         if (id != null) {
             String key = id.toLanguageKey("drink");
-            SpecialtyDrinkManager manager = context.getSpecialtyDrinkManager();
+            SpecialtyDrinkManager manager = level == null ? null : level.getSpecialtyDrinkManager();
             nameFinder: if (manager != null) {
                 SpecialtyDrink drink = manager.get(id);
                 if (drink == null) break nameFinder;
@@ -98,8 +98,7 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
             tooltip.add(Component.translatable(key).withStyle(ChatFormatting.AQUA));
             tooltip.add(Component.empty());
         }
-
-        super.appendHoverText(stack, context, tooltip, flag);
+        super.appendHoverText(stack, level, tooltip, flag);
     }
 
 }

@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @MethodsReturnNonnullByDefault
-public abstract class AbstractCustomizableDrinkItem extends Item implements ChemicalContaining {
+public abstract class AbstractCustomizableDrinkItem extends Item implements ChemicalContaining, LevelAccessTooltipProvider {
 
     public static final String DRINK_DATA_NBT_KEY = "DrinkData";
 
@@ -149,7 +149,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag config) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         HashMap<ResourceLocation, Integer> additionCounts = new HashMap<>();
         List<ResourceLocation> order = new ArrayList<>();
         List<ResourceLocation> additions = stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
@@ -162,7 +162,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
                 order.add(addIn);
             }
         }
-        DrinkAdditionManager manager = context.getDrinkAdditionManager();
+        DrinkAdditionManager manager = level == null ? null : level.getDrinkAdditionManager();
         order.forEach(id -> addTooltipForAddition(id, manager, tooltip, additionCounts.get(id)));
     }
 
