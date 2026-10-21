@@ -1,6 +1,7 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "block/water_still"
+    "layer0": "item/potion_overlay",
+    "layer1": "item/potion"
   }
 }
