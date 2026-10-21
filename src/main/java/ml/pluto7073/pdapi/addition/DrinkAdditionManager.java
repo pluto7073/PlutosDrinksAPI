@@ -95,8 +95,8 @@ public class DrinkAdditionManager implements SimpleSynchronousResourceReloadList
 
         int i = 0;
 
-        for (Map.Entry<ResourceLocation, Resource> entry : manager.listResources("drink_additions", id -> id.getPath().endsWith(".json")).entrySet()) {
-            ResourceLocation id = DrinkUtil.getAsId(entry.getKey(), "drink_additions");
+        for (Map.Entry<ResourceLocation, Resource> entry : manager.listResources("pdapi/drink_addition", id -> id.getPath().endsWith(".json")).entrySet()) {
+            ResourceLocation id = DrinkUtil.getAsId(entry.getKey(), "pdapi/drink_addition");
             try (InputStream stream = entry.getValue().open()) {
                 JsonObject object = GsonHelper.parse(new InputStreamReader(stream));
 

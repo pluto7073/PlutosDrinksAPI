@@ -1,6 +1,9 @@
 
 ## Changes
 - Drink colors are now computed subtractively to get more accurate colors
+- To conform with Dynamic Registries in the 1.21.1 version, the `drink_additions` and `specialty_drinks`
+folders have been moved to `pdapi/drink_addition` and `pdapi/specialty_drink` respectively.  See wiki
+for new datapack instructions if unclear
 
 ### API Changes
 - Color computation methods have been moved from `DrinkUtil` to the new `ColorUtil` class

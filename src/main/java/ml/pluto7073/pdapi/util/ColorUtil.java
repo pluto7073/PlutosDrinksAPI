@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 public final class ColorUtil {
 
+    public static final int EMPTY_SPECIALTY_DRINK = 0xf918c5;
+
     public static int subtractiveMix(Collection<Integer> colors) {
         double key = 0;
         double cyan = 0;
@@ -52,12 +54,16 @@ public final class ColorUtil {
      * @param drink The stack to compute
      * @param base The starting color of the drink
      * @param multiplicity How much influence the starting color has on the overall result. Effectively
-     *                     how many times is the base color counted before the addition colors
+     *                     how many times is the base color counted before the addition colors.  If equal to
+     *                     0, the base color will only be used if there are no additions in the drink
      * @param level The current level
      * @return An RGB int with the resulting color
      */
     public static int getColorForDrinkWithDefault(ItemStack drink, int base, int multiplicity, Level level) {
         DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink, level);
+        if (multiplicity == 0 && additions.length == 0) {
+            return base;
+        }
         List<Integer> colors = Arrays.stream(additions).filter(DrinkAddition::changesColor)
                 .map(DrinkAddition::getColor).collect(Collectors.toCollection(ArrayList::new));
         for (int i = 0; i < multiplicity; i++) {
@@ -72,7 +78,7 @@ public final class ColorUtil {
             SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, level);
             return drink.color();
         } catch (IllegalArgumentException e) {
-            return 0xf918c5;
+            return EMPTY_SPECIALTY_DRINK;
         }
     }
 

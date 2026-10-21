@@ -49,8 +49,8 @@ public class SpecialtyDrinkManager implements SimpleSynchronousResourceReloadLis
         registry.clear();
 
         for (Map.Entry<ResourceLocation, Resource> entry :
-                manager.listResources("specialty_drinks", id -> id.getPath().endsWith(".json")).entrySet()) {
-            ResourceLocation id = DrinkUtil.getAsId(entry.getKey(), "specialty_drinks");
+                manager.listResources("pdapi/specialty_drink", id -> id.getPath().endsWith(".json")).entrySet()) {
+            ResourceLocation id = DrinkUtil.getAsId(entry.getKey(), "pdapi/specialty_drink");
             try (InputStream stream = entry.getValue().open()) {
                 JsonObject object = GsonHelper.parse(new InputStreamReader(stream));
 
