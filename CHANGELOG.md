@@ -2,6 +2,9 @@
 ## Changes
 - Drink colors are now computed subtractively to get more accurate colors
 
+### API Changes
+- Color computation methods have been moved from `DrinkUtil` to the new `ColorUtil` class
+
 ---
 
 ## Fixes
