@@ -30,7 +30,7 @@ public abstract class DrinkAdditionProvider implements DataProvider {
     private final PackOutput.PathProvider additionPathProvider;
 
     public DrinkAdditionProvider(FabricDataOutput out) {
-        this.additionPathProvider = out.createPathProvider(PackOutput.Target.DATA_PACK, "drink_additions");
+        this.additionPathProvider = out.createPathProvider(PackOutput.Target.DATA_PACK, "pdapi/drink_addition");
     }
 
     public abstract void buildAdditions(BiConsumer<ResourceLocation, DrinkAddition> consumer);
