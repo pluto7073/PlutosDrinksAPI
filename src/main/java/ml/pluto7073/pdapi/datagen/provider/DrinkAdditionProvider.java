@@ -37,7 +37,7 @@ public abstract class DrinkAdditionProvider implements DataProvider {
     private final CompletableFuture<HolderLookup.Provider> registries;
 
     public DrinkAdditionProvider(FabricDataOutput out, CompletableFuture<HolderLookup.Provider> completableFuture) {
-        this.additionPathProvider = out.createPathProvider(PackOutput.Target.DATA_PACK, "drink_additions");
+        this.additionPathProvider = out.createPathProvider(PackOutput.Target.DATA_PACK, "pdapi/drink_addition");
         this.registries = completableFuture;
     }
 

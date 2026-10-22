@@ -5,10 +5,8 @@
   },
   "onDrinkActions": [
     {
-      "type": "pdapi:apply_status_effect",
-      "effect": "minecraft:invisibility",
-      "duration": 200,
-      "amplifier": 0
+      "type": "pdapi:chorus_teleport",
+      "radius": 20
     }
   ],
   "name": "Random Addition"

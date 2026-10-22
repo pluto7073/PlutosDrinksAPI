@@ -55,30 +55,6 @@ public final class DrinkUtil {
         };
     }
 
-    public static int averageColors(Collection<Integer> colors) {
-        if (colors.isEmpty()) return 0xFFFFFFFF;
-        int r = 0;
-        int g = 0;
-        int b = 0;
-        for (int color : colors) {
-            r += (color >> 16 & 255);
-            g += (color >> 8 & 255);
-            b += (color & 255);
-        }
-        r /= colors.size();
-        g /= colors.size();
-        b /= colors.size();
-        return 255 << 24 | r << 16 | g << 8 | b;
-    }
-
-    public static int getColorForDrinkWithDefault(ItemStack drink, int normal) {
-        List<Holder<DrinkAddition>> additions = drink.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
-        List<Integer> colors = additions.stream().map(Holder::value).filter(DrinkAddition::changesColor)
-                .map(DrinkAddition::color).collect(Collectors.toCollection(ArrayList::new));
-        colors.addFirst(normal);
-        return averageColors(colors);
-    }
-
     public static <T> List<T> condense(List<T> base) {
         ArrayList<T> list = new ArrayList<>();
 
@@ -144,20 +120,6 @@ public final class DrinkUtil {
         CompoundTag compound = new CompoundTag();
         compound.putString("string", s);
         return compound.get("string");
-    }
-
-    public static float getPlayerCaffeine(Player player) {
-        return CaffeineHandler.INSTANCE.get(player);
-    }
-
-    public static int getDrinkColor(ItemStack stack) {
-        if (!stack.is(PDItems.SPECIALTY_DRINK)) return -1;
-        try {
-            Holder<SpecialtyDrink> drink = stack.getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY);
-            return 255 << 24 | drink.value().color();
-        } catch (IllegalArgumentException e) {
-            return 0xfff918c5;
-        }
     }
 
     public static boolean isInProgressItem(Item item, RecipeManager recipes) {
