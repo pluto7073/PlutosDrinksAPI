@@ -11,6 +11,7 @@ import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -27,7 +28,7 @@ public class IngredientSequenceDisplay extends BasicDisplay {
 
     public IngredientSequenceDisplay(Holder<SpecialtyDrink> drink) {
         super(Util.make(() -> {
-            ItemStack base = drink.value().base().buildItemStack();
+            ItemStack base = drink.value().base().buildItemStack(Minecraft.getInstance().level.registryAccess());
             Ingredient baseIngredient = Ingredient.of(base);
             if (DrinkUtil.isInProgressItem(base.getItem(), RecipeManagerContext.getInstance().getRecipeManager())) {
                 if (base.has(PDComponents.FROM_ITEM)) {

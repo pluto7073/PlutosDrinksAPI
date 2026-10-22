@@ -106,7 +106,7 @@ public class SpecialtyDrink {
     }
 
     public ItemStack getBaseItem(ItemStack source, HolderLookup.Provider provider) {
-        ItemStack stack = base.buildItemStack();
+        ItemStack stack = base.buildItemStack(provider);
         DrinkAdditions baseAdditions = source.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY);
         var registry = provider.lookupOrThrow(PDRegistries.DRINK_ADDITION_KEY);
         List<Holder<DrinkAddition>> additions = Arrays.stream(steps)
@@ -151,7 +151,7 @@ public class SpecialtyDrink {
         }
 
         @Override
-        public ItemStack buildItemStack() {
+        public ItemStack buildItemStack(HolderLookup.Provider provider) {
             return new ItemStack(item);
         }
 
