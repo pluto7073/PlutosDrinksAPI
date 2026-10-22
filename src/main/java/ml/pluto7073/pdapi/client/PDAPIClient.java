@@ -33,7 +33,7 @@ public class PDAPIClient implements ClientModInitializer {
 
         MenuScreens.register(PDMenuTypes.WORKSTATION_MENU_TYPE, DrinkWorkstationScreen::new);
 
-        ColorProviderRegistry.ITEM.register((stack, index) -> index > 0 ? -1 : ColorUtil.getDrinkColor(stack, Minecraft.getInstance().level), PDItems.SPECIALTY_DRINK);
+        ColorProviderRegistry.ITEM.register((stack, index) -> index > 0 ? -1 : ColorUtil.getDrinkColor(stack), PDItems.SPECIALTY_DRINK);
         ColorProviderRegistry.ITEM.register((stack, index) -> index > 0 ? 0 : -1, PDItems.MUG);
         ColorProviderRegistry.BLOCK.register((state, getter, pos, index) -> index > 0 ? 0 : -1, PDBlocks.MUG);
 

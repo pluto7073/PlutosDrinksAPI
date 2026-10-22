@@ -1,8 +1,11 @@
 package ml.pluto7073.pdapi.util;
 
 import ml.pluto7073.pdapi.addition.DrinkAddition;
+import ml.pluto7073.pdapi.component.DrinkAdditions;
+import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.item.PDItems;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
@@ -56,27 +59,26 @@ public final class ColorUtil {
      * @param multiplicity How much influence the starting color has on the overall result. Effectively
      *                     how many times is the base color counted before the addition colors.  If equal to
      *                     0, the base color will only be used if there are no additions in the drink
-     * @param level The current level
      * @return An RGB int with the resulting color
      */
-    public static int getColorForDrinkWithDefault(ItemStack drink, int base, int multiplicity, Level level) {
-        DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(drink, level);
-        if (multiplicity == 0 && additions.length == 0) {
+    public static int getColorForDrinkWithDefault(ItemStack drink, int base, int multiplicity) {
+        DrinkAdditions additions = drink.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY);
+        if (multiplicity == 0 && additions.additions().isEmpty()) {
             return base;
         }
-        List<Integer> colors = Arrays.stream(additions).filter(DrinkAddition::changesColor)
-                .map(DrinkAddition::getColor).collect(Collectors.toCollection(ArrayList::new));
+        List<Integer> colors = additions.additions().stream().filter(h -> h.value().changesColor())
+                .map(h -> h.value().color()).collect(Collectors.toCollection(ArrayList::new));
         for (int i = 0; i < multiplicity; i++) {
             colors.addFirst(base);
         }
         return subtractiveMix(colors);
     }
 
-    public static int getDrinkColor(ItemStack stack, Level level) {
+    public static int getDrinkColor(ItemStack stack) {
         if (!stack.is(PDItems.SPECIALTY_DRINK)) return -1;
         try {
-            SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, level);
-            return drink.color();
+            Holder<SpecialtyDrink> drink = stack.getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY);
+            return 0xFF << 24 | drink.value().color();
         } catch (IllegalArgumentException e) {
             return EMPTY_SPECIALTY_DRINK;
         }
@@ -107,7 +109,7 @@ public final class ColorUtil {
             int red = (int) (255 * (1 - cyan) * (1 - key));
             int green = (int) (255 * (1 - magenta) * (1 - key));
             int blue = (int) (255 * (1 - yellow) * (1 - key));
-            return red << 16 | green << 8 | blue;
+            return 0xFF << 24 | red << 16 | green << 8 | blue;
         }
 
     }

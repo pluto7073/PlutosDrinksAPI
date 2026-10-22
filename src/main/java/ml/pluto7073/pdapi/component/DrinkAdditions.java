@@ -57,7 +57,7 @@ public record DrinkAdditions(List<Holder<DrinkAddition>> additions) implements T
             if (!addition.value().name().isEmpty()) {
                 tooltipAdder.accept(Component.literal(addition.value().name() + " x" + counts.get(addition)).withStyle(ChatFormatting.GRAY));
             } else {
-                tooltipAdder.accept(Component.translatable(addition.unwrapKey().orElseThrow().location().toLanguageKey("drink_addition")).withStyle(ChatFormatting.GRAY));
+                tooltipAdder.accept(Component.translatable(addition.unwrapKey().orElseThrow().location().toLanguageKey("drink_addition"), counts.get(addition)).withStyle(ChatFormatting.GRAY));
             }
         }
     }
