@@ -115,8 +115,7 @@ public class SpecialtyDrink {
     public ItemStack getBaseItem(ItemStack source) {
         ItemStack stack = base.buildItemStack();
         CompoundTag ogData = source.getOrCreateTagElement(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
-        CompoundTag newData = source.getOrCreateTag().copy();
-        newData.remove("Drink");
+        CompoundTag newData = stack.getOrCreateTag();
         CompoundTag drinkData = newData.getCompound(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY);
         ListTag list = new ListTag();
         for (ResourceLocation step : steps) {
@@ -124,7 +123,7 @@ public class SpecialtyDrink {
         }
         list.addAll(ogData.getList(DrinkAdditionManager.ADDITIONS_NBT_KEY, Tag.TAG_STRING));
         drinkData.put(DrinkAdditionManager.ADDITIONS_NBT_KEY, list);
-        stack.setTag(newData);
+        newData.put(AbstractCustomizableDrinkItem.DRINK_DATA_NBT_KEY, drinkData);
         return stack;
     }
 

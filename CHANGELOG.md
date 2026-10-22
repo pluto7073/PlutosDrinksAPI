@@ -1,4 +1,9 @@
 
+## Fixes
+- Specialty drinks not taking into account base drink data
+
+---
+
 ## Changes
 - Drink colors are now computed subtractively to get more accurate colors
 - To conform with Dynamic Registries in the 1.21.1 version, the `drink_additions` and `specialty_drinks`
