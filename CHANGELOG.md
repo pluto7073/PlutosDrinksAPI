@@ -1,5 +1,10 @@
 
 ## Fixes
+- Advancements triggered upon drinking customizable drinks don't trigger
+
+---
+
+## Fixes
 - Specialty drinks not taking into account base drink data
 
 ---

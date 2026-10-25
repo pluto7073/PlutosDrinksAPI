@@ -96,6 +96,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         Player player = user instanceof Player ? (Player) user : null;
         Item baseItem = baseItem(stack, world);
+        ItemStack stackCopy = stack.copy();
 
         if (player != null) {
             double sipped = stack.getOrCreateTag().getDouble("Sipped");
@@ -111,7 +112,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         if (!stack.isEmpty()) return stack;
 
         if (player instanceof ServerPlayer) {
-            CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer)player, stack);
+            CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer)player, stackCopy);
         }
 
         if (!world.isClientSide) {
