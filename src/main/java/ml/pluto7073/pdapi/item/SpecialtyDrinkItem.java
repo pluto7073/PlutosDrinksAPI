@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.item;
 
+import com.google.common.collect.Streams;
 import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.ChatFormatting;
@@ -18,6 +20,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @MethodsReturnNonnullByDefault
 public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
@@ -78,14 +81,10 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     }
 
     @Override
-    public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity user) {
+    protected Stream<OnDrinkAction> getActions(ItemStack stack, HolderLookup.Provider provider) {
         Holder<SpecialtyDrink> drink = stack.getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY);
-
-        ItemStack newStack = super.finishUsingItem(stack, level, user);
-
-        if (!level.isClientSide && newStack.isEmpty()) drink.value().actions(level.registryAccess()).forEach(action -> action.onDrink(stack, level, user));
-
-        return newStack;
+        return Streams.concat(drink.value().actions(provider).stream(),
+                super.getActions(stack, provider));
     }
 
     @Override

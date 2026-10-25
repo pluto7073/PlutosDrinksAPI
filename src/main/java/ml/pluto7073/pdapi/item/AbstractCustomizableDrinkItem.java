@@ -1,6 +1,8 @@
 package ml.pluto7073.pdapi.item;
 
+import com.google.common.collect.Streams;
 import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
 import ml.pluto7073.chemicals.item.ChemicalContaining;
@@ -22,7 +24,9 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 @MethodsReturnNonnullByDefault
 public abstract class AbstractCustomizableDrinkItem extends Item implements ChemicalContaining {
@@ -95,6 +99,10 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         return true;
     }
 
+    protected Stream<OnDrinkAction> getActions(ItemStack stack, HolderLookup.Provider provider) {
+        return stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions().stream().flatMap(addition -> addition.value().actions().stream());
+    }
+
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         Player player = user instanceof Player ? (Player) user : null;
@@ -102,13 +110,12 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         List<Holder<DrinkAddition>> additions = stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
 
         if (player != null) {
-            if (player.isShiftKeyDown() || !shouldSip(stack)) {
+            if (player.isShiftKeyDown() || !shouldSip(stack) || player.getAbilities().instabuild) {
                 stack.remove(PDComponents.SIPPED);
             } else {
                 double sipped = stack.getOrDefault(PDComponents.SIPPED, 0.0);
                 sipped += getSipAmount(stack, world.registryAccess());
                 if (sipped >= getTotalVolume(stack, world.registryAccess())) {
-                    stack.shrink(1);
                     stack.remove(PDComponents.SIPPED);
                 } else  {
                     stack.set(PDComponents.SIPPED, sipped);
@@ -123,9 +130,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         }
 
         if (!world.isClientSide) {
-            for (Holder<DrinkAddition> addition : additions) {
-                addition.value().onDrink(stack, world, user);
-            }
+            getActions(stack, world.registryAccess()).forEach(action -> action.onDrink(stack, world, user));
         }
 
         Item baseItem = baseItem(stack, world.registryAccess());
