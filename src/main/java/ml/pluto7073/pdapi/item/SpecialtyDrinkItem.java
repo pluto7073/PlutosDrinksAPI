@@ -73,9 +73,11 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity user) {
         SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, level);
 
-        if (!level.isClientSide) drink.actions(level).forEach(action -> action.onDrink(stack, level, user));
+        ItemStack newStack = super.finishUsingItem(stack, level, user);
 
-        return super.finishUsingItem(stack, level, user);
+        if (!level.isClientSide && newStack.isEmpty()) drink.actions(level).forEach(action -> action.onDrink(stack, level, user));
+
+        return newStack;
     }
 
     @Override

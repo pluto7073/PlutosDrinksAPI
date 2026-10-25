@@ -1,6 +1,7 @@
 
 ## Fixes
 - Advancements triggered upon drinking customizable drinks don't trigger
+- Specialty Drinks apply actions on each sip instead of after the drink is fully drank
 
 ---
 
