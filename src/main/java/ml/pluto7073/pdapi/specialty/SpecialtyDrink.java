@@ -5,6 +5,9 @@ import com.google.common.collect.Maps;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ml.pluto7073.chemicals.Chemicals;
+import ml.pluto7073.pdapi.addition.action.NoSipAction;
+import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
+import ml.pluto7073.pdapi.addition.action.OnDrinkSerializers;
 import ml.pluto7073.pdapi.item.SpecialtyDrinkItem;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.PDRegistries;
@@ -30,10 +33,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @MethodsReturnNonnullByDefault
 public class SpecialtyDrink {
@@ -90,6 +90,10 @@ public class SpecialtyDrink {
         }
         stepActions.addAll(List.of(actions));
         return ImmutableList.copyOf(stepActions);
+    }
+
+    public boolean noSip() {
+        return Arrays.stream(actions).anyMatch(action -> action.serializer() == OnDrinkSerializers.NO_SIP);
     }
 
     public double volume() {

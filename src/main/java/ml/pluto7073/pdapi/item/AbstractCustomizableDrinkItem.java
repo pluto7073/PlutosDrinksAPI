@@ -1,11 +1,15 @@
 package ml.pluto7073.pdapi.item;
 
 import ml.pluto7073.chemicals.item.ChemicalContaining;
+import ml.pluto7073.pdapi.PDAPI;
+import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,6 +27,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -61,8 +66,9 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     }
 
     @Override
-    public float getConsumedChemicalContent(ResourceLocation id, ItemStack stack, Level level) {
+    public float getConsumedChemicalContent(ResourceLocation id, Player player, ItemStack stack, Level level) {
         float amount = getChemicalContent(id, stack, level);
+        if (!shouldSip(stack, level) || player.isShiftKeyDown()) return amount;
         return (float) (getSipAmount(stack, level) / getTotalVolume(stack, level)) * amount;
     }
 
@@ -92,27 +98,32 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         return getTotalVolume(stack, level) > 10 ? 1 : 0.5;
     }
 
+    protected boolean shouldSip(ItemStack stack, Level level) {
+        return true;
+    }
+
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         Player player = user instanceof Player ? (Player) user : null;
-        Item baseItem = baseItem(stack, world);
-        ItemStack stackCopy = stack.copy();
 
         if (player != null) {
-            double sipped = stack.getOrCreateTag().getDouble("Sipped");
-            sipped += getSipAmount(stack, world);
-            if (sipped >= getTotalVolume(stack, world)) {
-                stack.shrink(1);
+            if (player.isShiftKeyDown() || !shouldSip(stack, world)) {
                 stack.getOrCreateTag().remove("Sipped");
-            } else  {
-                stack.getOrCreateTag().putDouble("Sipped", sipped);
+            } else {
+                double sipped = stack.getOrCreateTag().getDouble("Sipped");
+                sipped += getSipAmount(stack, world);
+                if (sipped >= getTotalVolume(stack, world)) {
+                    stack.getOrCreateTag().remove("Sipped");
+                } else  {
+                    stack.getOrCreateTag().putDouble("Sipped", sipped);
+                }
             }
         }
 
-        if (!stack.isEmpty()) return stack;
+        if (stack.getOrCreateTag().contains("Sipped")) return stack;
 
         if (player instanceof ServerPlayer) {
-            CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer)player, stackCopy);
+            CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer)player, stack);
         }
 
         if (!world.isClientSide) {
@@ -121,6 +132,8 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
                 addition.onDrink(stack, world, user);
             }
         }
+
+        Item baseItem = baseItem(stack, world);
 
         if (player != null) {
             player.awardStat(Stats.ITEM_USED.get(this));

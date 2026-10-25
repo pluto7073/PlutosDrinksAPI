@@ -30,6 +30,7 @@ repositories {
 	maven { url = "https://maven.parchmentmc.org" }
 	maven { url = "https://maven.quiltmc.org/repository/release" }
 	maven { url = "https://api.modrinth.com/maven" }
+	mavenLocal()
 }
 
 sourceSets {

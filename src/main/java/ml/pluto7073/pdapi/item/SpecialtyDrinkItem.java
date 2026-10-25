@@ -70,6 +70,12 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     }
 
     @Override
+    protected boolean shouldSip(ItemStack stack, Level level) {
+        SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, level);
+        return !drink.noSip();
+    }
+
+    @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity user) {
         SpecialtyDrink drink = DrinkUtil.getSpecialDrink(stack, level);
 

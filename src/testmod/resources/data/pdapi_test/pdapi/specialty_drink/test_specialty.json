@@ -8,7 +8,11 @@
     "pdapi:sugar",
     "pdapi_test:random_addition"
   ],
-  "onDrinkActions": [],
+  "onDrinkActions": [
+    {
+      "type": "pdapi:no_sip"
+    }
+  ],
   "chemicals": {},
   "name": "Testing Specialty Drink??",
   "volume": 13.25
