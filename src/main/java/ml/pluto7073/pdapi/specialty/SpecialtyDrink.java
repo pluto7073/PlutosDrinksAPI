@@ -8,6 +8,9 @@ import ml.pluto7073.chemicals.Chemicals;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import ml.pluto7073.pdapi.component.DrinkAdditions;
 import ml.pluto7073.pdapi.component.PDComponents;
+import ml.pluto7073.pdapi.addition.action.NoSipAction;
+import ml.pluto7073.pdapi.addition.action.OnDrinkSerializer;
+import ml.pluto7073.pdapi.addition.action.OnDrinkSerializers;
 import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.item.PDItems;
@@ -87,6 +90,10 @@ public class SpecialtyDrink {
         }
         stepActions.addAll(List.of(actions));
         return ImmutableList.copyOf(stepActions);
+    }
+
+    public boolean noSip() {
+        return Arrays.stream(actions).anyMatch(action -> action.serializer() == OnDrinkSerializers.NO_SIP);
     }
 
     public double volume() {

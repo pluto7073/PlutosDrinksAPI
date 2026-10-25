@@ -1,9 +1,7 @@
 package ml.pluto7073.pdapi.item;
 
 import ml.pluto7073.pdapi.PDAPI;
-import ml.pluto7073.pdapi.PDRegistries;
 import ml.pluto7073.pdapi.component.PDComponents;
-import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.specialty.SpecialtyDrink;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -18,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -75,12 +72,20 @@ public class SpecialtyDrinkItem extends AbstractCustomizableDrinkItem {
     }
 
     @Override
+    protected boolean shouldSip(ItemStack stack) {
+        Holder<SpecialtyDrink> drink = stack.getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY);
+        return !drink.value().noSip();
+    }
+
+    @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity user) {
         Holder<SpecialtyDrink> drink = stack.getOrDefault(PDComponents.SPECIALTY_DRINK, SpecialtyDrink.EMPTY);
 
-        if (!level.isClientSide) drink.value().actions(level.registryAccess()).forEach(action -> action.onDrink(stack, level, user));
+        ItemStack newStack = super.finishUsingItem(stack, level, user);
 
-        return super.finishUsingItem(stack, level, user);
+        if (!level.isClientSide && newStack.isEmpty()) drink.value().actions(level.registryAccess()).forEach(action -> action.onDrink(stack, level, user));
+
+        return newStack;
     }
 
     @Override

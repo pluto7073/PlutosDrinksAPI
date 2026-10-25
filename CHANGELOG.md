@@ -1,5 +1,15 @@
 
 ## Changes
+- Holding down the shift key will drink an entire drink without sipping it
+
+## Fixes
+- Advancements triggered upon drinking customizable drinks don't trigger
+- Specialty Drinks apply actions on each sip instead of after the drink is fully drank
+- No Sip Action doesn't work
+
+---
+
+## Changes
 - Updated to 1.21.1
 
 ---

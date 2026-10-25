@@ -59,8 +59,9 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
     }
 
     @Override
-    public float getConsumedChemicalContent(ResourceLocation id, ItemStack stack, Level level) {
+    public float getConsumedChemicalContent(ResourceLocation id, Player player, ItemStack stack, Level level) {
         float amount = getChemicalContent(id, stack, level);
+        if (!shouldSip(stack) || player.isShiftKeyDown()) return amount;
         return (float) (getSipAmount(stack, level.registryAccess()) / getTotalVolume(stack, level.registryAccess())) * amount;
     }
 
@@ -90,25 +91,32 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         return getTotalVolume(stack, provider) > 10 ? 1 : 0.5;
     }
 
+    protected boolean shouldSip(ItemStack stack) {
+        return true;
+    }
+
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         Player player = user instanceof Player ? (Player) user : null;
-        Item baseItem = baseItem(stack, world.registryAccess());
 
         List<Holder<DrinkAddition>> additions = stack.getOrDefault(PDComponents.ADDITIONS, DrinkAdditions.EMPTY).additions();
 
         if (player != null) {
-            double sipped = stack.getOrDefault(PDComponents.SIPPED, 0.0);
-            sipped += getSipAmount(stack, world.registryAccess());
-            if (sipped >= getTotalVolume(stack, world.registryAccess())) {
-                stack.shrink(1);
+            if (player.isShiftKeyDown() || !shouldSip(stack)) {
                 stack.remove(PDComponents.SIPPED);
-            } else  {
-                stack.set(PDComponents.SIPPED, sipped);
+            } else {
+                double sipped = stack.getOrDefault(PDComponents.SIPPED, 0.0);
+                sipped += getSipAmount(stack, world.registryAccess());
+                if (sipped >= getTotalVolume(stack, world.registryAccess())) {
+                    stack.shrink(1);
+                    stack.remove(PDComponents.SIPPED);
+                } else  {
+                    stack.set(PDComponents.SIPPED, sipped);
+                }
             }
         }
 
-        if (!stack.isEmpty()) return stack;
+        if (stack.get(PDComponents.SIPPED) != null) return stack;
 
         if (player instanceof ServerPlayer) {
             CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer)player, stack);
@@ -119,6 +127,8 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
                 addition.value().onDrink(stack, world, user);
             }
         }
+
+        Item baseItem = baseItem(stack, world.registryAccess());
 
         if (player != null) {
             player.awardStat(Stats.ITEM_USED.get(this));

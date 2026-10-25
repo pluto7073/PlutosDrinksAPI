@@ -12,6 +12,9 @@
     {
       "type": "pdapi:chorus_teleport",
       "maxRadius": 10
+    },
+    {
+      "type": "pdapi:no_sip"
     }
   ],
   "chemicals": {},
