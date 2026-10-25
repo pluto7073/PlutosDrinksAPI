@@ -6,7 +6,7 @@
   "onDrinkActions": [
     {
       "type": "pdapi:chorus_teleport",
-      "radius": 20
+      "maxRadius": 20
     }
   ]
 }

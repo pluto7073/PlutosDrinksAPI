@@ -1,4 +1,9 @@
 
+## Fixes
+- Drink actions aren't applied for Specialty Drinks
+
+---
+
 ## Changes
 - Holding down the shift key will drink an entire drink without sipping it
 

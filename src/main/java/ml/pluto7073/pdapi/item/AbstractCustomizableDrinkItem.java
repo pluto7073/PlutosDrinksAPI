@@ -1,8 +1,10 @@
 package ml.pluto7073.pdapi.item;
 
+import com.google.common.collect.Streams;
 import ml.pluto7073.chemicals.item.ChemicalContaining;
 import ml.pluto7073.pdapi.PDAPI;
 import ml.pluto7073.pdapi.addition.DrinkAdditionManager;
+import ml.pluto7073.pdapi.addition.action.OnDrinkAction;
 import ml.pluto7073.pdapi.util.DrinkUtil;
 import ml.pluto7073.pdapi.addition.DrinkAddition;
 import net.minecraft.ChatFormatting;
@@ -28,8 +30,10 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 @MethodsReturnNonnullByDefault
 public abstract class AbstractCustomizableDrinkItem extends Item implements ChemicalContaining {
@@ -102,12 +106,16 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         return true;
     }
 
+    protected Stream<OnDrinkAction> getActions(ItemStack stack, Level level) {
+        return Arrays.stream(DrinkUtil.getAdditionsFromStack(stack, level)).flatMap(addition -> addition.actions().stream());
+    }
+
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         Player player = user instanceof Player ? (Player) user : null;
 
         if (player != null) {
-            if (player.isShiftKeyDown() || !shouldSip(stack, world)) {
+            if (player.isShiftKeyDown() || !shouldSip(stack, world) || player.getAbilities().instabuild) {
                 stack.getOrCreateTag().remove("Sipped");
             } else {
                 double sipped = stack.getOrCreateTag().getDouble("Sipped");
@@ -127,10 +135,7 @@ public abstract class AbstractCustomizableDrinkItem extends Item implements Chem
         }
 
         if (!world.isClientSide) {
-            DrinkAddition[] additions = DrinkUtil.getAdditionsFromStack(stack, world);
-            for (DrinkAddition addition : additions) {
-                addition.onDrink(stack, world, user);
-            }
+            getActions(stack, world).forEach(action -> action.onDrink(stack, world, user));
         }
 
         Item baseItem = baseItem(stack, world);
